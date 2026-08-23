@@ -15,6 +15,8 @@ REQUIRED = (
     "docs/architecture/simulation-contract.md",
     "docs/architecture/agent-contract.md",
     "docs/architecture/evaluation.md",
+    "docs/architecture/model.odd.md",
+    "docs/research/simulation-terms.md",
     "docs/design/ui-contract.md",
     "docs/knowledge/README.md",
     "docs/knowledge/sources.md",
@@ -29,6 +31,7 @@ REQUIRED = (
     "docs/adr/ADR-003-agent-depth.md",
     "docs/adr/ADR-004-deterministic-core.md",
     "docs/adr/ADR-005-ui-as-lab.md",
+    "docs/adr/ADR-006-replayable-experiment-loop.md",
 )
 
 
