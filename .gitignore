@@ -1,0 +1,23 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*_iam.json
+*_svc.json
+
+# Third-party source material and local captures
+sources/
+raw/
+ocr/
+pages/
+scans/
+*.zip
+*.cbz
+*.cbr
+
+# Local outputs
+__pycache__/
+*.py[cod]
+.pytest_cache/
