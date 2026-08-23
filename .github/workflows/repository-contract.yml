@@ -1,0 +1,49 @@
+name: repository-contract
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  repository-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.13"
+
+      - name: Fetch pinned repo-preflight
+        run: |
+          git clone --no-checkout https://github.com/nexus-ai-2045/repo-preflight.git .tools/repo-preflight
+          git -C .tools/repo-preflight checkout --detach b63a0afbda4eaa1ca7970355c41bf6fd73a52a32
+          test "$(git -C .tools/repo-preflight rev-parse HEAD)" = "b63a0afbda4eaa1ca7970355c41bf6fd73a52a32"
+
+      - name: Check repository preflight
+        run: python .tools/repo-preflight/scripts/readiness_scan.py --repo .
+
+      - name: Check declared repository consistency
+        run: |
+          python .tools/repo-preflight/scripts/consistency_gate.py \
+            --repo . \
+            --base-ref "refs/remotes/origin/${{ github.base_ref }}" \
+            --require-config \
+            --json
+
+      - name: Install pinned ai-ratchet-gate wheel
+        run: |
+          curl --fail --location --silent --show-error \
+            --output /tmp/ai_ratchet_gate-0.1.1-py3-none-any.whl \
+            https://github.com/nexus-ai-2045/ai-ratchet-gate/releases/download/v0.1.1/ai_ratchet_gate-0.1.1-py3-none-any.whl
+          echo "b3f22ab772699d57906326e42189e0ab7a0ee9e33dcad55a90909ece35106cd7  /tmp/ai_ratchet_gate-0.1.1-py3-none-any.whl" | sha256sum --check --strict
+          python -m pip install --disable-pip-version-check --no-deps /tmp/ai_ratchet_gate-0.1.1-py3-none-any.whl
+
+      - name: Check tracked-and-ignored ratchet
+        run: ai-ratchet-gate --repo .
