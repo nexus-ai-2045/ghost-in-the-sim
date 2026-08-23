@@ -6,17 +6,20 @@ on:
 permissions:
   contents: read
 
+# 候補head自身が変更できる補助検査。信頼境界は
+# repository-contract-trusted.yml のbase側advisory監査が担う。
+
 jobs:
   repository-contract:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout pull request
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
 
@@ -30,7 +33,7 @@ jobs:
         run: |
           python "$RUNNER_TEMP/repo-preflight/scripts/readiness_scan.py" \
             --repo . \
-            --base-ref "refs/remotes/origin/${{ github.base_ref }}"
+            --consistency-base-ref "refs/remotes/origin/${{ github.base_ref }}"
 
       - name: Check declared repository consistency
         run: |
@@ -50,3 +53,6 @@ jobs:
 
       - name: Check tracked-and-ignored ratchet
         run: ai-ratchet-gate --repo .
+
+      - name: Check repository gate distribution
+        run: python tests/check_repository_gates.py

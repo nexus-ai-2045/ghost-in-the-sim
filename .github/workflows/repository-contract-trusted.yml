@@ -1,0 +1,107 @@
+name: repository-contract-trusted
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "再検査するPR番号"
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  trusted-contract:
+    name: 信頼済みbaseから候補を監査（advisory）
+    runs-on: ubuntu-latest
+    steps:
+      - name: PRのbase/head SHAを解決
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request_target" ]]; then
+            {
+              echo "base_sha=${{ github.event.pull_request.base.sha }}"
+              echo "head_sha=${{ github.event.pull_request.head.sha }}"
+              echo "pr_number=${{ github.event.pull_request.number }}"
+            } >> "$GITHUB_OUTPUT"
+          else
+            gh api "repos/$REPOSITORY/pulls/$PR_NUMBER" --jq \
+              '"base_sha=" + .base.sha, "head_sha=" + .head.sha, "pr_number=" + (.number|tostring)' \
+              >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 信頼済みbaseを取得
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.pr.outputs.base_sha }}
+          path: trusted-base
+          persist-credentials: false
+
+      - name: 提案headを取得（実行しない）
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/pull/${{ steps.pr.outputs.pr_number }}/head
+          path: candidate
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 取得したheadを照合
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ steps.pr.outputs.head_sha }}
+          BASE_SHA: ${{ steps.pr.outputs.base_sha }}
+        working-directory: candidate
+        run: |
+          set -Eeuo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          git cat-file -e "$BASE_SHA^{commit}"
+
+      - name: 信頼済みbaseの検査器で保護ファイルを照合
+        working-directory: trusted-base
+        run: >-
+          python scripts/check_repository_contract.py
+          --base-root "$GITHUB_WORKSPACE/trusted-base"
+          --candidate-root "$GITHUB_WORKSPACE/candidate"
+
+      - name: pinned repo-preflightを取得
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git clone --no-checkout https://github.com/nexus-ai-2045/repo-preflight.git "$RUNNER_TEMP/repo-preflight"
+          git -C "$RUNNER_TEMP/repo-preflight" checkout --detach b63a0afbda4eaa1ca7970355c41bf6fd73a52a32
+          test "$(git -C "$RUNNER_TEMP/repo-preflight" rev-parse HEAD)" = "b63a0afbda4eaa1ca7970355c41bf6fd73a52a32"
+
+      - name: 信頼済み検査器で候補のrepo契約を確認
+        env:
+          BASE_SHA: ${{ steps.pr.outputs.base_sha }}
+        run: |
+          set -Eeuo pipefail
+          python "$RUNNER_TEMP/repo-preflight/scripts/readiness_scan.py" \
+            --repo "$GITHUB_WORKSPACE/candidate" \
+            --consistency-base-ref "$BASE_SHA"
+          python "$RUNNER_TEMP/repo-preflight/scripts/consistency_gate.py" \
+            --repo "$GITHUB_WORKSPACE/candidate" \
+            --base-ref "$BASE_SHA" \
+            --require-config \
+            --json
+
+      - name: pinned ai-ratchet-gateで候補を確認
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          curl --fail --location --silent --show-error \
+            --output /tmp/ai_ratchet_gate-0.1.1-py3-none-any.whl \
+            https://github.com/nexus-ai-2045/ai-ratchet-gate/releases/download/v0.1.1/ai_ratchet_gate-0.1.1-py3-none-any.whl
+          echo "b3f22ab772699d57906326e42189e0ab7a0ee9e33dcad55a90909ece35106cd7  /tmp/ai_ratchet_gate-0.1.1-py3-none-any.whl" | sha256sum --check --strict
+          python -m pip install --disable-pip-version-check --no-deps /tmp/ai_ratchet_gate-0.1.1-py3-none-any.whl
+          ai-ratchet-gate --repo "$GITHUB_WORKSPACE/candidate"
