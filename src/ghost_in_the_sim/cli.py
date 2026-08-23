@@ -32,7 +32,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="架空シナリオの決定論的比較実験を実行します")
     parser.add_argument("--condition", choices=[item.value for item in Condition], required=True)
     parser.add_argument("--seed", type=int, required=True)
-    parser.add_argument("--turn-limit", type=int, default=6)
+    parser.add_argument("--turn-limit", type=int, default=12)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     result = run_experiment(condition=args.condition, seed=args.seed, turn_limit=args.turn_limit)

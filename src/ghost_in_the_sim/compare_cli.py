@@ -15,7 +15,7 @@ def main() -> int:
     parser.add_argument("--baseline", choices=[item.value for item in Condition], required=True)
     parser.add_argument("--candidate", choices=[item.value for item in Condition], required=True)
     parser.add_argument("--seed", type=int, required=True)
-    parser.add_argument("--turn-limit", type=int, default=6)
+    parser.add_argument("--turn-limit", type=int, default=12)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     comparison = compare_conditions(
@@ -29,6 +29,10 @@ def main() -> int:
         "seed": comparison.seed,
         "baseline": comparison.baseline.manifest(),
         "candidate": comparison.candidate.manifest(),
+        "operands": {
+            "baseline_metrics": comparison.baseline.metrics,
+            "candidate_metrics": comparison.candidate.metrics,
+        },
         "deltas": comparison.deltas,
         "interpretation_boundary": "仮定下の比較であり、現実予測や政策推奨ではない。",
     }
