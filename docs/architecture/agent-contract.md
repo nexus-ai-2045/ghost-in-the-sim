@@ -28,6 +28,10 @@ constraints:
   - 個人情報を扱わない
 beliefs:
   disruption_cause: {value: "unknown", confidence: 0.28}
+reservations:
+  - 独立確認がない
+refutation_conditions:
+  - 独立した二経路が同じ原因を示した場合は原因仮説を更新する
 ```
 
 ## 必須の状態
@@ -50,16 +54,20 @@ beliefs:
 ```json
 {
   "interpretation": "観測から言える範囲",
-  "confidence": 0.0,
+  "confidence": 0.42,
   "reservation": "不足している情報または反証条件",
   "question": "他主体へ確認する一点",
-  "proposal": "抽象行動",
+  "proposal": {
+    "action_type": "request_verification",
+    "arguments": {"observation_id": "obs-01"},
+    "explanation": "独立確認が不足しているため"
+  },
   "reversibility": "high|medium|low",
   "evidence_refs": ["obs-01"]
 }
 ```
 
-`confidence` と `reservation` の両方を必須にし、流暢な断定を根拠の代替にしない。
+`confidence` は `0.0` 以上 `1.0` 以下の有限数とし、`reservation` とともに必須にする。`proposal.action_type` と `proposal.arguments` は許可済みポリシーへ照合し、自由文の説明だけで行動を許可しない。スキーマ違反、範囲外の確信度、未登録の行動は棄却して監査ログへ残す。
 
 ## 相互作用
 

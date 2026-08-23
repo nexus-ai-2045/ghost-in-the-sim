@@ -4,7 +4,7 @@
 
 | reference_id | 種別 | 使った判断 | 状態 |
 |---|---|---|---|
-| application-0165 | 通常参加表明 | 応募時テーマ文、参加者番号 `0165` | recorded |
+| application-theme-submission | 通常参加表明 | 応募時テーマ文。個別の参加者番号は公開索引に保持しない | recorded |
 | ghost-in-the-sim-design-2026-08-24 | Codex設計作業 | MVP、主体モデル、比較実験、ADR | reflected |
 
 個人情報、Discordやメールの本文、認証情報、ローカル絶対パスをここへ保存しない。
