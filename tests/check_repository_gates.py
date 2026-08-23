@@ -29,6 +29,8 @@ def main() -> int:
         "refs/pull/",
         "persist-credentials: false",
         "scripts/check_repository_contract.py",
+        "--intent open_pr",
+        "--base-ref",
         "--base-root",
         "--candidate-root",
         "advisory",

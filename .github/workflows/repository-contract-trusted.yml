@@ -88,7 +88,8 @@ jobs:
           set -Eeuo pipefail
           python "$RUNNER_TEMP/repo-preflight/scripts/readiness_scan.py" \
             --repo "$GITHUB_WORKSPACE/candidate" \
-            --consistency-base-ref "$BASE_SHA"
+            --intent open_pr \
+            --base-ref "$BASE_SHA"
           python "$RUNNER_TEMP/repo-preflight/scripts/consistency_gate.py" \
             --repo "$GITHUB_WORKSPACE/candidate" \
             --base-ref "$BASE_SHA" \

@@ -33,7 +33,8 @@ jobs:
         run: |
           python "$RUNNER_TEMP/repo-preflight/scripts/readiness_scan.py" \
             --repo . \
-            --consistency-base-ref "refs/remotes/origin/${{ github.base_ref }}"
+            --intent open_pr \
+            --base-ref "refs/remotes/origin/${{ github.base_ref }}"
 
       - name: Check declared repository consistency
         run: |
