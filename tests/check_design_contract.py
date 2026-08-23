@@ -29,7 +29,7 @@ REQUIRED = (
     "docs/adr/ADR-003-agent-depth.md",
     "docs/adr/ADR-004-deterministic-core.md",
     "docs/adr/ADR-005-ui-as-lab.md",
-    "docs/adr/ADR-006-source-and-name-boundary.md",
+    "docs/adr/ADR-007-source-and-name-boundary.md",
 )
 
 
