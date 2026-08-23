@@ -13,6 +13,7 @@
 3. [エージェント契約](docs/architecture/agent-contract.md) — 単純な役職ではない主体モデル
 4. [画面・可視化仕様](docs/design/ui-contract.md) — 将来のWebアプリで何を見せ、何を操作するか
 5. [意思決定記録](docs/adr/) — 設計上の選択と却下した代案
+6. [PRセルフレビュー](docs/pr-self-review.md) — 横断的な再発防止ルールに沿った変更前確認
 
 ## 問い
 
@@ -62,6 +63,7 @@ UI仕様は [画面・可視化仕様](docs/design/ui-contract.md)、実装順�
 4. [RESULTS.md](RESULTS.md) に実験の前提、結果、反証、限界を記録する。
 
 - 貢献方法: [CONTRIBUTING.md](CONTRIBUTING.md)
+- PR前の再発防止確認: [PRセルフレビュー](docs/pr-self-review.md)（生成物。手編集しない）
 - セキュリティ連絡: [SECURITY.md](SECURITY.md)
 - 公開準備: [PREFLIGHT.md](PREFLIGHT.md) / [PUBLIC_READY.md](PUBLIC_READY.md)
 
