@@ -22,16 +22,16 @@ jobs:
 
       - name: Fetch pinned repo-preflight
         run: |
-          git clone --no-checkout https://github.com/nexus-ai-2045/repo-preflight.git .tools/repo-preflight
-          git -C .tools/repo-preflight checkout --detach b63a0afbda4eaa1ca7970355c41bf6fd73a52a32
-          test "$(git -C .tools/repo-preflight rev-parse HEAD)" = "b63a0afbda4eaa1ca7970355c41bf6fd73a52a32"
+          git clone --no-checkout https://github.com/nexus-ai-2045/repo-preflight.git "$RUNNER_TEMP/repo-preflight"
+          git -C "$RUNNER_TEMP/repo-preflight" checkout --detach b63a0afbda4eaa1ca7970355c41bf6fd73a52a32
+          test "$(git -C "$RUNNER_TEMP/repo-preflight" rev-parse HEAD)" = "b63a0afbda4eaa1ca7970355c41bf6fd73a52a32"
 
       - name: Check repository preflight
-        run: python .tools/repo-preflight/scripts/readiness_scan.py --repo .
+        run: python "$RUNNER_TEMP/repo-preflight/scripts/readiness_scan.py" --repo .
 
       - name: Check declared repository consistency
         run: |
-          python .tools/repo-preflight/scripts/consistency_gate.py \
+          python "$RUNNER_TEMP/repo-preflight/scripts/consistency_gate.py" \
             --repo . \
             --base-ref "refs/remotes/origin/${{ github.base_ref }}" \
             --require-config \
