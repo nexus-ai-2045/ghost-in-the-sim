@@ -19,6 +19,6 @@
 
 ## 確認待ち
 
-- 片山氏コンセプトペーパー Version 1.0 の公開URLと引用条件
+- 片山氏コンセプトペーパーの公開URL、正式な版番号、引用条件
 - 人間による表示・履歴レビュー
 - `gh repo edit nexus-ai-2045/ghost-in-the-sim --visibility public` の明示承認
