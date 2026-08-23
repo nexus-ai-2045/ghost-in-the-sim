@@ -2,7 +2,9 @@
 
 ## 比較の単位
 
-1 run は `scenario_id × seed × condition_id × model_config` で一意にする。同じseed集合を条件A/B/Cすべてで走らせ、条件間で初期条件を変えない。
+1 run は `scenario_id × seed × condition_id × model_config × prompt_version_or_hash × code_version` で一意にする。これらを正規化した値から `run_id` を生成し、実行日時は識別子ではなく監査メタデータとして分離する。
+
+同じseed集合を条件A/B/Cすべてで走らせ、条件間で初期条件を変えない。外生事象列は `scenario_id × seed` だけから事前生成し、条件固有の主体判断に使う乱数列とは分離する。これにより、ある条件で乱数を多く消費しても、別条件の災害・障害発生順がずれないようにする。
 
 ## 指標
 

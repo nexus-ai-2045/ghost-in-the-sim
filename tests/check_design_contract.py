@@ -5,6 +5,7 @@ from __future__ import annotations
 from hashlib import sha256
 from pathlib import Path
 import re
+from urllib.parse import unquote, urlsplit
 
 
 REQUIRED = (
@@ -44,7 +45,11 @@ def main() -> int:
         "docs/architecture/agent-contract.md",
         "docs/design/ui-contract.md",
     )
-    absent_links = [link for link in required_links if link not in readme]
+    destinations = {
+        unquote(urlsplit(match.group(1).strip().strip("<>")).path).lstrip("./")
+        for match in re.finditer(r"(?<!!)\[[^\]]+\]\(([^)\s]+)(?:\s+['\"][^'\"]*['\"])?\)", readme)
+    }
+    absent_links = [link for link in required_links if link not in destinations]
     if absent_links:
         raise SystemExit("design-contract: FAIL\nREADME links missing:\n" + "\n".join(absent_links))
     review_document = (root / "docs/pr-self-review.md").read_text(encoding="utf-8")
@@ -75,6 +80,24 @@ def main() -> int:
         raise SystemExit(
             "design-contract: FAIL\n研究統合契約の必須語がありません:\n" + "\n".join(missing_research_terms)
         )
+    simulation_contract = (root / "docs/architecture/simulation-contract.md").read_text(encoding="utf-8")
+    agent_contract = (root / "docs/architecture/agent-contract.md").read_text(encoding="utf-8")
+    evaluation = (root / "docs/architecture/evaluation.md").read_text(encoding="utf-8")
+    results = (root / "RESULTS.md").read_text(encoding="utf-8")
+    contract_terms = {
+        "共通の分析ホライズン": simulation_contract,
+        "外生事象用と条件固有判断用の乱数ストリーム": simulation_contract,
+        '"state_before_ref"': simulation_contract,
+        '"reversibility": "high"': simulation_contract,
+        '"action_type": "request_verification"': agent_contract,
+        "0.0` 以上 `1.0` 以下": agent_contract,
+        "prompt_version_or_hash": evaluation,
+        "code_version": evaluation,
+        "| 過剰開示 |": results,
+    }
+    absent_terms = [term for term, document in contract_terms.items() if term not in document]
+    if absent_terms:
+        raise SystemExit("design-contract: FAIL\n設計契約の必須語がありません:\n" + "\n".join(absent_terms))
     print("design-contract: PASS")
     return 0
 
