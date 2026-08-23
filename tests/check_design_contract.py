@@ -32,6 +32,7 @@ REQUIRED = (
     "docs/adr/ADR-004-deterministic-core.md",
     "docs/adr/ADR-005-ui-as-lab.md",
     "docs/adr/ADR-006-replayable-experiment-loop.md",
+    "docs/adr/ADR-007-source-and-name-boundary.md",
 )
 
 
@@ -86,6 +87,24 @@ def main() -> int:
     absent_terms = [term for term, document in contract_terms.items() if term not in document]
     if absent_terms:
         raise SystemExit("design-contract: FAIL\n設計契約の必須語がありません:\n" + "\n".join(absent_terms))
+
+    public_documents = "\n".join(
+        (root / relative).read_text(encoding="utf-8")
+        for relative in (
+            "README.md",
+            "THIRD_PARTY_NOTICES.md",
+            "PUBLIC_READY.md",
+            "docs/knowledge/sources.md",
+        )
+    )
+    forbidden_claims = ("Version 1.0", "katayama-meta-security-v1", "application-0165")
+    leaked_claims = [term for term in forbidden_claims if term in public_documents]
+    if leaked_claims:
+        raise SystemExit("design-contract: FAIL\n未確認または非公開の識別子があります:\n" + "\n".join(leaked_claims))
+    required_boundaries = ("正式な版番号", "第三者作品の地名・設定を再現せず")
+    missing_boundaries = [term for term in required_boundaries if term not in public_documents]
+    if missing_boundaries:
+        raise SystemExit("design-contract: FAIL\n公開境界の説明がありません:\n" + "\n".join(missing_boundaries))
     print("design-contract: PASS")
     return 0
 
