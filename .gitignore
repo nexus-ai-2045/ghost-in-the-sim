@@ -21,3 +21,5 @@ scans/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.pytest-tmp-*/
+artifacts/
