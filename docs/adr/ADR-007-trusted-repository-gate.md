@@ -15,6 +15,7 @@
 2. `repository-contract-trusted.yml`はread-only権限でbaseと候補を別ディレクトリへ取得し、候補コードを実行しない。
 3. verifier、両workflow、consistency設定はbaseとbyte単位で一致する場合だけ通常PRとして受け入れる。変更は別のbootstrap PRとして人間レビューする。
 4. repo-preflightとai-ratchet-gateはbase側workflowに固定したrevision・digestから実行し、候補treeをデータとして検査する。
+   repo-preflightの差分基準には生SHAを直接渡さず、照合済みbase SHAを候補clone内の専用remote-tracking refへ固定して渡す。
 5. trusted runは**advisory**であり、required check、merge許可、公開承認を意味しない。
 
 ## Consequences

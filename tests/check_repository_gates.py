@@ -30,7 +30,9 @@ def main() -> int:
         "persist-credentials: false",
         "scripts/check_repository_contract.py",
         "--intent open_pr",
-        "--base-ref",
+        "update-ref \\",
+        'refs/remotes/origin/trusted-base "$BASE_SHA"',
+        "--base-ref refs/remotes/origin/trusted-base",
         "--base-root",
         "--candidate-root",
         "advisory",
@@ -38,6 +40,8 @@ def main() -> int:
     missing = [fragment for fragment in required_fragments if fragment not in workflow]
     if missing:
         raise SystemExit("repository-gates: FAIL\n" + "\n".join(missing))
+    if '--base-ref "$BASE_SHA"' in workflow:
+        raise SystemExit("repository-gates: FAIL\n生SHAをbase-refへ直接渡しています")
 
     verifier = load_verifier()
     with tempfile.TemporaryDirectory() as temp:
