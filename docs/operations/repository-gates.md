@@ -33,3 +33,5 @@ baselineの更新、workflowの弱体化、CIのskip、公開・merge・release�
 候補側の`repository-contract.yml`は、PR自身が変更できるため補助検査である。信頼境界は`pull_request_target`で動く`repository-contract-trusted.yml`が担い、信頼済みbaseの検査器だけで候補treeをデータとして読む。候補のスクリプトは実行しない。
 
 trusted workflow、候補側workflow、検査器、consistency設定を変更するPRは自動承認しない。初回導入と更新はbootstrap扱いの人間レビューを必要とする。詳細は[ADR-007](../adr/ADR-007-trusted-repository-gate.md)を参照する。
+
+trusted workflowが差分基準を渡す際は、イベントで確定したbase SHAを候補clone内の専用remote-tracking refへ固定し、readbackしてから使う。`origin/main`のような可動refや生SHAを直接渡さず、実行中のbase driftと検査器契約の不一致を同時に防ぐ。

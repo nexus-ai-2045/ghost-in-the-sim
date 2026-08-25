@@ -86,13 +86,16 @@ jobs:
           BASE_SHA: ${{ steps.pr.outputs.base_sha }}
         run: |
           set -Eeuo pipefail
+          git -C "$GITHUB_WORKSPACE/candidate" update-ref \
+            refs/remotes/origin/trusted-base "$BASE_SHA"
+          test "$(git -C "$GITHUB_WORKSPACE/candidate" rev-parse refs/remotes/origin/trusted-base)" = "$BASE_SHA"
           python "$RUNNER_TEMP/repo-preflight/scripts/readiness_scan.py" \
             --repo "$GITHUB_WORKSPACE/candidate" \
             --intent open_pr \
-            --base-ref "$BASE_SHA"
+            --base-ref refs/remotes/origin/trusted-base
           python "$RUNNER_TEMP/repo-preflight/scripts/consistency_gate.py" \
             --repo "$GITHUB_WORKSPACE/candidate" \
-            --base-ref "$BASE_SHA" \
+            --base-ref refs/remotes/origin/trusted-base \
             --require-config \
             --json
 
