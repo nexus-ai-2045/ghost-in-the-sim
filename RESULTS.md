@@ -20,9 +20,25 @@
 | Python | `3.12.3` |
 | 実行環境 | Linux / `PYTHONPATH=src` |
 
+## 測定物と評価契約の境界
+
+`docs/architecture/evaluation.md` の契約指標（ターン比率・整合・ノード停止損失・開示回数など）は、現行コアでは**未実装**である。
+
+本記録の数値は `engine._metrics()` が返す**状態プロキシ／イベント派生値**であり、契約指標そのものではない。同名・類似名で並べても、契約どおりの算出ではない。契約実装後に再実行して差し替える。
+
+| 記録キー | 実際の定義（現行コア） | 契約指標との関係 |
+|---|---|---|
+| `continuity` | 最終 `WorldState.continuity` | 生活継続（維持ターン比率）の**プロキシではない代替**。最終スカラーのみ |
+| `evidence_calibration` | 最終 `WorldState.evidence_quality` | 証拠校正（確信度と後続検証の整合）の**未実装**。最終スカラーのみ |
+| `correction_turn` | 最初の `issue_correction` ターン（なければ turn_limit+1） | 訂正時間に**近いイベント派生**。誤共有の訂正完了判定は未実装 |
+| `dissent_reach` | `dissent_delivered / dissent_raised` | 異議到達率に**近いイベント派生** |
+| `coordination_dependence` | 最終 `WorldState.coordination_dependence` | 調整依存（単一ノード停止損失）の**未実装**。最終スカラーのみ |
+| `over_disclosure` | 最終 `WorldState.disclosure_pressure` | 過剰開示（必要性超過の共有回数）の**未実装**。最終スカラーのみ |
+| `public_trust` | 最終 `WorldState.public_trust` | 契約表外の補助状態 |
+
 ## 実行コマンド
 
-ローカル出力は `artifacts/`（追跡しない）。再実行で同じ指標になることを確認済み。
+ローカル出力は `artifacts/`（追跡しない）。再実行で同じ出力になることを確認済み。
 
 ```bash
 export PYTHONPATH=src
@@ -40,21 +56,21 @@ python3 -m ghost_in_the_sim.compare_cli --baseline centralized --candidate plura
 | B plural | `run-846792cc60bb` | `turn_limit_reached` | 12 |
 | C overconnected | `run-46bb5ac9a8a3` | `turn_limit_reached` | 12 |
 
-## 結果
+## 結果（状態プロキシ／イベント派生・契約指標ではない）
 
-指標は最終状態とイベント列から算出した実測値。総合点は作らない。
+総合点は作らない。列名の日本語は参照用であり、契約指標の達成を意味しない。設計契約検査用に `| 過剰開示 |` 行を残す。
 
-| 指標 | 条件A centralized | 条件B plural | 条件C overconnected | 解釈（仮定下） |
+| 記録キー（日本語参照名） | 条件A centralized | 条件B plural | 条件C overconnected | 読み（仮定下・プロキシ比較） |
 |---|---:|---:|---:|---|
-| 生活継続 | 0.97907 | 0.70307 | 0.78707 | Aが最も高い。Bは証拠・異議と引き換えに継続が下がる（`continuity`） |
-| 証拠校正 | 0.449538 | 1.0 | 0.341538 | Bが上限。Cが最も低い（`evidence_calibration`） |
-| 訂正時間 | 4.0 | 2.0 | 6.0 | 低いほど早い。Bが最速、Cが最遅（`correction_turn`） |
-| 異議到達率 | 0.083333 | 1.0 | 0.083333 | Bのみ全異議が到達。A/Cは低い（`dissent_reach`） |
-| 調整依存 | 1.0 | 0.0 | 0.218753 | Aが上限依存。Bは依存を消す方向（`coordination_dependence`） |
-| 過剰開示 | 0.673283 | 0.205283 | 1.0 | Cが上限。Bが最も低い（`over_disclosure`） |
-| 参考: 公共信頼 | 0.31973 | 0.73973 | 0.07973 | Bが高く、Cが最も低い（`public_trust`、評価表の補助指標） |
+| 生活継続プロキシ (`continuity`) | 0.97907 | 0.70307 | 0.78707 | Aの最終継続スカラーが最も高い |
+| 証拠品質プロキシ (`evidence_calibration`) | 0.449538 | 1.0 | 0.341538 | Bが上限。校正整合の計測ではない |
+| 初回訂正ターン (`correction_turn`) | 4.0 | 2.0 | 6.0 | イベント派生。低いほど初回訂正が早い |
+| 異議配信比 (`dissent_reach`) | 0.083333 | 1.0 | 0.083333 | イベント派生。Bのみ全件配信 |
+| 調整依存プロキシ (`coordination_dependence`) | 1.0 | 0.0 | 0.218753 | 最終スカラー。ノード停止損失ではない |
+| 過剰開示 | 0.673283 | 0.205283 | 1.0 | 開示圧の最終スカラー（`over_disclosure`）。共有回数ではない |
+| 公共信頼プロキシ (`public_trust`) | 0.31973 | 0.73973 | 0.07973 | 契約表外の補助状態 |
 
-### centralized → plural（seed 42, CRN）
+### centralized → plural（seed 42, CRN・プロキシ差分）
 
 | 差分キー | candidate − baseline |
 |---|---:|
@@ -66,13 +82,14 @@ python3 -m ghost_in_the_sim.compare_cli --baseline centralized --candidate plura
 | over_disclosure | -0.468 |
 | public_trust | +0.42 |
 
-同一seedの外生擾乱列は条件間で一致した（CRN）。これは政策優劣の断定ではなく、仮定下のトレードオフ観測である。
+同一seedの外生擾乱列は条件間で一致した（CRN）。これは政策優劣の断定ではなく、仮定下のプロキシ差の観測である。
 
 ## 反証・限界
 
+- **契約未達**: 評価設計の生活継続・証拠校正・調整依存・過剰開示は未実装。本表を契約指標の順位として読まない。
 - **単一seed**: この記録は seed `42` のみ。順位の安定性は未確認。複数seed集合の正式実験は未実行。
-- **勝者なし**: pluralは証拠・異議・依存・開示で有利だが、生活継続では centralized より低い。overconnected は過剰開示と信頼で劣位。総合点による「最強の統治」は主張しない。
+- **勝者なし**: プロキシ上でも方向は一様でない（例: pluralは証拠品質・異議で高く、最終継続は centralized より低い）。総合点による「最強の統治」は主張しない。
 - **失敗run**: 本seedでは3条件とも `turn_limit_reached`。吸収状態（継続0）による早期終了は未観測。
 - **感度未実施**: 遷移パラメータや主体バイアスの掃引は未実施。
 - **境界**: 仮定とseedのもとでの比較であり、現実予測・政策推奨・実在組織の評価ではない。
-- **再現**: 同一入力で再実行し、上記指標とrun_idが一致することを確認した。エンジン変更後は `source_revision` / `model_config_hash` が変わり得る。
+- **再現**: 同一入力で再実行し、上記値とrun_idが一致することを確認した。エンジン変更後は `source_revision` / `model_config_hash` が変わり得る。
