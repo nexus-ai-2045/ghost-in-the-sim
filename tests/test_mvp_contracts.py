@@ -7,7 +7,7 @@ import subprocess
 
 import pytest
 
-from ghost_in_the_sim.evidence_contract import project_evidence
+from ghost_in_the_sim.evidence_contract import project_evidence, validate_derived_evidence
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -90,5 +90,31 @@ def test_result_card_contract_accepts_optional_replay_and_rejects_nested_drift()
     replay_source = json.loads(json.dumps(payload))
     replay_source["result_card"]["ai_replay_evidence"]["decision_sources"] = ["fabricated"]
     malformed.append(replay_source)
+    refutation = json.loads(json.dumps(payload))
+    refutation["result_card"]["refutation_checks"][0]["status"] = "triggered"
+    refutation["result_card"]["refutation_checks"][0]["evidence"] = {"fabricated": True}
+    malformed.append(refutation)
+    duplicate_seed = json.loads(json.dumps(payload))
+    duplicate_seed["seeds"].append(duplicate_seed["seeds"][0])
+    malformed.append(duplicate_seed)
     for candidate in malformed:
         assert _validate_in_node(candidate) == {"card": None, "invalid": True}
+
+
+def test_canonical_evidence_projection_rejects_refutation_mutation() -> None:
+    payload = json.loads((ROOT / "web/data/comparison.json").read_text(encoding="utf-8"))
+    candidate = json.loads(json.dumps(payload))
+    candidate["result_card"]["refutation_checks"][0]["status"] = "triggered"
+    candidate["result_card"]["refutation_checks"][0]["evidence"] = {"fabricated": True}
+    with pytest.raises(ValueError, match="refutation checks"):
+        validate_derived_evidence(candidate)
+
+    duplicate_seed = json.loads(json.dumps(payload))
+    duplicate_seed["seeds"].append(duplicate_seed["seeds"][0])
+    with pytest.raises(ValueError, match="seeds must be unique"):
+        validate_derived_evidence(duplicate_seed)
+
+    boolean_seed = json.loads(json.dumps(payload))
+    boolean_seed["seeds"][0] = True
+    with pytest.raises(ValueError, match="seeds must be unique"):
+        validate_derived_evidence(boolean_seed)

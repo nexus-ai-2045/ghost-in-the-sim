@@ -16,6 +16,7 @@ from .decision import (
     safe_fallback,
 )
 from .engine import ActionInfluence, Condition, RunResult, run_experiment
+from .evidence_contract import project_refutation_checks
 
 
 DEFAULT_SEEDS = (17, 42, 99)
@@ -24,6 +25,7 @@ _CONDITION_BY_MODE = {
     ReplicaMode.PLURAL: Condition.PLURAL,
     ReplicaMode.AUTONOMOUS: Condition.AUTONOMOUS,
 }
+_HIGHER_IS_BETTER = frozenset({"continuity", "evidence_calibration", "public_trust", "dissent_reach"})
 
 
 @dataclass(frozen=True)
@@ -65,9 +67,6 @@ class ReplicaBatch:
         return {"seeds": list(self.seeds), "runs": [run.to_dict() for run in self.runs]}
 
 
-_HIGHER_IS_BETTER = frozenset({"continuity", "evidence_calibration", "public_trust", "dissent_reach"})
-
-
 def classify_run_failure(result: RunResult) -> tuple[bool, tuple[str, ...]]:
     """RunResultだけから失敗を決定し、engineの実行経路と分離して検査可能にする。"""
 
@@ -99,37 +98,6 @@ def _metric_delta(candidate: float, baseline: float, metric: str) -> float:
     return round(raw, 6)
 
 
-def _dominance_check(*, check_id: str, seed: int, candidate: ReplicaRun, baseline: ReplicaRun) -> dict[str, Any]:
-    common_metrics = sorted(candidate.result.metrics.keys() & baseline.result.metrics.keys())
-    deltas = {metric: _metric_delta(candidate.result.metrics[metric], baseline.result.metrics[metric], metric) for metric in common_metrics}
-    observable = bool(deltas)
-    dominates = observable and all(value >= 0 for value in deltas.values()) and any(value > 0 for value in deltas.values())
-    return {
-        "check_id": check_id,
-        "seed": seed,
-        "status": "triggered" if dominates else "not_triggered" if observable else "not_observable",
-        "evidence": {
-            "candidate_run_id": candidate.result.run_id,
-            "baseline_run_id": baseline.result.run_id,
-            "direction_adjusted_metric_deltas": deltas,
-        },
-    }
-
-
-def _aggregate_dominance_check(check_id: str, observations: list[dict[str, Any]]) -> dict[str, Any]:
-    """「あるseedで優位」と「全seedで常に優位」を混同せず集約する。"""
-
-    observable = [item for item in observations if item["status"] != "not_observable"]
-    fully_observable = len(observable) == len(observations) and bool(observations)
-    always_dominates = fully_observable and all(item["status"] == "triggered" for item in observable)
-    return {
-        "check_id": check_id,
-        "seed": None,
-        "status": "triggered" if always_dominates else "not_triggered" if fully_observable else "not_observable",
-        "evidence": {"per_seed": observations},
-    }
-
-
 def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
     """比較batchを、結論ではなく検証可能な観測カードへ変換する。"""
 
@@ -153,37 +121,7 @@ def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
         )
 
     by_mode_seed = {(run.requested_mode, run.seed): run for run in batch.runs}
-    plural_observations = []
-    centralized_observations = []
-    for seed in sorted(batch.seeds):
-        centralized = by_mode_seed.get((ReplicaMode.CENTRALIZED, seed))
-        plural = by_mode_seed.get((ReplicaMode.PLURAL, seed))
-        if (
-            centralized is None
-            or plural is None
-            or centralized.audit.fallback_applied
-            or plural.audit.fallback_applied
-            or centralized.effective_mode is not ReplicaMode.CENTRALIZED
-            or plural.effective_mode is not ReplicaMode.PLURAL
-        ):
-            missing = {
-                "seed": seed,
-                "status": "not_observable",
-                "evidence": {"reason": "required_effective_mode_missing"},
-            }
-            plural_observations.append({"check_id": "plural_dominates_centralized", **missing})
-            centralized_observations.append({"check_id": "centralized_dominates_plural", **missing})
-            continue
-        plural_observations.append(
-            _dominance_check(check_id="plural_dominates_centralized", seed=seed, candidate=plural, baseline=centralized)
-        )
-        centralized_observations.append(
-            _dominance_check(check_id="centralized_dominates_plural", seed=seed, candidate=centralized, baseline=plural)
-        )
-    checks = [
-        _aggregate_dominance_check("plural_always_better_without_tradeoff", plural_observations),
-        _aggregate_dominance_check("centralized_always_better_without_tradeoff", centralized_observations),
-    ]
+    checks = project_refutation_checks(batch.to_dict())
 
     sensitivity_by_mode: dict[str, dict[str, dict[str, float]]] = {}
     for mode in ReplicaMode:

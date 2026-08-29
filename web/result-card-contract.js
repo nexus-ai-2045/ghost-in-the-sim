@@ -22,6 +22,49 @@
   const canonical = value => JSON.stringify(value, (_, nested) => object(nested)
     ? Object.fromEntries(Object.entries(nested).sort(([left], [right]) => left.localeCompare(right)))
     : nested);
+  const higher = new Set(["continuity", "evidence_calibration", "public_trust", "dissent_reach"]);
+  const delta = (candidate, baseline, metric) => Number(
+    (higher.has(metric) ? candidate - baseline : baseline - candidate).toFixed(6)
+  );
+
+  function projectRefutationChecks(payload, byModeSeed) {
+    return [
+      ["plural_always_better_without_tradeoff", "plural", "centralized"],
+      ["centralized_always_better_without_tradeoff", "centralized", "plural"]
+    ].map(([checkId, candidateMode, baselineMode]) => {
+      const observationId = `${candidateMode}_dominates_${baselineMode}`;
+      const observations = [...new Set(payload.seeds)].sort((a, b) => a - b).map(seed => {
+        const candidate = byModeSeed.get(`${candidateMode}:${seed}`);
+        const baseline = byModeSeed.get(`${baselineMode}:${seed}`);
+        if (!candidate || !baseline || candidate.audit.fallback_applied || baseline.audit.fallback_applied
+          || candidate.effective_mode !== candidateMode || baseline.effective_mode !== baselineMode) {
+          return { check_id: observationId, seed, status: "not_observable", evidence: { reason: "required_effective_mode_missing" } };
+        }
+        const metrics = Object.keys(candidate.metrics).filter(metric => metric in baseline.metrics).sort();
+        const deltas = Object.fromEntries(metrics.map(metric => [metric, delta(candidate.metrics[metric], baseline.metrics[metric], metric)]));
+        const values = Object.values(deltas);
+        const dominates = values.length > 0 && values.every(value => value >= 0) && values.some(value => value > 0);
+        return {
+          check_id: observationId,
+          seed,
+          status: dominates ? "triggered" : values.length ? "not_triggered" : "not_observable",
+          evidence: {
+            candidate_run_id: candidate.manifest.run_id,
+            baseline_run_id: baseline.manifest.run_id,
+            direction_adjusted_metric_deltas: deltas
+          }
+        };
+      });
+      const observable = observations.filter(item => item.status !== "not_observable");
+      const complete = observations.length > 0 && observable.length === observations.length;
+      return {
+        check_id: checkId,
+        seed: null,
+        status: complete && observable.every(item => item.status === "triggered") ? "triggered" : complete ? "not_triggered" : "not_observable",
+        evidence: { per_seed: observations }
+      };
+    });
+  }
 
   function project(payload) {
     const runs = payload.runs;
@@ -39,12 +82,18 @@
       const plural = byModeSeed.get(`plural:${seed}`); const centralized = byModeSeed.get(`centralized:${seed}`);
       return plural && centralized && !plural.audit.fallback_applied && !centralized.audit.fallback_applied ? [[plural, centralized]] : [];
     });
-    const higher = new Set(["continuity", "evidence_calibration", "public_trust", "dissent_reach"]);
     const reversals = pairs.length ? Object.keys(pairs[0][0].metrics).sort().filter(metric => {
       const deltas = pairs.map(([plural, centralized]) => (higher.has(metric) ? 1 : -1) * (plural.metrics[metric] - centralized.metrics[metric]));
       return deltas.some(value => value < 0) && deltas.some(value => value > 0);
     }) : [];
-    return { seeds: [...new Set(payload.seeds)].sort((a, b) => a - b), run_count: runs.length, failure_run_ids: failureRunIds, ai_replay: aiReplay, plural_vs_centralized_sign_reversals: reversals };
+    return {
+      seeds: [...new Set(payload.seeds)].sort((a, b) => a - b),
+      run_count: runs.length,
+      failure_run_ids: failureRunIds,
+      ai_replay: aiReplay,
+      plural_vs_centralized_sign_reversals: reversals,
+      refutation_checks: projectRefutationChecks(payload, byModeSeed)
+    };
   }
 
   function validate(payload) {
@@ -55,9 +104,14 @@
     const failures = card.failure_runs;
     const checks = card.refutation_checks;
     const limitations = card.limitations;
+    const seeds = payload?.seeds;
+    const runSeeds = Array.isArray(runs) && runs.every(rawRun) ? [...new Set(runs.map(run => run.seed))].sort((a, b) => a - b) : [];
+    const canonicalSeeds = Array.isArray(seeds) ? [...new Set(seeds)].sort((a, b) => a - b) : [];
     let valid = object(card) && card.schema_version === "result-card-v1"
       && typeof payload.artifact_revision === "string" && payload.artifact_revision.length === 16
       && card.artifact_revision === payload.artifact_revision
+      && Array.isArray(seeds) && seeds.length > 0 && seeds.every(Number.isInteger)
+      && canonicalSeeds.length === seeds.length && canonical(seeds.slice().sort((a, b) => a - b)) === canonical(runSeeds)
       && nonNegativeInteger(card.run_count) && Array.isArray(runs) && card.run_count === runs.length && runs.every(rawRun)
       && Array.isArray(cardRuns) && cardRuns.length === card.run_count && cardRuns.every(runCard)
       && Array.isArray(failures) && failures.every(runCard)
@@ -82,7 +136,8 @@
       valid = canonical(payload.evidence_summary) === canonical(projected)
         && canonical(failures.map(item => item.run_id).sort()) === canonical(projected.failure_run_ids)
         && canonical(replay ?? null) === canonical(projected.ai_replay)
-        && canonical(card.seed_sensitivity?.plural_vs_centralized_sign_reversals) === canonical(projected.plural_vs_centralized_sign_reversals);
+        && canonical(card.seed_sensitivity?.plural_vs_centralized_sign_reversals) === canonical(projected.plural_vs_centralized_sign_reversals)
+        && canonical(card.refutation_checks) === canonical(projected.refutation_checks);
     }
     return valid ? { card, invalid: false } : { card: null, invalid: true };
   }

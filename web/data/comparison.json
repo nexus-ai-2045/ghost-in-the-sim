@@ -1612,7 +1612,7 @@
       "seed": 42
     }
   ],
-  "artifact_revision": "72d71f3b040c59a5",
+  "artifact_revision": "673eef1a29d43857",
   "evidence_summary": {
     "ai_replay": {
       "decision_sources": [
@@ -1624,6 +1624,134 @@
     "failure_run_ids": [],
     "plural_vs_centralized_sign_reversals": [
       "coordination_dependence"
+    ],
+    "refutation_checks": [
+      {
+        "check_id": "plural_always_better_without_tradeoff",
+        "evidence": {
+          "per_seed": [
+            {
+              "check_id": "plural_dominates_centralized",
+              "evidence": {
+                "baseline_run_id": "run-03f3bd883ca4",
+                "candidate_run_id": "run-3151437b7115",
+                "direction_adjusted_metric_deltas": {
+                  "continuity": 0.0,
+                  "coordination_dependence": -0.138167,
+                  "correction_turn": 1.0,
+                  "dissent_reach": 0.916667,
+                  "evidence_calibration": 0.165691,
+                  "over_disclosure": 8.0,
+                  "public_trust": 0.432
+                }
+              },
+              "seed": 17,
+              "status": "not_triggered"
+            },
+            {
+              "check_id": "plural_dominates_centralized",
+              "evidence": {
+                "baseline_run_id": "run-600768eb584c",
+                "candidate_run_id": "run-fc24922f7257",
+                "direction_adjusted_metric_deltas": {
+                  "continuity": 0.0,
+                  "coordination_dependence": 0.027911,
+                  "correction_turn": 1.0,
+                  "dissent_reach": 0.916667,
+                  "evidence_calibration": 0.180725,
+                  "over_disclosure": 8.0,
+                  "public_trust": 0.432
+                }
+              },
+              "seed": 42,
+              "status": "triggered"
+            },
+            {
+              "check_id": "plural_dominates_centralized",
+              "evidence": {
+                "baseline_run_id": "run-e5bbff200511",
+                "candidate_run_id": "run-9eca585f19e4",
+                "direction_adjusted_metric_deltas": {
+                  "continuity": 0.0,
+                  "coordination_dependence": -0.004909,
+                  "correction_turn": 1.0,
+                  "dissent_reach": 0.916667,
+                  "evidence_calibration": 0.191176,
+                  "over_disclosure": 8.0,
+                  "public_trust": 0.432
+                }
+              },
+              "seed": 99,
+              "status": "not_triggered"
+            }
+          ]
+        },
+        "seed": null,
+        "status": "not_triggered"
+      },
+      {
+        "check_id": "centralized_always_better_without_tradeoff",
+        "evidence": {
+          "per_seed": [
+            {
+              "check_id": "centralized_dominates_plural",
+              "evidence": {
+                "baseline_run_id": "run-3151437b7115",
+                "candidate_run_id": "run-03f3bd883ca4",
+                "direction_adjusted_metric_deltas": {
+                  "continuity": 0.0,
+                  "coordination_dependence": 0.138167,
+                  "correction_turn": -1.0,
+                  "dissent_reach": -0.916667,
+                  "evidence_calibration": -0.165691,
+                  "over_disclosure": -8.0,
+                  "public_trust": -0.432
+                }
+              },
+              "seed": 17,
+              "status": "not_triggered"
+            },
+            {
+              "check_id": "centralized_dominates_plural",
+              "evidence": {
+                "baseline_run_id": "run-fc24922f7257",
+                "candidate_run_id": "run-600768eb584c",
+                "direction_adjusted_metric_deltas": {
+                  "continuity": 0.0,
+                  "coordination_dependence": -0.027911,
+                  "correction_turn": -1.0,
+                  "dissent_reach": -0.916667,
+                  "evidence_calibration": -0.180725,
+                  "over_disclosure": -8.0,
+                  "public_trust": -0.432
+                }
+              },
+              "seed": 42,
+              "status": "not_triggered"
+            },
+            {
+              "check_id": "centralized_dominates_plural",
+              "evidence": {
+                "baseline_run_id": "run-9eca585f19e4",
+                "candidate_run_id": "run-e5bbff200511",
+                "direction_adjusted_metric_deltas": {
+                  "continuity": 0.0,
+                  "coordination_dependence": 0.004909,
+                  "correction_turn": -1.0,
+                  "dissent_reach": -0.916667,
+                  "evidence_calibration": -0.191176,
+                  "over_disclosure": -8.0,
+                  "public_trust": -0.432
+                }
+              },
+              "seed": 99,
+              "status": "not_triggered"
+            }
+          ]
+        },
+        "seed": null,
+        "status": "not_triggered"
+      }
     ],
     "run_count": 9,
     "seeds": [
@@ -1640,7 +1768,7 @@
       "fallback_count": 0,
       "run_count": 3
     },
-    "artifact_revision": "72d71f3b040c59a5",
+    "artifact_revision": "673eef1a29d43857",
     "failure_runs": [],
     "limitations": [
       "synthetic_scenario_not_real_world_prediction",
