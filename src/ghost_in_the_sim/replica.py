@@ -116,6 +116,20 @@ def _dominance_check(*, check_id: str, seed: int, candidate: ReplicaRun, baselin
     }
 
 
+def _aggregate_dominance_check(check_id: str, observations: list[dict[str, Any]]) -> dict[str, Any]:
+    """「あるseedで優位」と「全seedで常に優位」を混同せず集約する。"""
+
+    observable = [item for item in observations if item["status"] != "not_observable"]
+    fully_observable = len(observable) == len(observations) and bool(observations)
+    always_dominates = fully_observable and all(item["status"] == "triggered" for item in observable)
+    return {
+        "check_id": check_id,
+        "seed": None,
+        "status": "triggered" if always_dominates else "not_triggered" if fully_observable else "not_observable",
+        "evidence": {"per_seed": observations},
+    }
+
+
 def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
     """比較batchを、結論ではなく検証可能な観測カードへ変換する。"""
 
@@ -139,15 +153,26 @@ def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
         )
 
     by_mode_seed = {(run.requested_mode, run.seed): run for run in batch.runs}
-    checks = []
+    plural_observations = []
+    centralized_observations = []
     for seed in sorted(batch.seeds):
         centralized = by_mode_seed.get((ReplicaMode.CENTRALIZED, seed))
         plural = by_mode_seed.get((ReplicaMode.PLURAL, seed))
         if centralized is None or plural is None:
-            checks.append({"check_id": "plural_has_no_tradeoff", "seed": seed, "status": "not_observable", "evidence": {"reason": "required_mode_missing"}})
+            missing = {"seed": seed, "status": "not_observable", "evidence": {"reason": "required_mode_missing"}}
+            plural_observations.append({"check_id": "plural_dominates_centralized", **missing})
+            centralized_observations.append({"check_id": "centralized_dominates_plural", **missing})
             continue
-        checks.append(_dominance_check(check_id="plural_has_no_tradeoff", seed=seed, candidate=plural, baseline=centralized))
-        checks.append(_dominance_check(check_id="centralized_has_no_tradeoff", seed=seed, candidate=centralized, baseline=plural))
+        plural_observations.append(
+            _dominance_check(check_id="plural_dominates_centralized", seed=seed, candidate=plural, baseline=centralized)
+        )
+        centralized_observations.append(
+            _dominance_check(check_id="centralized_dominates_plural", seed=seed, candidate=centralized, baseline=plural)
+        )
+    checks = [
+        _aggregate_dominance_check("plural_always_better_without_tradeoff", plural_observations),
+        _aggregate_dominance_check("centralized_always_better_without_tradeoff", centralized_observations),
+    ]
 
     sensitivity_by_mode: dict[str, dict[str, dict[str, float]]] = {}
     for mode in ReplicaMode:

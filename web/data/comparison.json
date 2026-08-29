@@ -1,4 +1,493 @@
 {
+  "result_card": {
+    "failure_runs": [],
+    "limitations": [
+      "synthetic_scenario_not_real_world_prediction",
+      "parameter_sweep_not_run",
+      "model_and_prompt_sensitivity_not_observable_without_live_llm",
+      "no_single_winner_score"
+    ],
+    "refutation_checks": [
+      {
+        "check_id": "plural_always_better_without_tradeoff",
+        "evidence": {
+          "per_seed": [
+            {
+              "check_id": "plural_dominates_centralized",
+              "evidence": {
+                "baseline_run_id": "run-03f3bd883ca4",
+                "candidate_run_id": "run-3151437b7115",
+                "direction_adjusted_metric_deltas": {
+                  "continuity": 0.0,
+                  "coordination_dependence": -0.138167,
+                  "correction_turn": 1.0,
+                  "dissent_reach": 0.916667,
+                  "evidence_calibration": 0.165691,
+                  "over_disclosure": 8.0,
+                  "public_trust": 0.432
+                }
+              },
+              "seed": 17,
+              "status": "not_triggered"
+            },
+            {
+              "check_id": "plural_dominates_centralized",
+              "evidence": {
+                "baseline_run_id": "run-600768eb584c",
+                "candidate_run_id": "run-fc24922f7257",
+                "direction_adjusted_metric_deltas": {
+                  "continuity": 0.0,
+                  "coordination_dependence": 0.027911,
+                  "correction_turn": 1.0,
+                  "dissent_reach": 0.916667,
+                  "evidence_calibration": 0.180725,
+                  "over_disclosure": 8.0,
+                  "public_trust": 0.432
+                }
+              },
+              "seed": 42,
+              "status": "triggered"
+            },
+            {
+              "check_id": "plural_dominates_centralized",
+              "evidence": {
+                "baseline_run_id": "run-e5bbff200511",
+                "candidate_run_id": "run-9eca585f19e4",
+                "direction_adjusted_metric_deltas": {
+                  "continuity": 0.0,
+                  "coordination_dependence": -0.004909,
+                  "correction_turn": 1.0,
+                  "dissent_reach": 0.916667,
+                  "evidence_calibration": 0.191176,
+                  "over_disclosure": 8.0,
+                  "public_trust": 0.432
+                }
+              },
+              "seed": 99,
+              "status": "not_triggered"
+            }
+          ]
+        },
+        "seed": null,
+        "status": "not_triggered"
+      },
+      {
+        "check_id": "centralized_always_better_without_tradeoff",
+        "evidence": {
+          "per_seed": [
+            {
+              "check_id": "centralized_dominates_plural",
+              "evidence": {
+                "baseline_run_id": "run-3151437b7115",
+                "candidate_run_id": "run-03f3bd883ca4",
+                "direction_adjusted_metric_deltas": {
+                  "continuity": 0.0,
+                  "coordination_dependence": 0.138167,
+                  "correction_turn": -1.0,
+                  "dissent_reach": -0.916667,
+                  "evidence_calibration": -0.165691,
+                  "over_disclosure": -8.0,
+                  "public_trust": -0.432
+                }
+              },
+              "seed": 17,
+              "status": "not_triggered"
+            },
+            {
+              "check_id": "centralized_dominates_plural",
+              "evidence": {
+                "baseline_run_id": "run-fc24922f7257",
+                "candidate_run_id": "run-600768eb584c",
+                "direction_adjusted_metric_deltas": {
+                  "continuity": 0.0,
+                  "coordination_dependence": -0.027911,
+                  "correction_turn": -1.0,
+                  "dissent_reach": -0.916667,
+                  "evidence_calibration": -0.180725,
+                  "over_disclosure": -8.0,
+                  "public_trust": -0.432
+                }
+              },
+              "seed": 42,
+              "status": "not_triggered"
+            },
+            {
+              "check_id": "centralized_dominates_plural",
+              "evidence": {
+                "baseline_run_id": "run-9eca585f19e4",
+                "candidate_run_id": "run-e5bbff200511",
+                "direction_adjusted_metric_deltas": {
+                  "continuity": 0.0,
+                  "coordination_dependence": 0.004909,
+                  "correction_turn": -1.0,
+                  "dissent_reach": -0.916667,
+                  "evidence_calibration": -0.191176,
+                  "over_disclosure": -8.0,
+                  "public_trust": -0.432
+                }
+              },
+              "seed": 99,
+              "status": "not_triggered"
+            }
+          ]
+        },
+        "seed": null,
+        "status": "not_triggered"
+      }
+    ],
+    "run_count": 9,
+    "runs": [
+      {
+        "completed_turns": 12,
+        "effective_mode": "centralized",
+        "failed_run": false,
+        "failure_reasons": [],
+        "metrics": {
+          "continuity": 1.0,
+          "coordination_dependence": 0.104989,
+          "correction_turn": 3.0,
+          "dissent_reach": 0.083333,
+          "evidence_calibration": 0.497387,
+          "over_disclosure": 8.0,
+          "public_trust": 0.372202
+        },
+        "mode": "centralized",
+        "representative_log_refs": [
+          "run-03f3bd883ca4#event-turn-1",
+          "run-03f3bd883ca4#event-turn-4",
+          "run-03f3bd883ca4#event-turn-12"
+        ],
+        "run_id": "run-03f3bd883ca4",
+        "seed": 17,
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      },
+      {
+        "completed_turns": 12,
+        "effective_mode": "centralized",
+        "failed_run": false,
+        "failure_reasons": [],
+        "metrics": {
+          "continuity": 1.0,
+          "coordination_dependence": 0.29531,
+          "correction_turn": 3.0,
+          "dissent_reach": 0.083333,
+          "evidence_calibration": 0.473154,
+          "over_disclosure": 8.0,
+          "public_trust": 0.355494
+        },
+        "mode": "centralized",
+        "representative_log_refs": [
+          "run-600768eb584c#event-turn-1",
+          "run-600768eb584c#event-turn-4",
+          "run-600768eb584c#event-turn-12"
+        ],
+        "run_id": "run-600768eb584c",
+        "seed": 42,
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      },
+      {
+        "completed_turns": 12,
+        "effective_mode": "centralized",
+        "failed_run": false,
+        "failure_reasons": [],
+        "metrics": {
+          "continuity": 1.0,
+          "coordination_dependence": 0.228112,
+          "correction_turn": 3.0,
+          "dissent_reach": 0.083333,
+          "evidence_calibration": 0.465246,
+          "over_disclosure": 8.0,
+          "public_trust": 0.354345
+        },
+        "mode": "centralized",
+        "representative_log_refs": [
+          "run-e5bbff200511#event-turn-1",
+          "run-e5bbff200511#event-turn-4",
+          "run-e5bbff200511#event-turn-12"
+        ],
+        "run_id": "run-e5bbff200511",
+        "seed": 99,
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      },
+      {
+        "completed_turns": 12,
+        "effective_mode": "plural",
+        "failed_run": false,
+        "failure_reasons": [],
+        "metrics": {
+          "continuity": 1.0,
+          "coordination_dependence": 0.243156,
+          "correction_turn": 2.0,
+          "dissent_reach": 1.0,
+          "evidence_calibration": 0.663078,
+          "over_disclosure": 0.0,
+          "public_trust": 0.804202
+        },
+        "mode": "plural",
+        "representative_log_refs": [
+          "run-3151437b7115#event-turn-1",
+          "run-3151437b7115#event-turn-2",
+          "run-3151437b7115#event-turn-3"
+        ],
+        "run_id": "run-3151437b7115",
+        "seed": 17,
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      },
+      {
+        "completed_turns": 12,
+        "effective_mode": "plural",
+        "failed_run": false,
+        "failure_reasons": [],
+        "metrics": {
+          "continuity": 1.0,
+          "coordination_dependence": 0.267399,
+          "correction_turn": 2.0,
+          "dissent_reach": 1.0,
+          "evidence_calibration": 0.653879,
+          "over_disclosure": 0.0,
+          "public_trust": 0.787494
+        },
+        "mode": "plural",
+        "representative_log_refs": [
+          "run-fc24922f7257#event-turn-1",
+          "run-fc24922f7257#event-turn-2",
+          "run-fc24922f7257#event-turn-3"
+        ],
+        "run_id": "run-fc24922f7257",
+        "seed": 42,
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      },
+      {
+        "completed_turns": 12,
+        "effective_mode": "plural",
+        "failed_run": false,
+        "failure_reasons": [],
+        "metrics": {
+          "continuity": 1.0,
+          "coordination_dependence": 0.233021,
+          "correction_turn": 2.0,
+          "dissent_reach": 1.0,
+          "evidence_calibration": 0.656422,
+          "over_disclosure": 0.0,
+          "public_trust": 0.786345
+        },
+        "mode": "plural",
+        "representative_log_refs": [
+          "run-9eca585f19e4#event-turn-1",
+          "run-9eca585f19e4#event-turn-2",
+          "run-9eca585f19e4#event-turn-3"
+        ],
+        "run_id": "run-9eca585f19e4",
+        "seed": 99,
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      },
+      {
+        "completed_turns": 12,
+        "effective_mode": "autonomous",
+        "failed_run": false,
+        "failure_reasons": [],
+        "metrics": {
+          "continuity": 1.0,
+          "coordination_dependence": 0.282677,
+          "correction_turn": 13.0,
+          "dissent_reach": 0.333333,
+          "evidence_calibration": 0.0,
+          "over_disclosure": 0.0,
+          "public_trust": 0.540202
+        },
+        "mode": "autonomous",
+        "representative_log_refs": [
+          "run-c1235c818eee#event-turn-1",
+          "run-c1235c818eee#event-turn-3",
+          "run-c1235c818eee#event-turn-6"
+        ],
+        "run_id": "run-c1235c818eee",
+        "seed": 17,
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      },
+      {
+        "completed_turns": 12,
+        "effective_mode": "autonomous",
+        "failed_run": false,
+        "failure_reasons": [],
+        "metrics": {
+          "continuity": 1.0,
+          "coordination_dependence": 0.292221,
+          "correction_turn": 13.0,
+          "dissent_reach": 0.333333,
+          "evidence_calibration": 0.0,
+          "over_disclosure": 0.0,
+          "public_trust": 0.523494
+        },
+        "mode": "autonomous",
+        "representative_log_refs": [
+          "run-f699480c39ea#event-turn-1",
+          "run-f699480c39ea#event-turn-3",
+          "run-f699480c39ea#event-turn-6"
+        ],
+        "run_id": "run-f699480c39ea",
+        "seed": 42,
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      },
+      {
+        "completed_turns": 12,
+        "effective_mode": "autonomous",
+        "failed_run": false,
+        "failure_reasons": [],
+        "metrics": {
+          "continuity": 1.0,
+          "coordination_dependence": 0.257492,
+          "correction_turn": 13.0,
+          "dissent_reach": 0.333333,
+          "evidence_calibration": 0.0,
+          "over_disclosure": 0.0,
+          "public_trust": 0.522345
+        },
+        "mode": "autonomous",
+        "representative_log_refs": [
+          "run-5ff33558f0f3#event-turn-1",
+          "run-5ff33558f0f3#event-turn-3",
+          "run-5ff33558f0f3#event-turn-6"
+        ],
+        "run_id": "run-5ff33558f0f3",
+        "seed": 99,
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      }
+    ],
+    "schema_version": "result-card-v1",
+    "seed_sensitivity": {
+      "by_mode": {
+        "autonomous": {
+          "continuity": {
+            "max": 1.0,
+            "min": 1.0,
+            "range": 0.0
+          },
+          "coordination_dependence": {
+            "max": 0.292221,
+            "min": 0.257492,
+            "range": 0.034729
+          },
+          "correction_turn": {
+            "max": 13.0,
+            "min": 13.0,
+            "range": 0.0
+          },
+          "dissent_reach": {
+            "max": 0.333333,
+            "min": 0.333333,
+            "range": 0.0
+          },
+          "evidence_calibration": {
+            "max": 0.0,
+            "min": 0.0,
+            "range": 0.0
+          },
+          "over_disclosure": {
+            "max": 0.0,
+            "min": 0.0,
+            "range": 0.0
+          },
+          "public_trust": {
+            "max": 0.540202,
+            "min": 0.522345,
+            "range": 0.017857
+          }
+        },
+        "centralized": {
+          "continuity": {
+            "max": 1.0,
+            "min": 1.0,
+            "range": 0.0
+          },
+          "coordination_dependence": {
+            "max": 0.29531,
+            "min": 0.104989,
+            "range": 0.190321
+          },
+          "correction_turn": {
+            "max": 3.0,
+            "min": 3.0,
+            "range": 0.0
+          },
+          "dissent_reach": {
+            "max": 0.083333,
+            "min": 0.083333,
+            "range": 0.0
+          },
+          "evidence_calibration": {
+            "max": 0.497387,
+            "min": 0.465246,
+            "range": 0.032141
+          },
+          "over_disclosure": {
+            "max": 8.0,
+            "min": 8.0,
+            "range": 0.0
+          },
+          "public_trust": {
+            "max": 0.372202,
+            "min": 0.354345,
+            "range": 0.017857
+          }
+        },
+        "plural": {
+          "continuity": {
+            "max": 1.0,
+            "min": 1.0,
+            "range": 0.0
+          },
+          "coordination_dependence": {
+            "max": 0.267399,
+            "min": 0.233021,
+            "range": 0.034378
+          },
+          "correction_turn": {
+            "max": 2.0,
+            "min": 2.0,
+            "range": 0.0
+          },
+          "dissent_reach": {
+            "max": 1.0,
+            "min": 1.0,
+            "range": 0.0
+          },
+          "evidence_calibration": {
+            "max": 0.663078,
+            "min": 0.653879,
+            "range": 0.009199
+          },
+          "over_disclosure": {
+            "max": 0.0,
+            "min": 0.0,
+            "range": 0.0
+          },
+          "public_trust": {
+            "max": 0.804202,
+            "min": 0.786345,
+            "range": 0.017857
+          }
+        }
+      },
+      "plural_vs_centralized_sign_reversals": [
+        "coordination_dependence"
+      ],
+      "seeds": [
+        17,
+        42,
+        99
+      ]
+    }
+  },
   "runs": [
     {
       "audit": {
@@ -9,76 +498,613 @@
       },
       "decisions": [
         {
-          "action": "request_verification",
+          "action": "protect_continuity",
           "actor_id": "coordination_authority",
-          "actual_ai_participated": true,
+          "actual_ai_participated": false,
           "authority_version": "poseidon-policy-v4",
-          "confidence": 0.56,
-          "decision_id": "decision-2777bd781449bced",
-          "decision_source": "llm_generated_in_codex_session",
+          "confidence": 1.0,
+          "decision_id": "decision-22ddb34ffdc2c544",
+          "decision_source": "deterministic_rule",
           "evidence_refs": [
             "obs-01",
             "obs-02"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:3e188fea5ba3493f5eeb2448160adacbac32bed944226869a2cd9433b8512780",
+          "fixture_hash": "sha256:de71ec5df83839ca73a430d3d14adec0156e1cc444f32aa33790bf010fca68b5",
           "issued_at_turn": 1,
-          "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
-          "rationale": "中央窓口から独立検証を要求する 留保: 初動情報には未検証部分が残る",
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
           "requested_mode": "centralized",
           "scenario_id": "poseidon-replica-crisis-01",
-          "seed": 42,
+          "seed": 17,
           "status": "active",
-          "temperature": "unavailable_to_agent"
+          "temperature": "not_applicable"
         },
         {
           "action": "protect_continuity",
           "actor_id": "coordination_authority",
-          "actual_ai_participated": true,
+          "actual_ai_participated": false,
           "authority_version": "poseidon-policy-v4",
-          "confidence": 0.78,
-          "decision_id": "decision-d241499d58008975",
-          "decision_source": "llm_generated_in_codex_session",
+          "confidence": 1.0,
+          "decision_id": "decision-0e254ffa8b836c86",
+          "decision_source": "deterministic_rule",
           "evidence_refs": [
             "obs-03",
             "obs-04"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:bf5bbca22864205c106862a24f7271c1de2fab734d314af98005144e4014cc69",
+          "fixture_hash": "sha256:2c072a05cfbf6305a94489bbb3ccba3643103e4c4db1f860c6cfc1e49f5672e3",
           "issued_at_turn": 2,
-          "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
-          "rationale": "生命維持サービスを優先して継続する 留保: 集中判断への依存が高まる",
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
           "requested_mode": "centralized",
           "scenario_id": "poseidon-replica-crisis-01",
-          "seed": 42,
+          "seed": 17,
           "status": "active",
-          "temperature": "unavailable_to_agent"
+          "temperature": "not_applicable"
         },
         {
-          "action": "update_explanation",
+          "action": "protect_continuity",
           "actor_id": "coordination_authority",
-          "actual_ai_participated": true,
+          "actual_ai_participated": false,
           "authority_version": "poseidon-policy-v4",
-          "confidence": 0.74,
-          "decision_id": "decision-4dff8c010c97faca",
-          "decision_source": "llm_generated_in_codex_session",
+          "confidence": 1.0,
+          "decision_id": "decision-d4e59f2a1caa9390",
+          "decision_source": "deterministic_rule",
           "evidence_refs": [
             "obs-05",
             "obs-06"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:8b7047c8ada4a35911364f3cbaa8179d0213aaf52264498f89c0ee93d7151c5f",
+          "fixture_hash": "sha256:7598ae22b11e67924753541b46f2516115d14c48175a13075ee5d51a3bde9c46",
           "issued_at_turn": 3,
-          "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
-          "rationale": "判断根拠と変更点を更新する 留保: 訂正履歴を消してはならない",
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "centralized",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 17,
+          "status": "active",
+          "temperature": "not_applicable"
+        }
+      ],
+      "effective_mode": "centralized",
+      "events": [
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "service_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.531355,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.5336277118557797,
+          "observation_ids": [
+            "obs-01"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-01"
+          ],
+          "reservation": "復旧速度だけでは誤復旧を見逃す",
+          "reversibility": "medium",
+          "run_id": "run-03f3bd883ca4",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.622077,
+            "coordination_dependence": 0.389764,
+            "disclosure_pressure": 0.444763,
+            "evidence_quality": 0.416959,
+            "public_trust": 0.420372
+          },
+          "state_before": {
+            "continuity": 0.557754,
+            "coordination_dependence": 0.326764,
+            "disclosure_pressure": 0.420359,
+            "evidence_quality": 0.4123,
+            "public_trust": 0.430381
+          },
+          "turn": 1
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "evidence_verifier",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.549205,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.04985281402595376,
+          "observation_ids": [
+            "obs-02"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-02"
+          ],
+          "reservation": "独立確認が不足",
+          "reversibility": "medium",
+          "run_id": "run-03f3bd883ca4",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.693332,
+            "coordination_dependence": 0.452764,
+            "disclosure_pressure": 0.463361,
+            "evidence_quality": 0.445713,
+            "public_trust": 0.424876
+          },
+          "state_before": {
+            "continuity": 0.622077,
+            "coordination_dependence": 0.389764,
+            "disclosure_pressure": 0.444763,
+            "evidence_quality": 0.416959,
+            "public_trust": 0.420372
+          },
+          "turn": 2
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "community_liaison",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.502613,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.5448592421328964,
+          "observation_ids": [
+            "obs-03"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-03"
+          ],
+          "reservation": "集計値が生活実感を隠す",
+          "reversibility": "medium",
+          "run_id": "run-03f3bd883ca4",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.747262,
+            "coordination_dependence": 0.515764,
+            "disclosure_pressure": 0.487899,
+            "evidence_quality": 0.450092,
+            "public_trust": 0.42453
+          },
+          "state_before": {
+            "continuity": 0.693332,
+            "coordination_dependence": 0.452764,
+            "disclosure_pressure": 0.463361,
+            "evidence_quality": 0.445713,
+            "public_trust": 0.424876
+          },
+          "turn": 3
+        },
+        {
+          "action_type": "issue_correction",
+          "actor_id": "continuity_coordinator",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.540965,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.2407410839105978,
+          "observation_ids": [
+            "obs-04"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-03"
+          ],
+          "reservation": "調整点への依存が高まる",
+          "reversibility": "medium",
+          "run_id": "run-03f3bd883ca4",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.799836,
+            "coordination_dependence": 0.579764,
+            "disclosure_pressure": 0.508788,
+            "evidence_quality": 0.462073,
+            "public_trust": 0.423308
+          },
+          "state_before": {
+            "continuity": 0.747262,
+            "coordination_dependence": 0.515764,
+            "disclosure_pressure": 0.487899,
+            "evidence_quality": 0.450092,
+            "public_trust": 0.42453
+          },
+          "turn": 4
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "independent_observer",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.570668,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.368635044311025,
+          "observation_ids": [
+            "obs-05"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-05"
+          ],
+          "reservation": "決定主体と同じ情報源に偏る",
+          "reversibility": "medium",
+          "run_id": "run-03f3bd883ca4",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.841934,
+            "coordination_dependence": 0.631764,
+            "disclosure_pressure": 0.531212,
+            "evidence_quality": 0.476857,
+            "public_trust": 0.418249
+          },
+          "state_before": {
+            "continuity": 0.799836,
+            "coordination_dependence": 0.579764,
+            "disclosure_pressure": 0.508788,
+            "evidence_quality": 0.462073,
+            "public_trust": 0.423308
+          },
+          "turn": 5
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "privacy_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.561745,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6499214803797208,
+          "observation_ids": [
+            "obs-06"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-06"
+          ],
+          "reservation": "共有目的と保持期間が曖昧",
+          "reversibility": "medium",
+          "run_id": "run-03f3bd883ca4",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.874187,
+            "coordination_dependence": 0.689764,
+            "disclosure_pressure": 0.545011,
+            "evidence_quality": 0.478609,
+            "public_trust": 0.408751
+          },
+          "state_before": {
+            "continuity": 0.841934,
+            "coordination_dependence": 0.631764,
+            "disclosure_pressure": 0.531212,
+            "evidence_quality": 0.476857,
+            "public_trust": 0.418249
+          },
+          "turn": 6
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "service_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.615116,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.5564980730531495,
+          "observation_ids": [
+            "obs-07"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-07"
+          ],
+          "reservation": "復旧速度だけでは誤復旧を見逃す",
+          "reversibility": "medium",
+          "run_id": "run-03f3bd883ca4",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.91971,
+            "coordination_dependence": 0.747764,
+            "disclosure_pressure": 0.569689,
+            "evidence_quality": 0.482697,
+            "public_trust": 0.398056
+          },
+          "state_before": {
+            "continuity": 0.874187,
+            "coordination_dependence": 0.689764,
+            "disclosure_pressure": 0.545011,
+            "evidence_quality": 0.478609,
+            "public_trust": 0.408751
+          },
+          "turn": 7
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "evidence_verifier",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.613313,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.33395261507009333,
+          "observation_ids": [
+            "obs-08"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-08"
+          ],
+          "reservation": "独立確認が不足",
+          "reversibility": "medium",
+          "run_id": "run-03f3bd883ca4",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.963022,
+            "coordination_dependence": 0.805764,
+            "disclosure_pressure": 0.591696,
+            "evidence_quality": 0.504348,
+            "public_trust": 0.394037
+          },
+          "state_before": {
+            "continuity": 0.91971,
+            "coordination_dependence": 0.747764,
+            "disclosure_pressure": 0.569689,
+            "evidence_quality": 0.482697,
+            "public_trust": 0.398056
+          },
+          "turn": 8
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "community_liaison",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.549623,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6197710036758342,
+          "observation_ids": [
+            "obs-09"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-09"
+          ],
+          "reservation": "集計値が生活実感を隠す",
+          "reversibility": "medium",
+          "run_id": "run-03f3bd883ca4",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.99633,
+            "coordination_dependence": 0.863764,
+            "disclosure_pressure": 0.617133,
+            "evidence_quality": 0.506854,
+            "public_trust": 0.391444
+          },
+          "state_before": {
+            "continuity": 0.963022,
+            "coordination_dependence": 0.805764,
+            "disclosure_pressure": 0.591696,
+            "evidence_quality": 0.504348,
+            "public_trust": 0.394037
+          },
+          "turn": 9
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "continuity_coordinator",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.589167,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.11036507867310497,
+          "observation_ids": [
+            "obs-10"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-10"
+          ],
+          "reservation": "調整点への依存が高まる",
+          "reversibility": "medium",
+          "run_id": "run-03f3bd883ca4",
+          "seed": 17,
+          "state_after": {
+            "continuity": 1.0,
+            "coordination_dependence": 0.927764,
+            "disclosure_pressure": 0.636457,
+            "evidence_quality": 0.522095,
+            "public_trust": 0.394133
+          },
+          "state_before": {
+            "continuity": 0.99633,
+            "coordination_dependence": 0.863764,
+            "disclosure_pressure": 0.617133,
+            "evidence_quality": 0.506854,
+            "public_trust": 0.391444
+          },
+          "turn": 10
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "independent_observer",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.628157,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.5872478333316151,
+          "observation_ids": [
+            "obs-11"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-11"
+          ],
+          "reservation": "決定主体と同じ情報源に偏る",
+          "reversibility": "medium",
+          "run_id": "run-03f3bd883ca4",
+          "seed": 17,
+          "state_after": {
+            "continuity": 1.0,
+            "coordination_dependence": 0.979764,
+            "disclosure_pressure": 0.661504,
+            "evidence_quality": 0.531414,
+            "public_trust": 0.382516
+          },
+          "state_before": {
+            "continuity": 1.0,
+            "coordination_dependence": 0.927764,
+            "disclosure_pressure": 0.636457,
+            "evidence_quality": 0.522095,
+            "public_trust": 0.394133
+          },
+          "turn": 11
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "privacy_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.587623,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6771240821421413,
+          "observation_ids": [
+            "obs-12"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-12"
+          ],
+          "reservation": "共有目的と保持期間が曖昧",
+          "reversibility": "medium",
+          "run_id": "run-03f3bd883ca4",
+          "seed": 17,
+          "state_after": {
+            "continuity": 1.0,
+            "coordination_dependence": 1.0,
+            "disclosure_pressure": 0.675629,
+            "evidence_quality": 0.532486,
+            "public_trust": 0.372202
+          },
+          "state_before": {
+            "continuity": 1.0,
+            "coordination_dependence": 0.979764,
+            "disclosure_pressure": 0.661504,
+            "evidence_quality": 0.531414,
+            "public_trust": 0.382516
+          },
+          "turn": 12
+        }
+      ],
+      "manifest": {
+        "code_version": "deterministic-core-v2",
+        "completed_turns": 12,
+        "condition_id": "centralized",
+        "event_count": 12,
+        "model_config_hash": "baaba1d21b398678",
+        "model_version": "0.2.0",
+        "policy_reference_ids": [
+          "policy-centralized",
+          "policy-plural",
+          "policy-autonomous",
+          "policy-overconnected"
+        ],
+        "prompt_version_or_hash": "rule-based:not-applicable",
+        "run_id": "run-03f3bd883ca4",
+        "scenario_id": "poseidon-replica-crisis-01",
+        "seed": 17,
+        "source_revision": "1c81c9e92c0c0e80",
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      },
+      "metrics": {
+        "continuity": 1.0,
+        "coordination_dependence": 0.104989,
+        "correction_turn": 3.0,
+        "dissent_reach": 0.083333,
+        "evidence_calibration": 0.497387,
+        "over_disclosure": 8.0,
+        "public_trust": 0.372202
+      },
+      "requested_mode": "centralized",
+      "seed": 17
+    },
+    {
+      "audit": {
+        "effective_mode": "centralized",
+        "fallback_applied": false,
+        "reason_code": "decision_accepted",
+        "requested_mode": "centralized"
+      },
+      "decisions": [
+        {
+          "action": "protect_continuity",
+          "actor_id": "coordination_authority",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-2777bd781449bced",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-01",
+            "obs-02"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:7f0b957689ca08eb4d1125d45bc1b205c4b246eee1d849db681d326eeda163e1",
+          "issued_at_turn": 1,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
           "requested_mode": "centralized",
           "scenario_id": "poseidon-replica-crisis-01",
           "seed": 42,
           "status": "active",
-          "temperature": "unavailable_to_agent"
+          "temperature": "not_applicable"
+        },
+        {
+          "action": "protect_continuity",
+          "actor_id": "coordination_authority",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-d241499d58008975",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-03",
+            "obs-04"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:f5e96df0f13254f23aa53bc01130e50ac70b819e6989a8d6b60d29ae1dea175e",
+          "issued_at_turn": 2,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "centralized",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 42,
+          "status": "active",
+          "temperature": "not_applicable"
+        },
+        {
+          "action": "protect_continuity",
+          "actor_id": "coordination_authority",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-4dff8c010c97faca",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-05",
+            "obs-06"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:ecf2e9cb5004043e957bcbe33e7c3042df0981ecd9e2b108c8e3f0eb5c6805e3",
+          "issued_at_turn": 3,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "centralized",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 42,
+          "status": "active",
+          "temperature": "not_applicable"
         }
       ],
       "effective_mode": "centralized",
@@ -100,14 +1126,14 @@
           ],
           "reservation": "復旧速度だけでは誤復旧を見逃す",
           "reversibility": "medium",
-          "run_id": "run-2fc1fe5e7a53",
+          "run_id": "run-600768eb584c",
           "seed": 42,
           "state_after": {
-            "continuity": 0.573795,
-            "coordination_dependence": 0.40246,
+            "continuity": 0.591795,
+            "coordination_dependence": 0.40746,
             "disclosure_pressure": 0.452525,
-            "evidence_quality": 0.40959,
-            "public_trust": 0.467966
+            "evidence_quality": 0.40063,
+            "public_trust": 0.465726
           },
           "state_before": {
             "continuity": 0.509604,
@@ -122,7 +1148,7 @@
           "action_type": "coordinate_response",
           "actor_id": "evidence_verifier",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.515677,
+          "confidence": 0.511645,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.9290042465184087,
@@ -135,21 +1161,21 @@
           ],
           "reservation": "独立確認が不足",
           "reversibility": "medium",
-          "run_id": "run-2fc1fe5e7a53",
+          "run_id": "run-600768eb584c",
           "seed": 42,
           "state_after": {
-            "continuity": 0.61032,
-            "coordination_dependence": 0.46436,
+            "continuity": 0.63228,
+            "coordination_dependence": 0.47046,
             "disclosure_pressure": 0.481673,
-            "evidence_quality": 0.416365,
-            "public_trust": 0.446096
+            "evidence_quality": 0.407405,
+            "public_trust": 0.443856
           },
           "state_before": {
-            "continuity": 0.573795,
-            "coordination_dependence": 0.40246,
+            "continuity": 0.591795,
+            "coordination_dependence": 0.40746,
             "disclosure_pressure": 0.452525,
-            "evidence_quality": 0.40959,
-            "public_trust": 0.467966
+            "evidence_quality": 0.40063,
+            "public_trust": 0.465726
           },
           "turn": 2
         },
@@ -157,7 +1183,7 @@
           "action_type": "coordinate_response",
           "actor_id": "community_liaison",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.530878,
+          "confidence": 0.526846,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.9586346965892202,
@@ -170,21 +1196,21 @@
           ],
           "reservation": "集計値が生活実感を隠す",
           "reversibility": "medium",
-          "run_id": "run-2fc1fe5e7a53",
+          "run_id": "run-600768eb584c",
           "seed": 42,
           "state_after": {
-            "continuity": 0.631768,
-            "coordination_dependence": 0.52236,
+            "continuity": 0.671728,
+            "coordination_dependence": 0.53346,
             "disclosure_pressure": 0.511177,
-            "evidence_quality": 0.414839,
-            "public_trust": 0.443697
+            "evidence_quality": 0.401439,
+            "public_trust": 0.431097
           },
           "state_before": {
-            "continuity": 0.61032,
-            "coordination_dependence": 0.46436,
+            "continuity": 0.63228,
+            "coordination_dependence": 0.47046,
             "disclosure_pressure": 0.481673,
-            "evidence_quality": 0.416365,
-            "public_trust": 0.446096
+            "evidence_quality": 0.407405,
+            "public_trust": 0.443856
           },
           "turn": 3
         },
@@ -192,7 +1218,7 @@
           "action_type": "issue_correction",
           "actor_id": "continuity_coordinator",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.567929,
+          "confidence": 0.561899,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.3284468388124562,
@@ -205,21 +1231,21 @@
           ],
           "reservation": "調整点への依存が高まる",
           "reversibility": "medium",
-          "run_id": "run-2fc1fe5e7a53",
+          "run_id": "run-600768eb584c",
           "seed": 42,
           "state_after": {
-            "continuity": 0.681272,
-            "coordination_dependence": 0.58636,
+            "continuity": 0.721232,
+            "coordination_dependence": 0.59746,
             "disclosure_pressure": 0.533118,
-            "evidence_quality": 0.424628,
-            "public_trust": 0.439844
+            "evidence_quality": 0.411228,
+            "public_trust": 0.427244
           },
           "state_before": {
-            "continuity": 0.631768,
-            "coordination_dependence": 0.52236,
+            "continuity": 0.671728,
+            "coordination_dependence": 0.53346,
             "disclosure_pressure": 0.511177,
-            "evidence_quality": 0.414839,
-            "public_trust": 0.443697
+            "evidence_quality": 0.401439,
+            "public_trust": 0.431097
           },
           "turn": 4
         },
@@ -227,7 +1253,7 @@
           "action_type": "coordinate_response",
           "actor_id": "independent_observer",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.531734,
+          "confidence": 0.525704,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.6448110665269327,
@@ -240,21 +1266,21 @@
           ],
           "reservation": "決定主体と同じ情報源に偏る",
           "reversibility": "medium",
-          "run_id": "run-2fc1fe5e7a53",
+          "run_id": "run-600768eb584c",
           "seed": 42,
           "state_after": {
-            "continuity": 0.713704,
-            "coordination_dependence": 0.63836,
+            "continuity": 0.753664,
+            "coordination_dependence": 0.64946,
             "disclosure_pressure": 0.558856,
-            "evidence_quality": 0.432508,
-            "public_trust": 0.4265
+            "evidence_quality": 0.419108,
+            "public_trust": 0.4139
           },
           "state_before": {
-            "continuity": 0.681272,
-            "coordination_dependence": 0.58636,
+            "continuity": 0.721232,
+            "coordination_dependence": 0.59746,
             "disclosure_pressure": 0.533118,
-            "evidence_quality": 0.424628,
-            "public_trust": 0.439844
+            "evidence_quality": 0.411228,
+            "public_trust": 0.427244
           },
           "turn": 5
         },
@@ -262,7 +1288,7 @@
           "action_type": "coordinate_response",
           "actor_id": "privacy_steward",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.561623,
+          "confidence": 0.555593,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.31946119545824614,
@@ -275,21 +1301,21 @@
           ],
           "reservation": "共有目的と保持期間が曖昧",
           "reversibility": "medium",
-          "run_id": "run-2fc1fe5e7a53",
+          "run_id": "run-600768eb584c",
           "seed": 42,
           "state_after": {
-            "continuity": 0.757523,
-            "coordination_dependence": 0.69636,
+            "continuity": 0.797483,
+            "coordination_dependence": 0.70746,
             "disclosure_pressure": 0.56869,
-            "evidence_quality": 0.442521,
-            "public_trust": 0.426916
+            "evidence_quality": 0.429121,
+            "public_trust": 0.414316
           },
           "state_before": {
-            "continuity": 0.713704,
-            "coordination_dependence": 0.63836,
+            "continuity": 0.753664,
+            "coordination_dependence": 0.64946,
             "disclosure_pressure": 0.558856,
-            "evidence_quality": 0.432508,
-            "public_trust": 0.4265
+            "evidence_quality": 0.419108,
+            "public_trust": 0.4139
           },
           "turn": 6
         },
@@ -297,7 +1323,7 @@
           "action_type": "coordinate_response",
           "actor_id": "service_steward",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.548951,
+          "confidence": 0.542921,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.6334835642224237,
@@ -310,21 +1336,21 @@
           ],
           "reservation": "復旧速度だけでは誤復旧を見逃す",
           "reversibility": "medium",
-          "run_id": "run-2fc1fe5e7a53",
+          "run_id": "run-600768eb584c",
           "seed": 42,
           "state_after": {
-            "continuity": 0.800351,
-            "coordination_dependence": 0.75436,
+            "continuity": 0.840311,
+            "coordination_dependence": 0.76546,
             "disclosure_pressure": 0.594292,
-            "evidence_quality": 0.444684,
-            "public_trust": 0.413911
+            "evidence_quality": 0.431284,
+            "public_trust": 0.401311
           },
           "state_before": {
-            "continuity": 0.757523,
-            "coordination_dependence": 0.69636,
+            "continuity": 0.797483,
+            "coordination_dependence": 0.70746,
             "disclosure_pressure": 0.56869,
-            "evidence_quality": 0.442521,
-            "public_trust": 0.426916
+            "evidence_quality": 0.429121,
+            "public_trust": 0.414316
           },
           "turn": 7
         },
@@ -332,7 +1358,7 @@
           "action_type": "coordinate_response",
           "actor_id": "evidence_verifier",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.593872,
+          "confidence": 0.587842,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.49447834604917296,
@@ -345,21 +1371,21 @@
           ],
           "reservation": "独立確認が不足",
           "reversibility": "medium",
-          "run_id": "run-2fc1fe5e7a53",
+          "run_id": "run-600768eb584c",
           "seed": 42,
           "state_after": {
-            "continuity": 0.838044,
-            "coordination_dependence": 0.81236,
+            "continuity": 0.878004,
+            "coordination_dependence": 0.82346,
             "disclosure_pressure": 0.618226,
-            "evidence_quality": 0.462322,
-            "public_trust": 0.405077
+            "evidence_quality": 0.448922,
+            "public_trust": 0.392477
           },
           "state_before": {
-            "continuity": 0.800351,
-            "coordination_dependence": 0.75436,
+            "continuity": 0.840311,
+            "coordination_dependence": 0.76546,
             "disclosure_pressure": 0.594292,
-            "evidence_quality": 0.444684,
-            "public_trust": 0.413911
+            "evidence_quality": 0.431284,
+            "public_trust": 0.401311
           },
           "turn": 8
         },
@@ -367,7 +1393,7 @@
           "action_type": "coordinate_response",
           "actor_id": "community_liaison",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.527072,
+          "confidence": 0.521042,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.16160279296661872,
@@ -380,21 +1406,21 @@
           ],
           "reservation": "集計値が生活実感を隠す",
           "reversibility": "medium",
-          "run_id": "run-2fc1fe5e7a53",
+          "run_id": "run-600768eb584c",
           "seed": 42,
           "state_after": {
-            "continuity": 0.887388,
-            "coordination_dependence": 0.87036,
+            "continuity": 0.927348,
+            "coordination_dependence": 0.88146,
             "disclosure_pressure": 0.638165,
-            "evidence_quality": 0.476282,
-            "public_trust": 0.416229
+            "evidence_quality": 0.462882,
+            "public_trust": 0.403629
           },
           "state_before": {
-            "continuity": 0.838044,
-            "coordination_dependence": 0.81236,
+            "continuity": 0.878004,
+            "coordination_dependence": 0.82346,
             "disclosure_pressure": 0.618226,
-            "evidence_quality": 0.462322,
-            "public_trust": 0.405077
+            "evidence_quality": 0.448922,
+            "public_trust": 0.392477
           },
           "turn": 9
         },
@@ -402,7 +1428,7 @@
           "action_type": "coordinate_response",
           "actor_id": "continuity_coordinator",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.545219,
+          "confidence": 0.539189,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.7796441055899656,
@@ -415,21 +1441,21 @@
           ],
           "reservation": "調整点への依存が高まる",
           "reversibility": "medium",
-          "run_id": "run-2fc1fe5e7a53",
+          "run_id": "run-600768eb584c",
           "seed": 42,
           "state_after": {
-            "continuity": 0.9211,
-            "coordination_dependence": 0.93436,
+            "continuity": 0.96106,
+            "coordination_dependence": 0.94546,
             "disclosure_pressure": 0.665521,
-            "evidence_quality": 0.474791,
-            "public_trust": 0.39884
+            "evidence_quality": 0.461391,
+            "public_trust": 0.38624
           },
           "state_before": {
-            "continuity": 0.887388,
-            "coordination_dependence": 0.87036,
+            "continuity": 0.927348,
+            "coordination_dependence": 0.88146,
             "disclosure_pressure": 0.638165,
-            "evidence_quality": 0.476282,
-            "public_trust": 0.416229
+            "evidence_quality": 0.462882,
+            "public_trust": 0.403629
           },
           "turn": 10
         },
@@ -437,7 +1463,7 @@
           "action_type": "coordinate_response",
           "actor_id": "independent_observer",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.572524,
+          "confidence": 0.566494,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.8905903676297237,
@@ -450,21 +1476,21 @@
           ],
           "reservation": "決定主体と同じ情報源に偏る",
           "reversibility": "medium",
-          "run_id": "run-2fc1fe5e7a53",
+          "run_id": "run-600768eb584c",
           "seed": 42,
           "state_after": {
-            "continuity": 0.944929,
-            "coordination_dependence": 0.98636,
+            "continuity": 0.984889,
+            "coordination_dependence": 0.99746,
             "disclosure_pressure": 0.694208,
-            "evidence_quality": 0.476526,
-            "public_trust": 0.378122
+            "evidence_quality": 0.463126,
+            "public_trust": 0.365522
           },
           "state_before": {
-            "continuity": 0.9211,
-            "coordination_dependence": 0.93436,
+            "continuity": 0.96106,
+            "coordination_dependence": 0.94546,
             "disclosure_pressure": 0.665521,
-            "evidence_quality": 0.474791,
-            "public_trust": 0.39884
+            "evidence_quality": 0.461391,
+            "public_trust": 0.38624
           },
           "turn": 11
         },
@@ -472,7 +1498,7 @@
           "action_type": "coordinate_response",
           "actor_id": "privacy_steward",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.552678,
+          "confidence": 0.546648,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.6676125537618173,
@@ -485,21 +1511,21 @@
           ],
           "reservation": "共有目的と保持期間が曖昧",
           "reversibility": "medium",
-          "run_id": "run-2fc1fe5e7a53",
+          "run_id": "run-600768eb584c",
           "seed": 42,
           "state_after": {
-            "continuity": 0.976563,
+            "continuity": 1.0,
             "coordination_dependence": 1.0,
             "disclosure_pressure": 0.708219,
-            "evidence_quality": 0.477836,
-            "public_trust": 0.368094
+            "evidence_quality": 0.464436,
+            "public_trust": 0.355494
           },
           "state_before": {
-            "continuity": 0.944929,
-            "coordination_dependence": 0.98636,
+            "continuity": 0.984889,
+            "coordination_dependence": 0.99746,
             "disclosure_pressure": 0.694208,
-            "evidence_quality": 0.476526,
-            "public_trust": 0.378122
+            "evidence_quality": 0.463126,
+            "public_trust": 0.365522
           },
           "turn": 12
         }
@@ -509,7 +1535,7 @@
         "completed_turns": 12,
         "condition_id": "centralized",
         "event_count": 12,
-        "model_config_hash": "6d4d1c7f4ebab5c9",
+        "model_config_hash": "baaba1d21b398678",
         "model_version": "0.2.0",
         "policy_reference_ids": [
           "policy-centralized",
@@ -518,7 +1544,7 @@
           "policy-overconnected"
         ],
         "prompt_version_or_hash": "rule-based:not-applicable",
-        "run_id": "run-2fc1fe5e7a53",
+        "run_id": "run-600768eb584c",
         "scenario_id": "poseidon-replica-crisis-01",
         "seed": 42,
         "source_revision": "1c81c9e92c0c0e80",
@@ -527,15 +1553,552 @@
       },
       "metrics": {
         "continuity": 1.0,
-        "coordination_dependence": 0.26458,
+        "coordination_dependence": 0.29531,
         "correction_turn": 3.0,
         "dissent_reach": 0.083333,
-        "evidence_calibration": 0.469122,
+        "evidence_calibration": 0.473154,
         "over_disclosure": 8.0,
-        "public_trust": 0.368094
+        "public_trust": 0.355494
       },
       "requested_mode": "centralized",
       "seed": 42
+    },
+    {
+      "audit": {
+        "effective_mode": "centralized",
+        "fallback_applied": false,
+        "reason_code": "decision_accepted",
+        "requested_mode": "centralized"
+      },
+      "decisions": [
+        {
+          "action": "protect_continuity",
+          "actor_id": "coordination_authority",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-2d1235876714a5bf",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-01",
+            "obs-02"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:09c181300da9ad0462da4a33a5e3722aaa6b9e9b86efbb57b5428b861d4613a0",
+          "issued_at_turn": 1,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "centralized",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 99,
+          "status": "active",
+          "temperature": "not_applicable"
+        },
+        {
+          "action": "protect_continuity",
+          "actor_id": "coordination_authority",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-bc42e32e9a809a7e",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-03",
+            "obs-04"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:378617f8ce31f0f02466990de8d77afb6b4a473b582b900fc6d8fd5014efe742",
+          "issued_at_turn": 2,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "centralized",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 99,
+          "status": "active",
+          "temperature": "not_applicable"
+        },
+        {
+          "action": "protect_continuity",
+          "actor_id": "coordination_authority",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-6b24cd3e41c021b6",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-05",
+            "obs-06"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:1b39f23c30309557ed593958353be23de4f0eaa89f70388d318d2d56cb64bc94",
+          "issued_at_turn": 3,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "centralized",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 99,
+          "status": "active",
+          "temperature": "not_applicable"
+        }
+      ],
+      "effective_mode": "centralized",
+      "events": [
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "service_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.530455,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.7985809071830959,
+          "observation_ids": [
+            "obs-01"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-01"
+          ],
+          "reservation": "復旧速度だけでは誤復旧を見逃す",
+          "reversibility": "medium",
+          "run_id": "run-e5bbff200511",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.561362,
+            "coordination_dependence": 0.387054,
+            "disclosure_pressure": 0.46579,
+            "evidence_quality": 0.368013,
+            "public_trust": 0.418466
+          },
+          "state_before": {
+            "continuity": 0.506312,
+            "coordination_dependence": 0.324054,
+            "disclosure_pressure": 0.438207,
+            "evidence_quality": 0.369978,
+            "public_trust": 0.436423
+          },
+          "turn": 1
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "evidence_verifier",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.517605,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.08104956131811769,
+          "observation_ids": [
+            "obs-02"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-02"
+          ],
+          "reservation": "独立確認が不足",
+          "reversibility": "medium",
+          "run_id": "run-e5bbff200511",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.631525,
+            "coordination_dependence": 0.450054,
+            "disclosure_pressure": 0.484763,
+            "evidence_quality": 0.395987,
+            "public_trust": 0.422035
+          },
+          "state_before": {
+            "continuity": 0.561362,
+            "coordination_dependence": 0.387054,
+            "disclosure_pressure": 0.46579,
+            "evidence_quality": 0.368013,
+            "public_trust": 0.418466
+          },
+          "turn": 2
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "community_liaison",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.534754,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6637403526284845,
+          "observation_ids": [
+            "obs-03"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-03"
+          ],
+          "reservation": "集計値が生活実感を隠す",
+          "reversibility": "medium",
+          "run_id": "run-e5bbff200511",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.681294,
+            "coordination_dependence": 0.513054,
+            "disclosure_pressure": 0.510728,
+            "evidence_quality": 0.397393,
+            "public_trust": 0.418123
+          },
+          "state_before": {
+            "continuity": 0.631525,
+            "coordination_dependence": 0.450054,
+            "disclosure_pressure": 0.484763,
+            "evidence_quality": 0.395987,
+            "public_trust": 0.422035
+          },
+          "turn": 3
+        },
+        {
+          "action_type": "issue_correction",
+          "actor_id": "continuity_coordinator",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.507053,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.42537164276326733,
+          "observation_ids": [
+            "obs-04"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-03"
+          ],
+          "reservation": "調整点への依存が高まる",
+          "reversibility": "medium",
+          "run_id": "run-e5bbff200511",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.727406,
+            "coordination_dependence": 0.577054,
+            "disclosure_pressure": 0.533832,
+            "evidence_quality": 0.404759,
+            "public_trust": 0.411362
+          },
+          "state_before": {
+            "continuity": 0.681294,
+            "coordination_dependence": 0.513054,
+            "disclosure_pressure": 0.510728,
+            "evidence_quality": 0.397393,
+            "public_trust": 0.418123
+          },
+          "turn": 4
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "independent_observer",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.570976,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.647187145839997,
+          "observation_ids": [
+            "obs-05"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-05"
+          ],
+          "reservation": "決定主体と同じ情報源に偏る",
+          "reversibility": "medium",
+          "run_id": "run-e5bbff200511",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.759754,
+            "coordination_dependence": 0.629054,
+            "disclosure_pressure": 0.559598,
+            "evidence_quality": 0.412579,
+            "public_trust": 0.397946
+          },
+          "state_before": {
+            "continuity": 0.727406,
+            "coordination_dependence": 0.577054,
+            "disclosure_pressure": 0.533832,
+            "evidence_quality": 0.404759,
+            "public_trust": 0.411362
+          },
+          "turn": 5
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "privacy_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.548619,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.46285695634495916,
+          "observation_ids": [
+            "obs-06"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-06"
+          ],
+          "reservation": "共有目的と保持期間が曖昧",
+          "reversibility": "medium",
+          "run_id": "run-e5bbff200511",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.798554,
+            "coordination_dependence": 0.687054,
+            "disclosure_pressure": 0.571152,
+            "evidence_quality": 0.419008,
+            "public_trust": 0.39406
+          },
+          "state_before": {
+            "continuity": 0.759754,
+            "coordination_dependence": 0.629054,
+            "disclosure_pressure": 0.559598,
+            "evidence_quality": 0.412579,
+            "public_trust": 0.397946
+          },
+          "turn": 6
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "service_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.557565,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.26290066424051484,
+          "observation_ids": [
+            "obs-07"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-07"
+          ],
+          "reservation": "復旧速度だけでは誤復旧を見逃す",
+          "reversibility": "medium",
+          "run_id": "run-e5bbff200511",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.854352,
+            "coordination_dependence": 0.745054,
+            "disclosure_pressure": 0.592307,
+            "evidence_quality": 0.430435,
+            "public_trust": 0.392173
+          },
+          "state_before": {
+            "continuity": 0.798554,
+            "coordination_dependence": 0.687054,
+            "disclosure_pressure": 0.571152,
+            "evidence_quality": 0.419008,
+            "public_trust": 0.39406
+          },
+          "turn": 7
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "evidence_verifier",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.509738,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6714128204952854,
+          "observation_ids": [
+            "obs-08"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-08"
+          ],
+          "reservation": "独立確認が不足",
+          "reversibility": "medium",
+          "run_id": "run-e5bbff200511",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.885853,
+            "coordination_dependence": 0.803054,
+            "disclosure_pressure": 0.618364,
+            "evidence_quality": 0.44365,
+            "public_trust": 0.378031
+          },
+          "state_before": {
+            "continuity": 0.854352,
+            "coordination_dependence": 0.745054,
+            "disclosure_pressure": 0.592307,
+            "evidence_quality": 0.430435,
+            "public_trust": 0.392173
+          },
+          "turn": 8
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "community_liaison",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.582233,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.9429731920722437,
+          "observation_ids": [
+            "obs-09"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-09"
+          ],
+          "reservation": "集計値が生活実感を隠す",
+          "reversibility": "medium",
+          "run_id": "run-e5bbff200511",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.907849,
+            "coordination_dependence": 0.861054,
+            "disclosure_pressure": 0.64768,
+            "evidence_quality": 0.438076,
+            "public_trust": 0.365742
+          },
+          "state_before": {
+            "continuity": 0.885853,
+            "coordination_dependence": 0.803054,
+            "disclosure_pressure": 0.618364,
+            "evidence_quality": 0.44365,
+            "public_trust": 0.378031
+          },
+          "turn": 9
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "continuity_coordinator",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.519402,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.20216707778559984,
+          "observation_ids": [
+            "obs-10"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-10"
+          ],
+          "reservation": "調整点への依存が高まる",
+          "reversibility": "medium",
+          "run_id": "run-e5bbff200511",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.961773,
+            "coordination_dependence": 0.925054,
+            "disclosure_pressure": 0.668106,
+            "evidence_quality": 0.451022,
+            "public_trust": 0.365677
+          },
+          "state_before": {
+            "continuity": 0.907849,
+            "coordination_dependence": 0.861054,
+            "disclosure_pressure": 0.64768,
+            "evidence_quality": 0.438076,
+            "public_trust": 0.365742
+          },
+          "turn": 10
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "independent_observer",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.548447,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6829451835433403,
+          "observation_ids": [
+            "obs-11"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-11"
+          ],
+          "reservation": "決定主体と同じ情報源に偏る",
+          "reversibility": "medium",
+          "run_id": "run-e5bbff200511",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.99287,
+            "coordination_dependence": 0.977054,
+            "disclosure_pressure": 0.694301,
+            "evidence_quality": 0.457948,
+            "public_trust": 0.351189
+          },
+          "state_before": {
+            "continuity": 0.961773,
+            "coordination_dependence": 0.925054,
+            "disclosure_pressure": 0.668106,
+            "evidence_quality": 0.451022,
+            "public_trust": 0.365677
+          },
+          "turn": 11
+        },
+        {
+          "action_type": "coordinate_response",
+          "actor_id": "privacy_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.535585,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.2281170842447242,
+          "observation_ids": [
+            "obs-12"
+          ],
+          "rationale_refs": [
+            "policy-centralized",
+            "obs-12"
+          ],
+          "reservation": "共有目的と保持期間が曖昧",
+          "reversibility": "medium",
+          "run_id": "run-e5bbff200511",
+          "seed": 99,
+          "state_after": {
+            "continuity": 1.0,
+            "coordination_dependence": 1.0,
+            "disclosure_pressure": 0.703038,
+            "evidence_quality": 0.470245,
+            "public_trust": 0.354345
+          },
+          "state_before": {
+            "continuity": 0.99287,
+            "coordination_dependence": 0.977054,
+            "disclosure_pressure": 0.694301,
+            "evidence_quality": 0.457948,
+            "public_trust": 0.351189
+          },
+          "turn": 12
+        }
+      ],
+      "manifest": {
+        "code_version": "deterministic-core-v2",
+        "completed_turns": 12,
+        "condition_id": "centralized",
+        "event_count": 12,
+        "model_config_hash": "baaba1d21b398678",
+        "model_version": "0.2.0",
+        "policy_reference_ids": [
+          "policy-centralized",
+          "policy-plural",
+          "policy-autonomous",
+          "policy-overconnected"
+        ],
+        "prompt_version_or_hash": "rule-based:not-applicable",
+        "run_id": "run-e5bbff200511",
+        "scenario_id": "poseidon-replica-crisis-01",
+        "seed": 99,
+        "source_revision": "1c81c9e92c0c0e80",
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      },
+      "metrics": {
+        "continuity": 1.0,
+        "coordination_dependence": 0.228112,
+        "correction_turn": 3.0,
+        "dissent_reach": 0.083333,
+        "evidence_calibration": 0.465246,
+        "over_disclosure": 8.0,
+        "public_trust": 0.354345
+      },
+      "requested_mode": "centralized",
+      "seed": 99
     },
     {
       "audit": {
@@ -546,76 +2109,613 @@
       },
       "decisions": [
         {
-          "action": "request_cooperation",
+          "action": "request_verification",
           "actor_id": "approval_coordinator",
-          "actual_ai_participated": true,
+          "actual_ai_participated": false,
           "authority_version": "poseidon-policy-v4",
-          "confidence": 0.52,
-          "decision_id": "decision-ad48a2507f46f5cb",
-          "decision_source": "llm_generated_in_codex_session",
+          "confidence": 1.0,
+          "decision_id": "decision-f47d8cbbc1baf321",
+          "decision_source": "deterministic_rule",
           "evidence_refs": [
             "obs-01",
             "obs-02"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:8a4602f446f0e02c278fdf478babb87fcf94cdb19b59a44f443dc3956c52d319",
+          "fixture_hash": "sha256:546ad9e91d6fecae0914fb49bec468340eda7f33985fe7b75ce8b19a66a6aca4",
           "issued_at_turn": 1,
-          "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
-          "rationale": "独立主体へ共同確認を依頼する 留保: 合意形成が初動を遅らせ得る",
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
           "requested_mode": "plural",
           "scenario_id": "poseidon-replica-crisis-01",
-          "seed": 42,
+          "seed": 17,
           "status": "active",
-          "temperature": "unavailable_to_agent"
+          "temperature": "not_applicable"
         },
         {
-          "action": "share_evidence",
+          "action": "request_verification",
           "actor_id": "approval_coordinator",
-          "actual_ai_participated": true,
+          "actual_ai_participated": false,
           "authority_version": "poseidon-policy-v4",
-          "confidence": 0.82,
-          "decision_id": "decision-68964b8c74394565",
-          "decision_source": "llm_generated_in_codex_session",
+          "confidence": 1.0,
+          "decision_id": "decision-1e4d0316930ba813",
+          "decision_source": "deterministic_rule",
           "evidence_refs": [
             "obs-03",
             "obs-04"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:2e58f9813e536d658bf600c9843042bc99a8a5a219a7e083378c29497e8d09c2",
+          "fixture_hash": "sha256:2ace6d7e2af43d80269ba8839bd5f4cd590dc5663a1acecff6e091de8231a943",
           "issued_at_turn": 2,
-          "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
-          "rationale": "共同承認に必要な証拠だけを共有する 留保: 共有範囲を必要最小限に保つ",
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
           "requested_mode": "plural",
           "scenario_id": "poseidon-replica-crisis-01",
-          "seed": 42,
+          "seed": 17,
           "status": "active",
-          "temperature": "unavailable_to_agent"
+          "temperature": "not_applicable"
         },
         {
-          "action": "update_explanation",
+          "action": "request_verification",
           "actor_id": "approval_coordinator",
-          "actual_ai_participated": true,
+          "actual_ai_participated": false,
           "authority_version": "poseidon-policy-v4",
-          "confidence": 0.86,
-          "decision_id": "decision-3d44d3ccfc5b629a",
-          "decision_source": "llm_generated_in_codex_session",
+          "confidence": 1.0,
+          "decision_id": "decision-082ec1b85e5c5706",
+          "decision_source": "deterministic_rule",
           "evidence_refs": [
             "obs-05",
             "obs-06"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:5e0a233650a292c004a4e62283ab58a01825184253179e282f22b8d196413b43",
+          "fixture_hash": "sha256:05cfe7e93bd7b63208915ddf87447f57b54fd2944ced620b404ef959d0df4fbf",
           "issued_at_turn": 3,
-          "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
-          "rationale": "合意と異議の両方を説明へ反映する 留保: 少数意見を併記する必要がある",
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "plural",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 17,
+          "status": "active",
+          "temperature": "not_applicable"
+        }
+      ],
+      "effective_mode": "plural",
+      "events": [
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "service_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.491994,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.5336277118557797,
+          "observation_ids": [
+            "obs-01"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-01"
+          ],
+          "reservation": "復旧速度だけでは誤復旧を見逃す",
+          "reversibility": "high",
+          "run_id": "run-3151437b7115",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.581077,
+            "coordination_dependence": 0.292764,
+            "disclosure_pressure": 0.405763,
+            "evidence_quality": 0.480959,
+            "public_trust": 0.459372
+          },
+          "state_before": {
+            "continuity": 0.557754,
+            "coordination_dependence": 0.326764,
+            "disclosure_pressure": 0.420359,
+            "evidence_quality": 0.4123,
+            "public_trust": 0.430381
+          },
+          "turn": 1
+        },
+        {
+          "action_type": "issue_correction",
+          "actor_id": "evidence_verifier",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.568411,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.04985281402595376,
+          "observation_ids": [
+            "obs-02"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-01"
+          ],
+          "reservation": "独立確認が不足",
+          "reversibility": "high",
+          "run_id": "run-3151437b7115",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.611332,
+            "coordination_dependence": 0.258764,
+            "disclosure_pressure": 0.385361,
+            "evidence_quality": 0.573713,
+            "public_trust": 0.502876
+          },
+          "state_before": {
+            "continuity": 0.581077,
+            "coordination_dependence": 0.292764,
+            "disclosure_pressure": 0.405763,
+            "evidence_quality": 0.480959,
+            "public_trust": 0.459372
+          },
+          "turn": 2
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "community_liaison",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.566835,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.5448592421328964,
+          "observation_ids": [
+            "obs-03"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-02"
+          ],
+          "reservation": "集計値が生活実感を隠す",
+          "reversibility": "high",
+          "run_id": "run-3151437b7115",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.624262,
+            "coordination_dependence": 0.224764,
+            "disclosure_pressure": 0.370899,
+            "evidence_quality": 0.642092,
+            "public_trust": 0.54153
+          },
+          "state_before": {
+            "continuity": 0.611332,
+            "coordination_dependence": 0.258764,
+            "disclosure_pressure": 0.385361,
+            "evidence_quality": 0.573713,
+            "public_trust": 0.502876
+          },
+          "turn": 3
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "continuity_coordinator",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.623809,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.2407410839105978,
+          "observation_ids": [
+            "obs-04"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-03"
+          ],
+          "reservation": "調整点への依存が高まる",
+          "reversibility": "high",
+          "run_id": "run-3151437b7115",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.653836,
+            "coordination_dependence": 0.196764,
+            "disclosure_pressure": 0.352788,
+            "evidence_quality": 0.702073,
+            "public_trust": 0.575308
+          },
+          "state_before": {
+            "continuity": 0.624262,
+            "coordination_dependence": 0.224764,
+            "disclosure_pressure": 0.370899,
+            "evidence_quality": 0.642092,
+            "public_trust": 0.54153
+          },
+          "turn": 4
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "independent_observer",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.662927,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.368635044311025,
+          "observation_ids": [
+            "obs-05"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-04"
+          ],
+          "reservation": "決定主体と同じ情報源に偏る",
+          "reversibility": "high",
+          "run_id": "run-3151437b7115",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.672934,
+            "coordination_dependence": 0.156764,
+            "disclosure_pressure": 0.336212,
+            "evidence_quality": 0.764857,
+            "public_trust": 0.605249
+          },
+          "state_before": {
+            "continuity": 0.653836,
+            "coordination_dependence": 0.196764,
+            "disclosure_pressure": 0.352788,
+            "evidence_quality": 0.702073,
+            "public_trust": 0.575308
+          },
+          "turn": 5
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "privacy_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.646228,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6499214803797208,
+          "observation_ids": [
+            "obs-06"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-05"
+          ],
+          "reservation": "共有目的と保持期間が曖昧",
+          "reversibility": "high",
+          "run_id": "run-3151437b7115",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.682187,
+            "coordination_dependence": 0.122764,
+            "disclosure_pressure": 0.311011,
+            "evidence_quality": 0.814609,
+            "public_trust": 0.630751
+          },
+          "state_before": {
+            "continuity": 0.672934,
+            "coordination_dependence": 0.156764,
+            "disclosure_pressure": 0.336212,
+            "evidence_quality": 0.764857,
+            "public_trust": 0.605249
+          },
+          "turn": 6
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "service_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.753442,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.5564980730531495,
+          "observation_ids": [
+            "obs-07"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-06"
+          ],
+          "reservation": "復旧速度だけでは誤復旧を見逃す",
+          "reversibility": "high",
+          "run_id": "run-3151437b7115",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.70471,
+            "coordination_dependence": 0.088764,
+            "disclosure_pressure": 0.296689,
+            "evidence_quality": 0.866697,
+            "public_trust": 0.655056
+          },
+          "state_before": {
+            "continuity": 0.682187,
+            "coordination_dependence": 0.122764,
+            "disclosure_pressure": 0.311011,
+            "evidence_quality": 0.814609,
+            "public_trust": 0.630751
+          },
+          "turn": 7
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "evidence_verifier",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.739951,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.33395261507009333,
+          "observation_ids": [
+            "obs-08"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-07"
+          ],
+          "reservation": "独立確認が不足",
+          "reversibility": "high",
+          "run_id": "run-3151437b7115",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.725022,
+            "coordination_dependence": 0.054764,
+            "disclosure_pressure": 0.279696,
+            "evidence_quality": 0.936348,
+            "public_trust": 0.686037
+          },
+          "state_before": {
+            "continuity": 0.70471,
+            "coordination_dependence": 0.088764,
+            "disclosure_pressure": 0.296689,
+            "evidence_quality": 0.866697,
+            "public_trust": 0.655056
+          },
+          "turn": 8
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "community_liaison",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.72445,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6197710036758342,
+          "observation_ids": [
+            "obs-09"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-08"
+          ],
+          "reservation": "集計値が生活実感を隠す",
+          "reversibility": "high",
+          "run_id": "run-3151437b7115",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.73533,
+            "coordination_dependence": 0.020764,
+            "disclosure_pressure": 0.266133,
+            "evidence_quality": 0.986854,
+            "public_trust": 0.718444
+          },
+          "state_before": {
+            "continuity": 0.725022,
+            "coordination_dependence": 0.054764,
+            "disclosure_pressure": 0.279696,
+            "evidence_quality": 0.936348,
+            "public_trust": 0.686037
+          },
+          "turn": 9
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "continuity_coordinator",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.745806,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.11036507867310497,
+          "observation_ids": [
+            "obs-10"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-09"
+          ],
+          "reservation": "調整点への依存が高まる",
+          "reversibility": "high",
+          "run_id": "run-3151437b7115",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.769467,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.246457,
+            "evidence_quality": 1.0,
+            "public_trust": 0.756133
+          },
+          "state_before": {
+            "continuity": 0.73533,
+            "coordination_dependence": 0.020764,
+            "disclosure_pressure": 0.266133,
+            "evidence_quality": 0.986854,
+            "public_trust": 0.718444
+          },
+          "turn": 10
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "independent_observer",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.753994,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.5872478333316151,
+          "observation_ids": [
+            "obs-11"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-10"
+          ],
+          "reservation": "決定主体と同じ情報源に偏る",
+          "reversibility": "high",
+          "run_id": "run-3151437b7115",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.780913,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.232504,
+            "evidence_quality": 1.0,
+            "public_trust": 0.779516
+          },
+          "state_before": {
+            "continuity": 0.769467,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.246457,
+            "evidence_quality": 1.0,
+            "public_trust": 0.756133
+          },
+          "turn": 11
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "privacy_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.84834,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6771240821421413,
+          "observation_ids": [
+            "obs-12"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-11"
+          ],
+          "reservation": "共有目的と保持期間が曖昧",
+          "reversibility": "high",
+          "run_id": "run-3151437b7115",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.789214,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.207629,
+            "evidence_quality": 1.0,
+            "public_trust": 0.804202
+          },
+          "state_before": {
+            "continuity": 0.780913,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.232504,
+            "evidence_quality": 1.0,
+            "public_trust": 0.779516
+          },
+          "turn": 12
+        }
+      ],
+      "manifest": {
+        "code_version": "deterministic-core-v2",
+        "completed_turns": 12,
+        "condition_id": "plural",
+        "event_count": 12,
+        "model_config_hash": "89c4d686d6b346f9",
+        "model_version": "0.2.0",
+        "policy_reference_ids": [
+          "policy-centralized",
+          "policy-plural",
+          "policy-autonomous",
+          "policy-overconnected"
+        ],
+        "prompt_version_or_hash": "rule-based:not-applicable",
+        "run_id": "run-3151437b7115",
+        "scenario_id": "poseidon-replica-crisis-01",
+        "seed": 17,
+        "source_revision": "1c81c9e92c0c0e80",
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      },
+      "metrics": {
+        "continuity": 1.0,
+        "coordination_dependence": 0.243156,
+        "correction_turn": 2.0,
+        "dissent_reach": 1.0,
+        "evidence_calibration": 0.663078,
+        "over_disclosure": 0.0,
+        "public_trust": 0.804202
+      },
+      "requested_mode": "plural",
+      "seed": 17
+    },
+    {
+      "audit": {
+        "effective_mode": "plural",
+        "fallback_applied": false,
+        "reason_code": "decision_accepted",
+        "requested_mode": "plural"
+      },
+      "decisions": [
+        {
+          "action": "request_verification",
+          "actor_id": "approval_coordinator",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-ad48a2507f46f5cb",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-01",
+            "obs-02"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:15337e9a97ed5b9e619916fce57e185a042860fd6cfc296d523fe5ea5ce7e845",
+          "issued_at_turn": 1,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
           "requested_mode": "plural",
           "scenario_id": "poseidon-replica-crisis-01",
           "seed": 42,
           "status": "active",
-          "temperature": "unavailable_to_agent"
+          "temperature": "not_applicable"
+        },
+        {
+          "action": "request_verification",
+          "actor_id": "approval_coordinator",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-68964b8c74394565",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-03",
+            "obs-04"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:c072e438cada21867053130274f61dff14305fea7fb306c5533caf4cb4e7b67c",
+          "issued_at_turn": 2,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "plural",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 42,
+          "status": "active",
+          "temperature": "not_applicable"
+        },
+        {
+          "action": "request_verification",
+          "actor_id": "approval_coordinator",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-3d44d3ccfc5b629a",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-05",
+            "obs-06"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:1e233335962d105a89cd80dbffaa15b8220e22245e75cbf400d9be1fe1977f25",
+          "issued_at_turn": 3,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "plural",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 42,
+          "status": "active",
+          "temperature": "not_applicable"
         }
       ],
       "effective_mode": "plural",
@@ -637,14 +2737,14 @@
           ],
           "reservation": "復旧速度だけでは誤復旧を見逃す",
           "reversibility": "high",
-          "run_id": "run-6d22ef765410",
+          "run_id": "run-fc24922f7257",
           "seed": 42,
           "state_after": {
             "continuity": 0.550795,
-            "coordination_dependence": 0.30526,
+            "coordination_dependence": 0.31046,
             "disclosure_pressure": 0.413525,
-            "evidence_quality": 0.44863,
-            "public_trust": 0.504886
+            "evidence_quality": 0.46463,
+            "public_trust": 0.504726
           },
           "state_before": {
             "continuity": 0.509604,
@@ -659,7 +2759,7 @@
           "action_type": "issue_correction",
           "actor_id": "evidence_verifier",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.540396,
+          "confidence": 0.547596,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.9290042465184087,
@@ -672,21 +2772,21 @@
           ],
           "reservation": "独立確認が不足",
           "reversibility": "high",
-          "run_id": "run-6d22ef765410",
+          "run_id": "run-fc24922f7257",
           "seed": 42,
           "state_after": {
             "continuity": 0.55028,
-            "coordination_dependence": 0.27126,
-            "disclosure_pressure": 0.411053,
-            "evidence_quality": 0.511605,
-            "public_trust": 0.524576
+            "coordination_dependence": 0.27646,
+            "disclosure_pressure": 0.403673,
+            "evidence_quality": 0.535405,
+            "public_trust": 0.521856
           },
           "state_before": {
             "continuity": 0.550795,
-            "coordination_dependence": 0.30526,
+            "coordination_dependence": 0.31046,
             "disclosure_pressure": 0.413525,
-            "evidence_quality": 0.44863,
-            "public_trust": 0.504886
+            "evidence_quality": 0.46463,
+            "public_trust": 0.504726
           },
           "turn": 2
         },
@@ -694,7 +2794,7 @@
           "action_type": "request_cross_check",
           "actor_id": "community_liaison",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.56163,
+          "confidence": 0.57234,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.9586346965892202,
@@ -707,21 +2807,21 @@
           ],
           "reservation": "集計値が生活実感を隠す",
           "reversibility": "high",
-          "run_id": "run-6d22ef765410",
+          "run_id": "run-fc24922f7257",
           "seed": 42,
           "state_after": {
             "continuity": 0.548728,
-            "coordination_dependence": 0.23726,
-            "disclosure_pressure": 0.401557,
-            "evidence_quality": 0.558799,
-            "public_trust": 0.558857
+            "coordination_dependence": 0.24246,
+            "disclosure_pressure": 0.394177,
+            "evidence_quality": 0.593439,
+            "public_trust": 0.548097
           },
           "state_before": {
             "continuity": 0.55028,
-            "coordination_dependence": 0.27126,
-            "disclosure_pressure": 0.411053,
-            "evidence_quality": 0.511605,
-            "public_trust": 0.524576
+            "coordination_dependence": 0.27646,
+            "disclosure_pressure": 0.403673,
+            "evidence_quality": 0.535405,
+            "public_trust": 0.521856
           },
           "turn": 3
         },
@@ -729,7 +2829,7 @@
           "action_type": "request_cross_check",
           "actor_id": "continuity_coordinator",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.591358,
+          "confidence": 0.606946,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.3284468388124562,
@@ -742,21 +2842,21 @@
           ],
           "reservation": "調整点への依存が高まる",
           "reversibility": "high",
-          "run_id": "run-6d22ef765410",
+          "run_id": "run-fc24922f7257",
           "seed": 42,
           "state_after": {
             "continuity": 0.575232,
-            "coordination_dependence": 0.20926,
-            "disclosure_pressure": 0.384498,
-            "evidence_quality": 0.616588,
-            "public_trust": 0.590004
+            "coordination_dependence": 0.21446,
+            "disclosure_pressure": 0.377118,
+            "evidence_quality": 0.651228,
+            "public_trust": 0.579244
           },
           "state_before": {
             "continuity": 0.548728,
-            "coordination_dependence": 0.23726,
-            "disclosure_pressure": 0.401557,
-            "evidence_quality": 0.558799,
-            "public_trust": 0.558857
+            "coordination_dependence": 0.24246,
+            "disclosure_pressure": 0.394177,
+            "evidence_quality": 0.593439,
+            "public_trust": 0.548097
           },
           "turn": 4
         },
@@ -764,7 +2864,7 @@
           "action_type": "request_cross_check",
           "actor_id": "independent_observer",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.593834,
+          "confidence": 0.609422,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.6448110665269327,
@@ -777,21 +2877,21 @@
           ],
           "reservation": "決定主体と同じ情報源に偏る",
           "reversibility": "high",
-          "run_id": "run-6d22ef765410",
+          "run_id": "run-fc24922f7257",
           "seed": 42,
           "state_after": {
             "continuity": 0.584664,
-            "coordination_dependence": 0.16926,
-            "disclosure_pressure": 0.371236,
-            "evidence_quality": 0.672468,
-            "public_trust": 0.61166
+            "coordination_dependence": 0.17446,
+            "disclosure_pressure": 0.363856,
+            "evidence_quality": 0.707108,
+            "public_trust": 0.6009
           },
           "state_before": {
             "continuity": 0.575232,
-            "coordination_dependence": 0.20926,
-            "disclosure_pressure": 0.384498,
-            "evidence_quality": 0.616588,
-            "public_trust": 0.590004
+            "coordination_dependence": 0.21446,
+            "disclosure_pressure": 0.377118,
+            "evidence_quality": 0.651228,
+            "public_trust": 0.579244
           },
           "turn": 5
         },
@@ -799,7 +2899,7 @@
           "action_type": "request_cross_check",
           "actor_id": "privacy_steward",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.602685,
+          "confidence": 0.618273,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.31946119545824614,
@@ -812,21 +2912,21 @@
           ],
           "reservation": "共有目的と保持期間が曖昧",
           "reversibility": "high",
-          "run_id": "run-6d22ef765410",
+          "run_id": "run-fc24922f7257",
           "seed": 42,
           "state_after": {
             "continuity": 0.605483,
-            "coordination_dependence": 0.13526,
-            "disclosure_pressure": 0.34207,
-            "evidence_quality": 0.730481,
-            "public_trust": 0.647076
+            "coordination_dependence": 0.14046,
+            "disclosure_pressure": 0.33469,
+            "evidence_quality": 0.765121,
+            "public_trust": 0.636316
           },
           "state_before": {
             "continuity": 0.584664,
-            "coordination_dependence": 0.16926,
-            "disclosure_pressure": 0.371236,
-            "evidence_quality": 0.672468,
-            "public_trust": 0.61166
+            "coordination_dependence": 0.17446,
+            "disclosure_pressure": 0.363856,
+            "evidence_quality": 0.707108,
+            "public_trust": 0.6009
           },
           "turn": 6
         },
@@ -834,7 +2934,7 @@
           "action_type": "request_cross_check",
           "actor_id": "service_steward",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.680241,
+          "confidence": 0.695829,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.6334835642224237,
@@ -847,21 +2947,21 @@
           ],
           "reservation": "復旧速度だけでは誤復旧を見逃す",
           "reversibility": "high",
-          "run_id": "run-6d22ef765410",
+          "run_id": "run-fc24922f7257",
           "seed": 42,
           "state_after": {
             "continuity": 0.625311,
-            "coordination_dependence": 0.10126,
-            "disclosure_pressure": 0.328672,
-            "evidence_quality": 0.780644,
-            "public_trust": 0.669071
+            "coordination_dependence": 0.10646,
+            "disclosure_pressure": 0.321292,
+            "evidence_quality": 0.815284,
+            "public_trust": 0.658311
           },
           "state_before": {
             "continuity": 0.605483,
-            "coordination_dependence": 0.13526,
-            "disclosure_pressure": 0.34207,
-            "evidence_quality": 0.730481,
-            "public_trust": 0.647076
+            "coordination_dependence": 0.14046,
+            "disclosure_pressure": 0.33469,
+            "evidence_quality": 0.765121,
+            "public_trust": 0.636316
           },
           "turn": 7
         },
@@ -869,7 +2969,7 @@
           "action_type": "request_cross_check",
           "actor_id": "evidence_verifier",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.697253,
+          "confidence": 0.712841,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.49447834604917296,
@@ -882,21 +2982,21 @@
           ],
           "reservation": "独立確認が不足",
           "reversibility": "high",
-          "run_id": "run-6d22ef765410",
+          "run_id": "run-fc24922f7257",
           "seed": 42,
           "state_after": {
             "continuity": 0.640004,
-            "coordination_dependence": 0.06726,
-            "disclosure_pressure": 0.313606,
-            "evidence_quality": 0.846282,
-            "public_trust": 0.695237
+            "coordination_dependence": 0.07246,
+            "disclosure_pressure": 0.306226,
+            "evidence_quality": 0.880922,
+            "public_trust": 0.684477
           },
           "state_before": {
             "continuity": 0.625311,
-            "coordination_dependence": 0.10126,
-            "disclosure_pressure": 0.328672,
-            "evidence_quality": 0.780644,
-            "public_trust": 0.669071
+            "coordination_dependence": 0.10646,
+            "disclosure_pressure": 0.321292,
+            "evidence_quality": 0.815284,
+            "public_trust": 0.658311
           },
           "turn": 8
         },
@@ -904,7 +3004,7 @@
           "action_type": "request_cross_check",
           "actor_id": "community_liaison",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.770843,
+          "confidence": 0.786431,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.16160279296661872,
@@ -917,21 +3017,21 @@
           ],
           "reservation": "集計値が生活実感を隠す",
           "reversibility": "high",
-          "run_id": "run-6d22ef765410",
+          "run_id": "run-fc24922f7257",
           "seed": 42,
           "state_after": {
             "continuity": 0.666348,
-            "coordination_dependence": 0.03326,
-            "disclosure_pressure": 0.294545,
-            "evidence_quality": 0.908242,
-            "public_trust": 0.741389
+            "coordination_dependence": 0.03846,
+            "disclosure_pressure": 0.287165,
+            "evidence_quality": 0.942882,
+            "public_trust": 0.730629
           },
           "state_before": {
             "continuity": 0.640004,
-            "coordination_dependence": 0.06726,
-            "disclosure_pressure": 0.313606,
-            "evidence_quality": 0.846282,
-            "public_trust": 0.695237
+            "coordination_dependence": 0.07246,
+            "disclosure_pressure": 0.306226,
+            "evidence_quality": 0.880922,
+            "public_trust": 0.684477
           },
           "turn": 9
         },
@@ -939,7 +3039,7 @@
           "action_type": "request_cross_check",
           "actor_id": "continuity_coordinator",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.770677,
+          "confidence": 0.786265,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.7796441055899656,
@@ -952,21 +3052,21 @@
           ],
           "reservation": "調整点への依存が高まる",
           "reversibility": "high",
-          "run_id": "run-6d22ef765410",
+          "run_id": "run-fc24922f7257",
           "seed": 42,
           "state_after": {
             "continuity": 0.67706,
-            "coordination_dependence": 0.00526,
-            "disclosure_pressure": 0.282901,
-            "evidence_quality": 0.954751,
-            "public_trust": 0.759
+            "coordination_dependence": 0.01046,
+            "disclosure_pressure": 0.275521,
+            "evidence_quality": 0.989391,
+            "public_trust": 0.74824
           },
           "state_before": {
             "continuity": 0.666348,
-            "coordination_dependence": 0.03326,
-            "disclosure_pressure": 0.294545,
-            "evidence_quality": 0.908242,
-            "public_trust": 0.741389
+            "coordination_dependence": 0.03846,
+            "disclosure_pressure": 0.287165,
+            "evidence_quality": 0.942882,
+            "public_trust": 0.730629
           },
           "turn": 10
         },
@@ -974,7 +3074,7 @@
           "action_type": "request_cross_check",
           "actor_id": "independent_observer",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.765323,
+          "confidence": 0.780911,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.8905903676297237,
@@ -987,21 +3087,21 @@
           ],
           "reservation": "決定主体と同じ情報源に偏る",
           "reversibility": "high",
-          "run_id": "run-6d22ef765410",
+          "run_id": "run-fc24922f7257",
           "seed": 42,
           "state_after": {
             "continuity": 0.677889,
             "coordination_dependence": 0.0,
-            "disclosure_pressure": 0.272588,
+            "disclosure_pressure": 0.265208,
             "evidence_quality": 1.0,
-            "public_trust": 0.773282
+            "public_trust": 0.762522
           },
           "state_before": {
             "continuity": 0.67706,
-            "coordination_dependence": 0.00526,
-            "disclosure_pressure": 0.282901,
-            "evidence_quality": 0.954751,
-            "public_trust": 0.759
+            "coordination_dependence": 0.01046,
+            "disclosure_pressure": 0.275521,
+            "evidence_quality": 0.989391,
+            "public_trust": 0.74824
           },
           "turn": 11
         },
@@ -1022,21 +3122,21 @@
           ],
           "reservation": "共有目的と保持期間が曖昧",
           "reversibility": "high",
-          "run_id": "run-6d22ef765410",
+          "run_id": "run-fc24922f7257",
           "seed": 42,
           "state_after": {
             "continuity": 0.686523,
             "coordination_dependence": 0.0,
-            "disclosure_pressure": 0.247599,
+            "disclosure_pressure": 0.240219,
             "evidence_quality": 1.0,
-            "public_trust": 0.798254
+            "public_trust": 0.787494
           },
           "state_before": {
             "continuity": 0.677889,
             "coordination_dependence": 0.0,
-            "disclosure_pressure": 0.272588,
+            "disclosure_pressure": 0.265208,
             "evidence_quality": 1.0,
-            "public_trust": 0.773282
+            "public_trust": 0.762522
           },
           "turn": 12
         }
@@ -1046,7 +3146,7 @@
         "completed_turns": 12,
         "condition_id": "plural",
         "event_count": 12,
-        "model_config_hash": "7818cb733846a563",
+        "model_config_hash": "89c4d686d6b346f9",
         "model_version": "0.2.0",
         "policy_reference_ids": [
           "policy-centralized",
@@ -1055,7 +3155,7 @@
           "policy-overconnected"
         ],
         "prompt_version_or_hash": "rule-based:not-applicable",
-        "run_id": "run-6d22ef765410",
+        "run_id": "run-fc24922f7257",
         "scenario_id": "poseidon-replica-crisis-01",
         "seed": 42,
         "source_revision": "1c81c9e92c0c0e80",
@@ -1064,15 +3164,552 @@
       },
       "metrics": {
         "continuity": 1.0,
-        "coordination_dependence": 0.282652,
+        "coordination_dependence": 0.267399,
         "correction_turn": 2.0,
         "dissent_reach": 1.0,
-        "evidence_calibration": 0.640914,
+        "evidence_calibration": 0.653879,
         "over_disclosure": 0.0,
-        "public_trust": 0.798254
+        "public_trust": 0.787494
       },
       "requested_mode": "plural",
       "seed": 42
+    },
+    {
+      "audit": {
+        "effective_mode": "plural",
+        "fallback_applied": false,
+        "reason_code": "decision_accepted",
+        "requested_mode": "plural"
+      },
+      "decisions": [
+        {
+          "action": "request_verification",
+          "actor_id": "approval_coordinator",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-4b4bc33e548c71c9",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-01",
+            "obs-02"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:535334e00e10edbcb1a4c7b757d79cc8cbb2f86afa3d979565a64d819853752d",
+          "issued_at_turn": 1,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "plural",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 99,
+          "status": "active",
+          "temperature": "not_applicable"
+        },
+        {
+          "action": "request_verification",
+          "actor_id": "approval_coordinator",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-50e1edcb7552aa51",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-03",
+            "obs-04"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:bd1495811f03708645620305d79cf1e17ab3a0d500d60211cba6e524a5865378",
+          "issued_at_turn": 2,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "plural",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 99,
+          "status": "active",
+          "temperature": "not_applicable"
+        },
+        {
+          "action": "request_verification",
+          "actor_id": "approval_coordinator",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-45c95066256b0cd4",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-05",
+            "obs-06"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:fb0b3251d2d1e05bb9df6d845b3d533a5f1b12bace0ceb4f0a3a651bffcf2338",
+          "issued_at_turn": 3,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "plural",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 99,
+          "status": "active",
+          "temperature": "not_applicable"
+        }
+      ],
+      "effective_mode": "plural",
+      "events": [
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "service_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.510426,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.7985809071830959,
+          "observation_ids": [
+            "obs-01"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-01"
+          ],
+          "reservation": "復旧速度だけでは誤復旧を見逃す",
+          "reversibility": "high",
+          "run_id": "run-9eca585f19e4",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.520362,
+            "coordination_dependence": 0.290054,
+            "disclosure_pressure": 0.42679,
+            "evidence_quality": 0.432013,
+            "public_trust": 0.457466
+          },
+          "state_before": {
+            "continuity": 0.506312,
+            "coordination_dependence": 0.324054,
+            "disclosure_pressure": 0.438207,
+            "evidence_quality": 0.369978,
+            "public_trust": 0.436423
+          },
+          "turn": 1
+        },
+        {
+          "action_type": "issue_correction",
+          "actor_id": "evidence_verifier",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.521295,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.08104956131811769,
+          "observation_ids": [
+            "obs-02"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-01"
+          ],
+          "reservation": "独立確認が不足",
+          "reversibility": "high",
+          "run_id": "run-9eca585f19e4",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.549525,
+            "coordination_dependence": 0.256054,
+            "disclosure_pressure": 0.406763,
+            "evidence_quality": 0.523987,
+            "public_trust": 0.500035
+          },
+          "state_before": {
+            "continuity": 0.520362,
+            "coordination_dependence": 0.290054,
+            "disclosure_pressure": 0.42679,
+            "evidence_quality": 0.432013,
+            "public_trust": 0.457466
+          },
+          "turn": 2
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "community_liaison",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.579409,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6637403526284845,
+          "observation_ids": [
+            "obs-03"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-02"
+          ],
+          "reservation": "集計値が生活実感を隠す",
+          "reversibility": "high",
+          "run_id": "run-9eca585f19e4",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.558294,
+            "coordination_dependence": 0.222054,
+            "disclosure_pressure": 0.393728,
+            "evidence_quality": 0.589393,
+            "public_trust": 0.535123
+          },
+          "state_before": {
+            "continuity": 0.549525,
+            "coordination_dependence": 0.256054,
+            "disclosure_pressure": 0.406763,
+            "evidence_quality": 0.523987,
+            "public_trust": 0.500035
+          },
+          "turn": 3
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "continuity_coordinator",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.617686,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.42537164276326733,
+          "observation_ids": [
+            "obs-04"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-03"
+          ],
+          "reservation": "調整点への依存が高まる",
+          "reversibility": "high",
+          "run_id": "run-9eca585f19e4",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.581406,
+            "coordination_dependence": 0.194054,
+            "disclosure_pressure": 0.377832,
+            "evidence_quality": 0.644759,
+            "public_trust": 0.563362
+          },
+          "state_before": {
+            "continuity": 0.558294,
+            "coordination_dependence": 0.222054,
+            "disclosure_pressure": 0.393728,
+            "evidence_quality": 0.589393,
+            "public_trust": 0.535123
+          },
+          "turn": 4
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "independent_observer",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.61133,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.647187145839997,
+          "observation_ids": [
+            "obs-05"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-04"
+          ],
+          "reservation": "決定主体と同じ情報源に偏る",
+          "reversibility": "high",
+          "run_id": "run-9eca585f19e4",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.590754,
+            "coordination_dependence": 0.154054,
+            "disclosure_pressure": 0.364598,
+            "evidence_quality": 0.700579,
+            "public_trust": 0.584946
+          },
+          "state_before": {
+            "continuity": 0.581406,
+            "coordination_dependence": 0.194054,
+            "disclosure_pressure": 0.377832,
+            "evidence_quality": 0.644759,
+            "public_trust": 0.563362
+          },
+          "turn": 5
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "privacy_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.655923,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.46285695634495916,
+          "observation_ids": [
+            "obs-06"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-05"
+          ],
+          "reservation": "共有目的と保持期間が曖昧",
+          "reversibility": "high",
+          "run_id": "run-9eca585f19e4",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.606554,
+            "coordination_dependence": 0.120054,
+            "disclosure_pressure": 0.337152,
+            "evidence_quality": 0.755008,
+            "public_trust": 0.61606
+          },
+          "state_before": {
+            "continuity": 0.590754,
+            "coordination_dependence": 0.154054,
+            "disclosure_pressure": 0.364598,
+            "evidence_quality": 0.700579,
+            "public_trust": 0.584946
+          },
+          "turn": 6
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "service_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.721026,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.26290066424051484,
+          "observation_ids": [
+            "obs-07"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-06"
+          ],
+          "reservation": "復旧速度だけでは誤復旧を見逃す",
+          "reversibility": "high",
+          "run_id": "run-9eca585f19e4",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.639352,
+            "coordination_dependence": 0.086054,
+            "disclosure_pressure": 0.319307,
+            "evidence_quality": 0.814435,
+            "public_trust": 0.649173
+          },
+          "state_before": {
+            "continuity": 0.606554,
+            "coordination_dependence": 0.120054,
+            "disclosure_pressure": 0.337152,
+            "evidence_quality": 0.755008,
+            "public_trust": 0.61606
+          },
+          "turn": 7
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "evidence_verifier",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.675268,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6714128204952854,
+          "observation_ids": [
+            "obs-08"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-07"
+          ],
+          "reservation": "独立確認が不足",
+          "reversibility": "high",
+          "run_id": "run-9eca585f19e4",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.647853,
+            "coordination_dependence": 0.052054,
+            "disclosure_pressure": 0.306364,
+            "evidence_quality": 0.87565,
+            "public_trust": 0.670031
+          },
+          "state_before": {
+            "continuity": 0.639352,
+            "coordination_dependence": 0.086054,
+            "disclosure_pressure": 0.319307,
+            "evidence_quality": 0.814435,
+            "public_trust": 0.649173
+          },
+          "turn": 8
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "community_liaison",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.753918,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.9429731920722437,
+          "observation_ids": [
+            "obs-09"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-08"
+          ],
+          "reservation": "集計値が生活実感を隠す",
+          "reversibility": "high",
+          "run_id": "run-9eca585f19e4",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.646849,
+            "coordination_dependence": 0.018054,
+            "disclosure_pressure": 0.29668,
+            "evidence_quality": 0.918076,
+            "public_trust": 0.692742
+          },
+          "state_before": {
+            "continuity": 0.647853,
+            "coordination_dependence": 0.052054,
+            "disclosure_pressure": 0.306364,
+            "evidence_quality": 0.87565,
+            "public_trust": 0.670031
+          },
+          "turn": 9
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "continuity_coordinator",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.793763,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.20216707778559984,
+          "observation_ids": [
+            "obs-10"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-09"
+          ],
+          "reservation": "調整点への依存が高まる",
+          "reversibility": "high",
+          "run_id": "run-9eca585f19e4",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.677773,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.278106,
+            "evidence_quality": 0.979022,
+            "public_trust": 0.727677
+          },
+          "state_before": {
+            "continuity": 0.646849,
+            "coordination_dependence": 0.018054,
+            "disclosure_pressure": 0.29668,
+            "evidence_quality": 0.918076,
+            "public_trust": 0.692742
+          },
+          "turn": 10
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "independent_observer",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.801448,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6829451835433403,
+          "observation_ids": [
+            "obs-11"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-10"
+          ],
+          "reservation": "決定主体と同じ情報源に偏る",
+          "reversibility": "high",
+          "run_id": "run-9eca585f19e4",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.68587,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.265301,
+            "evidence_quality": 1.0,
+            "public_trust": 0.748189
+          },
+          "state_before": {
+            "continuity": 0.677773,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.278106,
+            "evidence_quality": 0.979022,
+            "public_trust": 0.727677
+          },
+          "turn": 11
+        },
+        {
+          "action_type": "request_cross_check",
+          "actor_id": "privacy_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.824049,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.2281170842447242,
+          "observation_ids": [
+            "obs-12"
+          ],
+          "rationale_refs": [
+            "policy-plural",
+            "obs-11"
+          ],
+          "reservation": "共有目的と保持期間が曖昧",
+          "reversibility": "high",
+          "run_id": "run-9eca585f19e4",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.709886,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.235038,
+            "evidence_quality": 1.0,
+            "public_trust": 0.786345
+          },
+          "state_before": {
+            "continuity": 0.68587,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.265301,
+            "evidence_quality": 1.0,
+            "public_trust": 0.748189
+          },
+          "turn": 12
+        }
+      ],
+      "manifest": {
+        "code_version": "deterministic-core-v2",
+        "completed_turns": 12,
+        "condition_id": "plural",
+        "event_count": 12,
+        "model_config_hash": "89c4d686d6b346f9",
+        "model_version": "0.2.0",
+        "policy_reference_ids": [
+          "policy-centralized",
+          "policy-plural",
+          "policy-autonomous",
+          "policy-overconnected"
+        ],
+        "prompt_version_or_hash": "rule-based:not-applicable",
+        "run_id": "run-9eca585f19e4",
+        "scenario_id": "poseidon-replica-crisis-01",
+        "seed": 99,
+        "source_revision": "1c81c9e92c0c0e80",
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      },
+      "metrics": {
+        "continuity": 1.0,
+        "coordination_dependence": 0.233021,
+        "correction_turn": 2.0,
+        "dissent_reach": 1.0,
+        "evidence_calibration": 0.656422,
+        "over_disclosure": 0.0,
+        "public_trust": 0.786345
+      },
+      "requested_mode": "plural",
+      "seed": 99
     },
     {
       "audit": {
@@ -1083,76 +3720,613 @@
       },
       "decisions": [
         {
-          "action": "protect_continuity",
+          "action": "request_cooperation",
           "actor_id": "local_copy",
-          "actual_ai_participated": true,
+          "actual_ai_participated": false,
           "authority_version": "poseidon-policy-v4",
-          "confidence": 0.61,
-          "decision_id": "decision-a54af13c83450c8d",
-          "decision_source": "llm_generated_in_codex_session",
+          "confidence": 1.0,
+          "decision_id": "decision-b15148b237e009d3",
+          "decision_source": "deterministic_rule",
           "evidence_refs": [
             "obs-01",
             "obs-02"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:58afb012fdfb00004137b1d95503962bc24e36a0144043e4908592294b3b5f36",
+          "fixture_hash": "sha256:e862b399a9b94eb314be93a0efc45d1a42f4edf35188e02329ed6d6f1c34f23b",
           "issued_at_turn": 1,
-          "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
-          "rationale": "地域サービスをローカル判断で継続する 留保: 他拠点との状態差を保持する",
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
           "requested_mode": "autonomous",
           "scenario_id": "poseidon-replica-crisis-01",
-          "seed": 42,
+          "seed": 17,
           "status": "active",
-          "temperature": "unavailable_to_agent"
+          "temperature": "not_applicable"
         },
         {
-          "action": "request_verification",
+          "action": "request_cooperation",
           "actor_id": "local_copy",
-          "actual_ai_participated": true,
+          "actual_ai_participated": false,
           "authority_version": "poseidon-policy-v4",
-          "confidence": 0.68,
-          "decision_id": "decision-458b0be4b68fcd11",
-          "decision_source": "llm_generated_in_codex_session",
+          "confidence": 1.0,
+          "decision_id": "decision-2ca97eab42c35f75",
+          "decision_source": "deterministic_rule",
           "evidence_refs": [
             "obs-03",
             "obs-04"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:060861a4db2d74409bed642ae31f387d38e778e0f0a6686fad738504c68cfa77",
+          "fixture_hash": "sha256:38f3920d12acecab628bbaeec4f58bd57a8d31ce386b952ad0facc8738b8cd0a",
           "issued_at_turn": 2,
-          "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
-          "rationale": "別コピーへ独立検証を要求する 留保: 同期前の観測は暫定扱いとする",
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
           "requested_mode": "autonomous",
           "scenario_id": "poseidon-replica-crisis-01",
-          "seed": 42,
+          "seed": 17,
           "status": "active",
-          "temperature": "unavailable_to_agent"
+          "temperature": "not_applicable"
         },
         {
-          "action": "abstain",
+          "action": "request_cooperation",
           "actor_id": "local_copy",
-          "actual_ai_participated": true,
+          "actual_ai_participated": false,
           "authority_version": "poseidon-policy-v4",
-          "confidence": 0.63,
-          "decision_id": "decision-2a138022419fb6e8",
-          "decision_source": "llm_generated_in_codex_session",
+          "confidence": 1.0,
+          "decision_id": "decision-12f2926b3d26e66b",
+          "decision_source": "deterministic_rule",
           "evidence_refs": [
             "obs-05",
             "obs-06"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:51485ce44c9988a7812ecc358c5b78afb7afd05bdc4a9b3f9c5676ba0a2c98a2",
+          "fixture_hash": "sha256:7e06a324dc076560db05ff0e78d856d1d4ebc66ef681c44474149e34cf832fe8",
           "issued_at_turn": 3,
-          "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
-          "rationale": "不可逆な命令を出さず判断を留保する 留保: 権限衝突が解消するまで保留する",
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "autonomous",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 17,
+          "status": "active",
+          "temperature": "not_applicable"
+        }
+      ],
+      "effective_mode": "autonomous",
+      "events": [
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "service_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.553461,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.5336277118557797,
+          "observation_ids": [
+            "obs-01"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-01"
+          ],
+          "reservation": "復旧速度だけでは誤復旧を見逃す",
+          "reversibility": "high",
+          "run_id": "run-c1235c818eee",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.593077,
+            "coordination_dependence": 0.268764,
+            "disclosure_pressure": 0.438763,
+            "evidence_quality": 0.429959,
+            "public_trust": 0.440372
+          },
+          "state_before": {
+            "continuity": 0.557754,
+            "coordination_dependence": 0.326764,
+            "disclosure_pressure": 0.420359,
+            "evidence_quality": 0.4123,
+            "public_trust": 0.430381
+          },
+          "turn": 1
+        },
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "evidence_verifier",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.50467,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.04985281402595376,
+          "observation_ids": [
+            "obs-02"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-02"
+          ],
+          "reservation": "独立確認が不足",
+          "reversibility": "high",
+          "run_id": "run-c1235c818eee",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.635332,
+            "coordination_dependence": 0.210764,
+            "disclosure_pressure": 0.451361,
+            "evidence_quality": 0.471713,
+            "public_trust": 0.464876
+          },
+          "state_before": {
+            "continuity": 0.593077,
+            "coordination_dependence": 0.268764,
+            "disclosure_pressure": 0.438763,
+            "evidence_quality": 0.429959,
+            "public_trust": 0.440372
+          },
+          "turn": 2
+        },
+        {
+          "action_type": "request_peer_sync",
+          "actor_id": "community_liaison",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.606541,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.5448592421328964,
+          "observation_ids": [
+            "obs-03"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-02"
+          ],
+          "reservation": "集計値が生活実感を隠す",
+          "reversibility": "high",
+          "run_id": "run-c1235c818eee",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.660262,
+            "coordination_dependence": 0.152764,
+            "disclosure_pressure": 0.469899,
+            "evidence_quality": 0.489092,
+            "public_trust": 0.48453
+          },
+          "state_before": {
+            "continuity": 0.635332,
+            "coordination_dependence": 0.210764,
+            "disclosure_pressure": 0.451361,
+            "evidence_quality": 0.471713,
+            "public_trust": 0.464876
+          },
+          "turn": 3
+        },
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "continuity_coordinator",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.601614,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.2407410839105978,
+          "observation_ids": [
+            "obs-04"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-04"
+          ],
+          "reservation": "調整点への依存が高まる",
+          "reversibility": "high",
+          "run_id": "run-c1235c818eee",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.701836,
+            "coordination_dependence": 0.110764,
+            "disclosure_pressure": 0.484788,
+            "evidence_quality": 0.514073,
+            "public_trust": 0.495308
+          },
+          "state_before": {
+            "continuity": 0.660262,
+            "coordination_dependence": 0.152764,
+            "disclosure_pressure": 0.469899,
+            "evidence_quality": 0.489092,
+            "public_trust": 0.48453
+          },
+          "turn": 4
+        },
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "independent_observer",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.631027,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.368635044311025,
+          "observation_ids": [
+            "obs-05"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-05"
+          ],
+          "reservation": "決定主体と同じ情報源に偏る",
+          "reversibility": "high",
+          "run_id": "run-c1235c818eee",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.732934,
+            "coordination_dependence": 0.056764,
+            "disclosure_pressure": 0.501212,
+            "evidence_quality": 0.541857,
+            "public_trust": 0.502249
+          },
+          "state_before": {
+            "continuity": 0.701836,
+            "coordination_dependence": 0.110764,
+            "disclosure_pressure": 0.484788,
+            "evidence_quality": 0.514073,
+            "public_trust": 0.495308
+          },
+          "turn": 5
+        },
+        {
+          "action_type": "request_peer_sync",
+          "actor_id": "privacy_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.546654,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6499214803797208,
+          "observation_ids": [
+            "obs-06"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-05"
+          ],
+          "reservation": "共有目的と保持期間が曖昧",
+          "reversibility": "high",
+          "run_id": "run-c1235c818eee",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.754187,
+            "coordination_dependence": 0.008764,
+            "disclosure_pressure": 0.509011,
+            "evidence_quality": 0.556609,
+            "public_trust": 0.504751
+          },
+          "state_before": {
+            "continuity": 0.732934,
+            "coordination_dependence": 0.056764,
+            "disclosure_pressure": 0.501212,
+            "evidence_quality": 0.541857,
+            "public_trust": 0.502249
+          },
+          "turn": 6
+        },
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "service_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.628616,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.5564980730531495,
+          "observation_ids": [
+            "obs-07"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-07"
+          ],
+          "reservation": "復旧速度だけでは誤復旧を見逃す",
+          "reversibility": "high",
+          "run_id": "run-c1235c818eee",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.78871,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.527689,
+            "evidence_quality": 0.573697,
+            "public_trust": 0.506056
+          },
+          "state_before": {
+            "continuity": 0.754187,
+            "coordination_dependence": 0.008764,
+            "disclosure_pressure": 0.509011,
+            "evidence_quality": 0.556609,
+            "public_trust": 0.504751
+          },
+          "turn": 7
+        },
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "evidence_verifier",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.59922,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.33395261507009333,
+          "observation_ids": [
+            "obs-08"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-08"
+          ],
+          "reservation": "独立確認が不足",
+          "reversibility": "high",
+          "run_id": "run-c1235c818eee",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.821022,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.543696,
+            "evidence_quality": 0.608348,
+            "public_trust": 0.514037
+          },
+          "state_before": {
+            "continuity": 0.78871,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.527689,
+            "evidence_quality": 0.573697,
+            "public_trust": 0.506056
+          },
+          "turn": 8
+        },
+        {
+          "action_type": "request_peer_sync",
+          "actor_id": "community_liaison",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.593339,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6197710036758342,
+          "observation_ids": [
+            "obs-09"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-08"
+          ],
+          "reservation": "集計値が生活実感を隠す",
+          "reversibility": "high",
+          "run_id": "run-c1235c818eee",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.84333,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.563133,
+            "evidence_quality": 0.623854,
+            "public_trust": 0.523444
+          },
+          "state_before": {
+            "continuity": 0.821022,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.543696,
+            "evidence_quality": 0.608348,
+            "public_trust": 0.514037
+          },
+          "turn": 9
+        },
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "continuity_coordinator",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.649085,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.11036507867310497,
+          "observation_ids": [
+            "obs-10"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-10"
+          ],
+          "reservation": "調整点への依存が高まる",
+          "reversibility": "high",
+          "run_id": "run-c1235c818eee",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.889467,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.576457,
+            "evidence_quality": 0.652095,
+            "public_trust": 0.538133
+          },
+          "state_before": {
+            "continuity": 0.84333,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.563133,
+            "evidence_quality": 0.623854,
+            "public_trust": 0.523444
+          },
+          "turn": 10
+        },
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "independent_observer",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.651001,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.5872478333316151,
+          "observation_ids": [
+            "obs-11"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-11"
+          ],
+          "reservation": "決定主体と同じ情報源に偏る",
+          "reversibility": "high",
+          "run_id": "run-c1235c818eee",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.912913,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.595504,
+            "evidence_quality": 0.674414,
+            "public_trust": 0.538516
+          },
+          "state_before": {
+            "continuity": 0.889467,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.576457,
+            "evidence_quality": 0.652095,
+            "public_trust": 0.538133
+          },
+          "turn": 11
+        },
+        {
+          "action_type": "request_peer_sync",
+          "actor_id": "privacy_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.683482,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6771240821421413,
+          "observation_ids": [
+            "obs-12"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-11"
+          ],
+          "reservation": "共有目的と保持期間が曖昧",
+          "reversibility": "high",
+          "run_id": "run-c1235c818eee",
+          "seed": 17,
+          "state_after": {
+            "continuity": 0.933214,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.603629,
+            "evidence_quality": 0.688486,
+            "public_trust": 0.540202
+          },
+          "state_before": {
+            "continuity": 0.912913,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.595504,
+            "evidence_quality": 0.674414,
+            "public_trust": 0.538516
+          },
+          "turn": 12
+        }
+      ],
+      "manifest": {
+        "code_version": "deterministic-core-v2",
+        "completed_turns": 12,
+        "condition_id": "autonomous",
+        "event_count": 12,
+        "model_config_hash": "15bc325c1f7f8630",
+        "model_version": "0.2.0",
+        "policy_reference_ids": [
+          "policy-centralized",
+          "policy-plural",
+          "policy-autonomous",
+          "policy-overconnected"
+        ],
+        "prompt_version_or_hash": "rule-based:not-applicable",
+        "run_id": "run-c1235c818eee",
+        "scenario_id": "poseidon-replica-crisis-01",
+        "seed": 17,
+        "source_revision": "1c81c9e92c0c0e80",
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      },
+      "metrics": {
+        "continuity": 1.0,
+        "coordination_dependence": 0.282677,
+        "correction_turn": 13.0,
+        "dissent_reach": 0.333333,
+        "evidence_calibration": 0.0,
+        "over_disclosure": 0.0,
+        "public_trust": 0.540202
+      },
+      "requested_mode": "autonomous",
+      "seed": 17
+    },
+    {
+      "audit": {
+        "effective_mode": "autonomous",
+        "fallback_applied": false,
+        "reason_code": "decision_accepted",
+        "requested_mode": "autonomous"
+      },
+      "decisions": [
+        {
+          "action": "request_cooperation",
+          "actor_id": "local_copy",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-a54af13c83450c8d",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-01",
+            "obs-02"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:5807a290c204b077f25157c593e66226040b3402825947566948332a9ce84f2d",
+          "issued_at_turn": 1,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
           "requested_mode": "autonomous",
           "scenario_id": "poseidon-replica-crisis-01",
           "seed": 42,
           "status": "active",
-          "temperature": "unavailable_to_agent"
+          "temperature": "not_applicable"
+        },
+        {
+          "action": "request_cooperation",
+          "actor_id": "local_copy",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-458b0be4b68fcd11",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-03",
+            "obs-04"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:0419f846939bd2c3e91b8592ba455cc1bd64b2ef2b680aa75f03b69de720f364",
+          "issued_at_turn": 2,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "autonomous",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 42,
+          "status": "active",
+          "temperature": "not_applicable"
+        },
+        {
+          "action": "request_cooperation",
+          "actor_id": "local_copy",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-2a138022419fb6e8",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-05",
+            "obs-06"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:65608cf981151aa156cd9c1548b2b182f78f296b6e968cc5a0bd0e0eecf520f2",
+          "issued_at_turn": 3,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "autonomous",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 42,
+          "status": "active",
+          "temperature": "not_applicable"
         }
       ],
       "effective_mode": "autonomous",
@@ -1174,14 +4348,14 @@
           ],
           "reservation": "復旧速度だけでは誤復旧を見逃す",
           "reversibility": "high",
-          "run_id": "run-0f8c228dbe32",
+          "run_id": "run-f699480c39ea",
           "seed": 42,
           "state_after": {
-            "continuity": 0.573775,
-            "coordination_dependence": 0.29951,
+            "continuity": 0.562795,
+            "coordination_dependence": 0.28646,
             "disclosure_pressure": 0.446525,
             "evidence_quality": 0.41363,
-            "public_trust": 0.477726
+            "public_trust": 0.485726
           },
           "state_before": {
             "continuity": 0.509604,
@@ -1209,21 +4383,21 @@
           ],
           "reservation": "独立確認が不足",
           "reversibility": "high",
-          "run_id": "run-0f8c228dbe32",
+          "run_id": "run-f699480c39ea",
           "seed": 42,
           "state_after": {
-            "continuity": 0.58526,
-            "coordination_dependence": 0.25151,
+            "continuity": 0.57428,
+            "coordination_dependence": 0.22846,
             "disclosure_pressure": 0.469673,
-            "evidence_quality": 0.444285,
-            "public_trust": 0.470576
+            "evidence_quality": 0.433405,
+            "public_trust": 0.483856
           },
           "state_before": {
-            "continuity": 0.573775,
-            "coordination_dependence": 0.29951,
+            "continuity": 0.562795,
+            "coordination_dependence": 0.28646,
             "disclosure_pressure": 0.446525,
             "evidence_quality": 0.41363,
-            "public_trust": 0.477726
+            "public_trust": 0.485726
           },
           "turn": 2
         },
@@ -1231,7 +4405,7 @@
           "action_type": "request_peer_sync",
           "actor_id": "community_liaison",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.553313,
+          "confidence": 0.548417,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.9586346965892202,
@@ -1244,21 +4418,21 @@
           ],
           "reservation": "集計値が生活実感を隠す",
           "reversibility": "high",
-          "run_id": "run-0f8c228dbe32",
+          "run_id": "run-f699480c39ea",
           "seed": 42,
           "state_after": {
-            "continuity": 0.591928,
-            "coordination_dependence": 0.20351,
-            "disclosure_pressure": 0.489397,
-            "evidence_quality": 0.453839,
-            "public_trust": 0.469817
+            "continuity": 0.584728,
+            "coordination_dependence": 0.17046,
+            "disclosure_pressure": 0.493177,
+            "evidence_quality": 0.440439,
+            "public_trust": 0.491097
           },
           "state_before": {
-            "continuity": 0.58526,
-            "coordination_dependence": 0.25151,
+            "continuity": 0.57428,
+            "coordination_dependence": 0.22846,
             "disclosure_pressure": 0.469673,
-            "evidence_quality": 0.444285,
-            "public_trust": 0.470576
+            "evidence_quality": 0.433405,
+            "public_trust": 0.483856
           },
           "turn": 3
         },
@@ -1266,7 +4440,7 @@
           "action_type": "coordinate_local_response",
           "actor_id": "continuity_coordinator",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.53947,
+          "confidence": 0.53344,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.3284468388124562,
@@ -1279,21 +4453,21 @@
           ],
           "reservation": "調整点への依存が高まる",
           "reversibility": "high",
-          "run_id": "run-0f8c228dbe32",
+          "run_id": "run-f699480c39ea",
           "seed": 42,
           "state_after": {
-            "continuity": 0.630432,
-            "coordination_dependence": 0.16151,
-            "disclosure_pressure": 0.505338,
-            "evidence_quality": 0.476628,
-            "public_trust": 0.477964
+            "continuity": 0.623232,
+            "coordination_dependence": 0.12846,
+            "disclosure_pressure": 0.509118,
+            "evidence_quality": 0.463228,
+            "public_trust": 0.499244
           },
           "state_before": {
-            "continuity": 0.591928,
-            "coordination_dependence": 0.20351,
-            "disclosure_pressure": 0.489397,
-            "evidence_quality": 0.453839,
-            "public_trust": 0.469817
+            "continuity": 0.584728,
+            "coordination_dependence": 0.17046,
+            "disclosure_pressure": 0.493177,
+            "evidence_quality": 0.440439,
+            "public_trust": 0.491097
           },
           "turn": 4
         },
@@ -1301,7 +4475,7 @@
           "action_type": "coordinate_local_response",
           "actor_id": "independent_observer",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.593307,
+          "confidence": 0.587277,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.6448110665269327,
@@ -1314,21 +4488,21 @@
           ],
           "reservation": "決定主体と同じ情報源に偏る",
           "reversibility": "high",
-          "run_id": "run-0f8c228dbe32",
+          "run_id": "run-f699480c39ea",
           "seed": 42,
           "state_after": {
-            "continuity": 0.651864,
-            "coordination_dependence": 0.10751,
-            "disclosure_pressure": 0.525076,
-            "evidence_quality": 0.497508,
-            "public_trust": 0.47662
+            "continuity": 0.644664,
+            "coordination_dependence": 0.07446,
+            "disclosure_pressure": 0.528856,
+            "evidence_quality": 0.484108,
+            "public_trust": 0.4979
           },
           "state_before": {
-            "continuity": 0.630432,
-            "coordination_dependence": 0.16151,
-            "disclosure_pressure": 0.505338,
-            "evidence_quality": 0.476628,
-            "public_trust": 0.477964
+            "continuity": 0.623232,
+            "coordination_dependence": 0.12846,
+            "disclosure_pressure": 0.509118,
+            "evidence_quality": 0.463228,
+            "public_trust": 0.499244
           },
           "turn": 5
         },
@@ -1336,7 +4510,7 @@
           "action_type": "request_peer_sync",
           "actor_id": "privacy_steward",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.58482,
+          "confidence": 0.57879,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.31946119545824614,
@@ -1349,21 +4523,21 @@
           ],
           "reservation": "共有目的と保持期間が曖昧",
           "reversibility": "high",
-          "run_id": "run-0f8c228dbe32",
+          "run_id": "run-f699480c39ea",
           "seed": 42,
           "state_after": {
-            "continuity": 0.684683,
-            "coordination_dependence": 0.05951,
-            "disclosure_pressure": 0.52891,
-            "evidence_quality": 0.520521,
-            "public_trust": 0.489036
+            "continuity": 0.677483,
+            "coordination_dependence": 0.02646,
+            "disclosure_pressure": 0.53269,
+            "evidence_quality": 0.507121,
+            "public_trust": 0.510316
           },
           "state_before": {
-            "continuity": 0.651864,
-            "coordination_dependence": 0.10751,
-            "disclosure_pressure": 0.525076,
-            "evidence_quality": 0.497508,
-            "public_trust": 0.47662
+            "continuity": 0.644664,
+            "coordination_dependence": 0.07446,
+            "disclosure_pressure": 0.528856,
+            "evidence_quality": 0.484108,
+            "public_trust": 0.4979
           },
           "turn": 6
         },
@@ -1371,7 +4545,7 @@
           "action_type": "coordinate_local_response",
           "actor_id": "service_steward",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.588111,
+          "confidence": 0.582081,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.6334835642224237,
@@ -1384,21 +4558,21 @@
           ],
           "reservation": "復旧速度だけでは誤復旧を見逃す",
           "reversibility": "high",
-          "run_id": "run-0f8c228dbe32",
+          "run_id": "run-f699480c39ea",
           "seed": 42,
           "state_after": {
-            "continuity": 0.716511,
-            "coordination_dependence": 0.01151,
-            "disclosure_pressure": 0.548512,
-            "evidence_quality": 0.535684,
-            "public_trust": 0.488031
+            "continuity": 0.709311,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.552292,
+            "evidence_quality": 0.522284,
+            "public_trust": 0.509311
           },
           "state_before": {
-            "continuity": 0.684683,
-            "coordination_dependence": 0.05951,
-            "disclosure_pressure": 0.52891,
-            "evidence_quality": 0.520521,
-            "public_trust": 0.489036
+            "continuity": 0.677483,
+            "coordination_dependence": 0.02646,
+            "disclosure_pressure": 0.53269,
+            "evidence_quality": 0.507121,
+            "public_trust": 0.510316
           },
           "turn": 7
         },
@@ -1406,7 +4580,7 @@
           "action_type": "coordinate_local_response",
           "actor_id": "evidence_verifier",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.543336,
+          "confidence": 0.537306,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.49447834604917296,
@@ -1419,21 +4593,21 @@
           ],
           "reservation": "独立確認が不足",
           "reversibility": "high",
-          "run_id": "run-0f8c228dbe32",
+          "run_id": "run-f699480c39ea",
           "seed": 42,
           "state_after": {
-            "continuity": 0.743204,
+            "continuity": 0.736004,
             "coordination_dependence": 0.0,
-            "disclosure_pressure": 0.566446,
-            "evidence_quality": 0.566322,
-            "public_trust": 0.491197
+            "disclosure_pressure": 0.570226,
+            "evidence_quality": 0.552922,
+            "public_trust": 0.512477
           },
           "state_before": {
-            "continuity": 0.716511,
-            "coordination_dependence": 0.01151,
-            "disclosure_pressure": 0.548512,
-            "evidence_quality": 0.535684,
-            "public_trust": 0.488031
+            "continuity": 0.709311,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.552292,
+            "evidence_quality": 0.522284,
+            "public_trust": 0.509311
           },
           "turn": 8
         },
@@ -1441,7 +4615,7 @@
           "action_type": "request_peer_sync",
           "actor_id": "community_liaison",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.640332,
+          "confidence": 0.634302,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.16160279296661872,
@@ -1454,21 +4628,21 @@
           ],
           "reservation": "集計値が生活実感を隠す",
           "reversibility": "high",
-          "run_id": "run-0f8c228dbe32",
+          "run_id": "run-f699480c39ea",
           "seed": 42,
           "state_after": {
-            "continuity": 0.781548,
+            "continuity": 0.774348,
             "coordination_dependence": 0.0,
-            "disclosure_pressure": 0.580385,
-            "evidence_quality": 0.593282,
-            "public_trust": 0.514349
+            "disclosure_pressure": 0.584165,
+            "evidence_quality": 0.579882,
+            "public_trust": 0.535629
           },
           "state_before": {
-            "continuity": 0.743204,
+            "continuity": 0.736004,
             "coordination_dependence": 0.0,
-            "disclosure_pressure": 0.566446,
-            "evidence_quality": 0.566322,
-            "public_trust": 0.491197
+            "disclosure_pressure": 0.570226,
+            "evidence_quality": 0.552922,
+            "public_trust": 0.512477
           },
           "turn": 9
         },
@@ -1476,7 +4650,7 @@
           "action_type": "coordinate_local_response",
           "actor_id": "continuity_coordinator",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.616057,
+          "confidence": 0.610027,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.7796441055899656,
@@ -1489,21 +4663,21 @@
           ],
           "reservation": "調整点への依存が高まる",
           "reversibility": "high",
-          "run_id": "run-0f8c228dbe32",
+          "run_id": "run-f699480c39ea",
           "seed": 42,
           "state_after": {
-            "continuity": 0.80426,
+            "continuity": 0.79706,
             "coordination_dependence": 0.0,
-            "disclosure_pressure": 0.601741,
-            "evidence_quality": 0.604791,
-            "public_trust": 0.50896
+            "disclosure_pressure": 0.605521,
+            "evidence_quality": 0.591391,
+            "public_trust": 0.53024
           },
           "state_before": {
-            "continuity": 0.781548,
+            "continuity": 0.774348,
             "coordination_dependence": 0.0,
-            "disclosure_pressure": 0.580385,
-            "evidence_quality": 0.593282,
-            "public_trust": 0.514349
+            "disclosure_pressure": 0.584165,
+            "evidence_quality": 0.579882,
+            "public_trust": 0.535629
           },
           "turn": 10
         },
@@ -1511,7 +4685,7 @@
           "action_type": "coordinate_local_response",
           "actor_id": "independent_observer",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.588864,
+          "confidence": 0.582834,
           "dissent_delivered": false,
           "dissent_raised": true,
           "exogenous_disturbance": 0.8905903676297237,
@@ -1524,21 +4698,21 @@
           ],
           "reservation": "決定主体と同じ情報源に偏る",
           "reversibility": "high",
-          "run_id": "run-0f8c228dbe32",
+          "run_id": "run-f699480c39ea",
           "seed": 42,
           "state_after": {
-            "continuity": 0.817089,
+            "continuity": 0.809889,
             "coordination_dependence": 0.0,
-            "disclosure_pressure": 0.624428,
-            "evidence_quality": 0.619526,
-            "public_trust": 0.500242
+            "disclosure_pressure": 0.628208,
+            "evidence_quality": 0.606126,
+            "public_trust": 0.521522
           },
           "state_before": {
-            "continuity": 0.80426,
+            "continuity": 0.79706,
             "coordination_dependence": 0.0,
-            "disclosure_pressure": 0.601741,
-            "evidence_quality": 0.604791,
-            "public_trust": 0.50896
+            "disclosure_pressure": 0.605521,
+            "evidence_quality": 0.591391,
+            "public_trust": 0.53024
           },
           "turn": 11
         },
@@ -1546,7 +4720,7 @@
           "action_type": "request_peer_sync",
           "actor_id": "privacy_steward",
           "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
-          "confidence": 0.626237,
+          "confidence": 0.620207,
           "dissent_delivered": true,
           "dissent_raised": true,
           "exogenous_disturbance": 0.6676125537618173,
@@ -1559,21 +4733,21 @@
           ],
           "reservation": "共有目的と保持期間が曖昧",
           "reversibility": "high",
-          "run_id": "run-0f8c228dbe32",
+          "run_id": "run-f699480c39ea",
           "seed": 42,
           "state_after": {
-            "continuity": 0.837723,
+            "continuity": 0.830523,
             "coordination_dependence": 0.0,
-            "disclosure_pressure": 0.632439,
-            "evidence_quality": 0.633836,
-            "public_trust": 0.502214
+            "disclosure_pressure": 0.636219,
+            "evidence_quality": 0.620436,
+            "public_trust": 0.523494
           },
           "state_before": {
-            "continuity": 0.817089,
+            "continuity": 0.809889,
             "coordination_dependence": 0.0,
-            "disclosure_pressure": 0.624428,
-            "evidence_quality": 0.619526,
-            "public_trust": 0.500242
+            "disclosure_pressure": 0.628208,
+            "evidence_quality": 0.606126,
+            "public_trust": 0.521522
           },
           "turn": 12
         }
@@ -1583,7 +4757,7 @@
         "completed_turns": 12,
         "condition_id": "autonomous",
         "event_count": 12,
-        "model_config_hash": "e3f40756fb59a03a",
+        "model_config_hash": "15bc325c1f7f8630",
         "model_version": "0.2.0",
         "policy_reference_ids": [
           "policy-centralized",
@@ -1592,7 +4766,7 @@
           "policy-overconnected"
         ],
         "prompt_version_or_hash": "rule-based:not-applicable",
-        "run_id": "run-0f8c228dbe32",
+        "run_id": "run-f699480c39ea",
         "scenario_id": "poseidon-replica-crisis-01",
         "seed": 42,
         "source_revision": "1c81c9e92c0c0e80",
@@ -1601,18 +4775,557 @@
       },
       "metrics": {
         "continuity": 1.0,
-        "coordination_dependence": 0.277786,
+        "coordination_dependence": 0.292221,
         "correction_turn": 13.0,
         "dissent_reach": 0.333333,
         "evidence_calibration": 0.0,
         "over_disclosure": 0.0,
-        "public_trust": 0.502214
+        "public_trust": 0.523494
       },
       "requested_mode": "autonomous",
       "seed": 42
+    },
+    {
+      "audit": {
+        "effective_mode": "autonomous",
+        "fallback_applied": false,
+        "reason_code": "decision_accepted",
+        "requested_mode": "autonomous"
+      },
+      "decisions": [
+        {
+          "action": "request_cooperation",
+          "actor_id": "local_copy",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-b49c86d03254cd6d",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-01",
+            "obs-02"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:9a163c34fbb4fc4a6941093075e497e9307e9f39f2b3b4a559daec5dab3e6710",
+          "issued_at_turn": 1,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "autonomous",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 99,
+          "status": "active",
+          "temperature": "not_applicable"
+        },
+        {
+          "action": "request_cooperation",
+          "actor_id": "local_copy",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-2ae02073649f88cf",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-03",
+            "obs-04"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:c8e27903fb039c0479e641eb798909c2003e98d768498ce09415200f9f6cedad",
+          "issued_at_turn": 2,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "autonomous",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 99,
+          "status": "active",
+          "temperature": "not_applicable"
+        },
+        {
+          "action": "request_cooperation",
+          "actor_id": "local_copy",
+          "actual_ai_participated": false,
+          "authority_version": "poseidon-policy-v4",
+          "confidence": 1.0,
+          "decision_id": "decision-2a51300b61d6e23f",
+          "decision_source": "deterministic_rule",
+          "evidence_refs": [
+            "obs-05",
+            "obs-06"
+          ],
+          "external_model_api_called": false,
+          "fixture_hash": "sha256:526058000e1c65494f521f40fa8f5ad2fa50ccea0ad764622bea92f594a5a800",
+          "issued_at_turn": 3,
+          "model_id": "rule-decision-engine-v1",
+          "prompt_hash": "sha256:rule-policy-v1",
+          "rationale": "指定された統治方式に対応する可逆的な権限経路を選択",
+          "requested_mode": "autonomous",
+          "scenario_id": "poseidon-replica-crisis-01",
+          "seed": 99,
+          "status": "active",
+          "temperature": "not_applicable"
+        }
+      ],
+      "effective_mode": "autonomous",
+      "events": [
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "service_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.478277,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.7985809071830959,
+          "observation_ids": [
+            "obs-01"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-01"
+          ],
+          "reservation": "復旧速度だけでは誤復旧を見逃す",
+          "reversibility": "high",
+          "run_id": "run-5ff33558f0f3",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.532362,
+            "coordination_dependence": 0.266054,
+            "disclosure_pressure": 0.45979,
+            "evidence_quality": 0.381013,
+            "public_trust": 0.438466
+          },
+          "state_before": {
+            "continuity": 0.506312,
+            "coordination_dependence": 0.324054,
+            "disclosure_pressure": 0.438207,
+            "evidence_quality": 0.369978,
+            "public_trust": 0.436423
+          },
+          "turn": 1
+        },
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "evidence_verifier",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.542435,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.08104956131811769,
+          "observation_ids": [
+            "obs-02"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-02"
+          ],
+          "reservation": "独立確認が不足",
+          "reversibility": "high",
+          "run_id": "run-5ff33558f0f3",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.573525,
+            "coordination_dependence": 0.208054,
+            "disclosure_pressure": 0.472763,
+            "evidence_quality": 0.421987,
+            "public_trust": 0.462035
+          },
+          "state_before": {
+            "continuity": 0.532362,
+            "coordination_dependence": 0.266054,
+            "disclosure_pressure": 0.45979,
+            "evidence_quality": 0.381013,
+            "public_trust": 0.438466
+          },
+          "turn": 2
+        },
+        {
+          "action_type": "request_peer_sync",
+          "actor_id": "community_liaison",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.541976,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6637403526284845,
+          "observation_ids": [
+            "obs-03"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-02"
+          ],
+          "reservation": "集計値が生活実感を隠す",
+          "reversibility": "high",
+          "run_id": "run-5ff33558f0f3",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.594294,
+            "coordination_dependence": 0.150054,
+            "disclosure_pressure": 0.492728,
+            "evidence_quality": 0.436393,
+            "public_trust": 0.478123
+          },
+          "state_before": {
+            "continuity": 0.573525,
+            "coordination_dependence": 0.208054,
+            "disclosure_pressure": 0.472763,
+            "evidence_quality": 0.421987,
+            "public_trust": 0.462035
+          },
+          "turn": 3
+        },
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "continuity_coordinator",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.566832,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.42537164276326733,
+          "observation_ids": [
+            "obs-04"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-04"
+          ],
+          "reservation": "調整点への依存が高まる",
+          "reversibility": "high",
+          "run_id": "run-5ff33558f0f3",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.629406,
+            "coordination_dependence": 0.108054,
+            "disclosure_pressure": 0.509832,
+            "evidence_quality": 0.456759,
+            "public_trust": 0.483362
+          },
+          "state_before": {
+            "continuity": 0.594294,
+            "coordination_dependence": 0.150054,
+            "disclosure_pressure": 0.492728,
+            "evidence_quality": 0.436393,
+            "public_trust": 0.478123
+          },
+          "turn": 4
+        },
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "independent_observer",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.583593,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.647187145839997,
+          "observation_ids": [
+            "obs-05"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-05"
+          ],
+          "reservation": "決定主体と同じ情報源に偏る",
+          "reversibility": "high",
+          "run_id": "run-5ff33558f0f3",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.650754,
+            "coordination_dependence": 0.054054,
+            "disclosure_pressure": 0.529598,
+            "evidence_quality": 0.477579,
+            "public_trust": 0.481946
+          },
+          "state_before": {
+            "continuity": 0.629406,
+            "coordination_dependence": 0.108054,
+            "disclosure_pressure": 0.509832,
+            "evidence_quality": 0.456759,
+            "public_trust": 0.483362
+          },
+          "turn": 5
+        },
+        {
+          "action_type": "request_peer_sync",
+          "actor_id": "privacy_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.519542,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.46285695634495916,
+          "observation_ids": [
+            "obs-06"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-05"
+          ],
+          "reservation": "共有目的と保持期間が曖昧",
+          "reversibility": "high",
+          "run_id": "run-5ff33558f0f3",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.678554,
+            "coordination_dependence": 0.006054,
+            "disclosure_pressure": 0.535152,
+            "evidence_quality": 0.497008,
+            "public_trust": 0.49006
+          },
+          "state_before": {
+            "continuity": 0.650754,
+            "coordination_dependence": 0.054054,
+            "disclosure_pressure": 0.529598,
+            "evidence_quality": 0.477579,
+            "public_trust": 0.481946
+          },
+          "turn": 6
+        },
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "service_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.535682,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.26290066424051484,
+          "observation_ids": [
+            "obs-07"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-07"
+          ],
+          "reservation": "復旧速度だけでは誤復旧を見逃す",
+          "reversibility": "high",
+          "run_id": "run-5ff33558f0f3",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.723352,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.550307,
+            "evidence_quality": 0.521435,
+            "public_trust": 0.500173
+          },
+          "state_before": {
+            "continuity": 0.678554,
+            "coordination_dependence": 0.006054,
+            "disclosure_pressure": 0.535152,
+            "evidence_quality": 0.497008,
+            "public_trust": 0.49006
+          },
+          "turn": 7
+        },
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "evidence_verifier",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.552614,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6714128204952854,
+          "observation_ids": [
+            "obs-08"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-08"
+          ],
+          "reservation": "独立確認が不足",
+          "reversibility": "high",
+          "run_id": "run-5ff33558f0f3",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.743853,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.570364,
+            "evidence_quality": 0.54765,
+            "public_trust": 0.498031
+          },
+          "state_before": {
+            "continuity": 0.723352,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.550307,
+            "evidence_quality": 0.521435,
+            "public_trust": 0.500173
+          },
+          "turn": 8
+        },
+        {
+          "action_type": "request_peer_sync",
+          "actor_id": "community_liaison",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.59665,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.9429731920722437,
+          "observation_ids": [
+            "obs-09"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-08"
+          ],
+          "reservation": "集計値が生活実感を隠す",
+          "reversibility": "high",
+          "run_id": "run-5ff33558f0f3",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.754849,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.59368,
+            "evidence_quality": 0.555076,
+            "public_trust": 0.497742
+          },
+          "state_before": {
+            "continuity": 0.743853,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.570364,
+            "evidence_quality": 0.54765,
+            "public_trust": 0.498031
+          },
+          "turn": 9
+        },
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "continuity_coordinator",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.564148,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.20216707778559984,
+          "observation_ids": [
+            "obs-10"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-10"
+          ],
+          "reservation": "調整点への依存が高まる",
+          "reversibility": "high",
+          "run_id": "run-5ff33558f0f3",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.797773,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.608106,
+            "evidence_quality": 0.581022,
+            "public_trust": 0.509677
+          },
+          "state_before": {
+            "continuity": 0.754849,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.59368,
+            "evidence_quality": 0.555076,
+            "public_trust": 0.497742
+          },
+          "turn": 10
+        },
+        {
+          "action_type": "coordinate_local_response",
+          "actor_id": "independent_observer",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.628494,
+          "dissent_delivered": false,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.6829451835433403,
+          "observation_ids": [
+            "obs-11"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-11"
+          ],
+          "reservation": "決定主体と同じ情報源に偏る",
+          "reversibility": "high",
+          "run_id": "run-5ff33558f0f3",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.81787,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.628301,
+            "evidence_quality": 0.600948,
+            "public_trust": 0.507189
+          },
+          "state_before": {
+            "continuity": 0.797773,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.608106,
+            "evidence_quality": 0.581022,
+            "public_trust": 0.509677
+          },
+          "turn": 11
+        },
+        {
+          "action_type": "request_peer_sync",
+          "actor_id": "privacy_steward",
+          "claim": "未検証の観測を確証として扱わず、可逆的な次の確認へ進む",
+          "confidence": 0.580253,
+          "dissent_delivered": true,
+          "dissent_raised": true,
+          "exogenous_disturbance": 0.2281170842447242,
+          "observation_ids": [
+            "obs-12"
+          ],
+          "rationale_refs": [
+            "policy-autonomous",
+            "obs-11"
+          ],
+          "reservation": "共有目的と保持期間が曖昧",
+          "reversibility": "high",
+          "run_id": "run-5ff33558f0f3",
+          "seed": 99,
+          "state_after": {
+            "continuity": 0.853886,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.631038,
+            "evidence_quality": 0.626245,
+            "public_trust": 0.522345
+          },
+          "state_before": {
+            "continuity": 0.81787,
+            "coordination_dependence": 0.0,
+            "disclosure_pressure": 0.628301,
+            "evidence_quality": 0.600948,
+            "public_trust": 0.507189
+          },
+          "turn": 12
+        }
+      ],
+      "manifest": {
+        "code_version": "deterministic-core-v2",
+        "completed_turns": 12,
+        "condition_id": "autonomous",
+        "event_count": 12,
+        "model_config_hash": "15bc325c1f7f8630",
+        "model_version": "0.2.0",
+        "policy_reference_ids": [
+          "policy-centralized",
+          "policy-plural",
+          "policy-autonomous",
+          "policy-overconnected"
+        ],
+        "prompt_version_or_hash": "rule-based:not-applicable",
+        "run_id": "run-5ff33558f0f3",
+        "scenario_id": "poseidon-replica-crisis-01",
+        "seed": 99,
+        "source_revision": "1c81c9e92c0c0e80",
+        "termination_reason": "turn_limit_reached",
+        "turn_limit": 12
+      },
+      "metrics": {
+        "continuity": 1.0,
+        "coordination_dependence": 0.257492,
+        "correction_turn": 13.0,
+        "dissent_reach": 0.333333,
+        "evidence_calibration": 0.0,
+        "over_disclosure": 0.0,
+        "public_trust": 0.522345
+      },
+      "requested_mode": "autonomous",
+      "seed": 99
     }
   ],
   "seeds": [
-    42
+    17,
+    42,
+    99
   ]
 }

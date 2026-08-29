@@ -134,15 +134,10 @@ def test_actual_ai_trace_replays_nine_decisions_without_claiming_live_api() -> N
 
 def test_tracked_comparison_is_exactly_reproducible_from_current_engine() -> None:
     root = Path(__file__).resolve().parents[1]
-    records = load_actual_ai_trace(root / "fixtures" / "actual-ai-trace-seed42.json")
-    batch = run_replica_batch(
-        seeds=(42,),
-        turn_limit=12,
-        decision_engine=RecordedDecisionEngine(record.to_dict() for record in records),
-    )
+    batch = run_replica_batch(seeds=DEFAULT_SEEDS, turn_limit=12)
     tracked = json.loads((root / "web" / "data" / "comparison.json").read_text(encoding="utf-8"))
 
-    assert batch.to_dict() == tracked
+    assert tracked == {**batch.to_dict(), "result_card": build_result_card(batch)}
 
 
 def test_actual_trace_hash_is_independent_of_checkout_line_endings() -> None:
@@ -235,10 +230,17 @@ def test_result_card_is_machine_readable_and_seed_falsification_is_deterministic
     assert all(not run["failed_run"] for run in first["runs"])
     assert all(run["completed_turns"] == run["turn_limit"] == 3 for run in first["runs"])
     assert all(run["representative_log_refs"] for run in first["runs"])
-    per_seed = [item for item in first["refutation_checks"] if item["seed"] is not None]
-    assert {item["seed"] for item in per_seed} == {17, 42, 99}
-    assert all(item["status"] in {"triggered", "not_triggered", "not_observable"} for item in per_seed)
-    assert all(item["evidence"] for item in per_seed)
+    checks = first["refutation_checks"]
+    assert {item["check_id"] for item in checks} == {
+        "plural_always_better_without_tradeoff",
+        "centralized_always_better_without_tradeoff",
+    }
+    assert all(item["seed"] is None for item in checks)
+    assert all({entry["seed"] for entry in item["evidence"]["per_seed"]} == {17, 42, 99} for item in checks)
+    for item in checks:
+        per_seed = item["evidence"]["per_seed"]
+        expected = "triggered" if all(entry["status"] == "triggered" for entry in per_seed) else "not_triggered"
+        assert item["status"] == expected
     assert first["seed_sensitivity"]["seeds"] == [17, 42, 99]
     assert first["seed_sensitivity"]["by_mode"]["plural"]["public_trust"]["range"] > 0
     assert "parameter_sweep_not_run" in first["limitations"]

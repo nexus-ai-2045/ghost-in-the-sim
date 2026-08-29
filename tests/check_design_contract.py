@@ -159,7 +159,7 @@ def main() -> int:
         "0.0` 以上 `1.0` 以下": agent_contract,
         "prompt_version_or_hash": evaluation,
         "code_version": evaluation,
-        "| 過剰開示 |": results,
+        "| `over_disclosure` |": results,
     }
     absent_terms = [term for term, document in contract_terms.items() if term not in document]
     if absent_terms:
@@ -231,6 +231,21 @@ def main() -> int:
         _validate_artifact_registry((root / "docs/knowledge/artifacts.md").read_text(encoding="utf-8"))
     except ValueError as error:
         raise SystemExit(f"design-contract: FAIL\nCanonical contract error: {error}") from error
+    roadmap = (root / "docs/roadmap.md").read_text(encoding="utf-8")
+    results_document = (root / "RESULTS.md").read_text(encoding="utf-8")
+    completion_terms = {
+        "ai-replica-mvp.md#今日の受入条件": roadmap,
+        "失敗runと反証判定を機械可読なresult cardへ出力": roadmap,
+        "| ADR-006 | scenario / experiment / run manifest / result cardを分離する | accepted |": decisions,
+        "{17, 42, 99}": results_document,
+        "## 複数seed感度": results_document,
+        "## 失敗run・反証判定": results_document,
+    }
+    missing_completion_terms = [term for term, document in completion_terms.items() if term not in document]
+    if missing_completion_terms:
+        raise SystemExit("design-contract: FAIL\nMVP完了証拠が正本間で一致しません:\n" + "\n".join(missing_completion_terms))
+    if "pending-current-tree" in results_document:
+        raise SystemExit("design-contract: FAIL\nRESULTSの実行commitが未確定です")
     print("design-contract: PASS")
     return 0
 
