@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from hashlib import sha256
 from pathlib import Path
+import json
 import re
 from urllib.parse import unquote, urlsplit
+
+from ghost_in_the_sim.evidence_contract import project_evidence, validate_derived_evidence
 
 
 CANONICAL_LIFECYCLE_STATES = {
@@ -51,6 +54,32 @@ def _validate_artifact_registry(document: str) -> None:
     invalid = [row for row in rows if row["canonical_state"] not in CANONICAL_LIFECYCLE_STATES]
     if invalid:
         raise ValueError("artifact canonical_state must be exactly one ADR-012 state")
+
+
+def _validate_mvp_completion_sync(
+    roadmap: str,
+    artifacts: str,
+    open_questions: str,
+    result_payload: dict,
+) -> None:
+    seeds = result_payload.get("seeds")
+    card = result_payload.get("result_card", {})
+    validate_derived_evidence(result_payload)
+    evidence = project_evidence(result_payload)
+    if seeds != [17, 42, 99] or card.get("run_count") != 9:
+        raise ValueError("canonical MVP completion requires seeds 17/42/99 and 9 runs")
+    if "- [x] 複数seedの代表結果と提出資料を同期" not in roadmap:
+        raise ValueError("roadmap does not mark multi-seed synchronization complete")
+    expected_note = "seed 17/42/99・符号反転・actual AI replayを実測"
+    if artifacts.count(expected_note) != 1:
+        raise ValueError("artifact registry does not match measured multi-seed state")
+    if "複数seed集合での順位安定性" in open_questions:
+        raise ValueError("completed multi-seed work remains in open questions")
+    replay = evidence["ai_replay"]
+    if replay != {"run_count": 3, "decision_sources": ["llm_generated_in_codex_session"], "fallback_count": 0}:
+        raise ValueError("artifact registry claims actual AI replay without matching raw evidence")
+    if not evidence["plural_vs_centralized_sign_reversals"]:
+        raise ValueError("artifact registry claims a sign reversal without matching raw evidence")
 
 
 REQUIRED = (
@@ -159,7 +188,7 @@ def main() -> int:
         "0.0` 以上 `1.0` 以下": agent_contract,
         "prompt_version_or_hash": evaluation,
         "code_version": evaluation,
-        "| 過剰開示 |": results,
+        "| `over_disclosure` |": results,
     }
     absent_terms = [term for term, document in contract_terms.items() if term not in document]
     if absent_terms:
@@ -231,6 +260,31 @@ def main() -> int:
         _validate_artifact_registry((root / "docs/knowledge/artifacts.md").read_text(encoding="utf-8"))
     except ValueError as error:
         raise SystemExit(f"design-contract: FAIL\nCanonical contract error: {error}") from error
+    roadmap = (root / "docs/roadmap.md").read_text(encoding="utf-8")
+    results_document = (root / "RESULTS.md").read_text(encoding="utf-8")
+    artifacts_document = (root / "docs/knowledge/artifacts.md").read_text(encoding="utf-8")
+    open_questions_document = (root / "docs/knowledge/open-questions.md").read_text(encoding="utf-8")
+    result_payload = json.loads((root / "web/data/comparison.json").read_text(encoding="utf-8"))
+    try:
+        _validate_mvp_completion_sync(roadmap, artifacts_document, open_questions_document, result_payload)
+    except ValueError as error:
+        raise SystemExit(f"design-contract: FAIL\nMVP completion sync error: {error}") from error
+    completion_terms = {
+        "ai-replica-mvp.md#今日の受入条件": roadmap,
+        "失敗runと反証判定を機械可読なresult cardへ出力": roadmap,
+        "| ADR-006 | scenario / experiment / run manifest / result cardを分離する | accepted |": decisions,
+        "{17, 42, 99}": results_document,
+        "## 複数seed感度": results_document,
+        "## 失敗run・反証判定": results_document,
+        "## actual AI replay証拠": results_document,
+        "llm_generated_in_codex_session": results_document,
+        "seed 17/42/99・符号反転・actual AI replayを実測": artifacts_document,
+    }
+    missing_completion_terms = [term for term, document in completion_terms.items() if term not in document]
+    if missing_completion_terms:
+        raise SystemExit("design-contract: FAIL\nMVP完了証拠が正本間で一致しません:\n" + "\n".join(missing_completion_terms))
+    if "pending-current-tree" in results_document:
+        raise SystemExit("design-contract: FAIL\nRESULTSの実行commitが未確定です")
     print("design-contract: PASS")
     return 0
 

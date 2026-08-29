@@ -16,6 +16,7 @@ from .decision import (
     safe_fallback,
 )
 from .engine import ActionInfluence, Condition, RunResult, run_experiment
+from .evidence_contract import project_refutation_checks
 
 
 DEFAULT_SEEDS = (17, 42, 99)
@@ -24,6 +25,7 @@ _CONDITION_BY_MODE = {
     ReplicaMode.PLURAL: Condition.PLURAL,
     ReplicaMode.AUTONOMOUS: Condition.AUTONOMOUS,
 }
+_HIGHER_IS_BETTER = frozenset({"continuity", "evidence_calibration", "public_trust", "dissent_reach"})
 
 
 @dataclass(frozen=True)
@@ -63,6 +65,121 @@ class ReplicaBatch:
 
     def to_dict(self) -> dict[str, Any]:
         return {"seeds": list(self.seeds), "runs": [run.to_dict() for run in self.runs]}
+
+
+def classify_run_failure(result: RunResult) -> tuple[bool, tuple[str, ...]]:
+    """RunResultだけから失敗を決定し、engineの実行経路と分離して検査可能にする。"""
+
+    reasons = []
+    if result.termination_reason != "turn_limit_reached":
+        reasons.append(f"termination:{result.termination_reason}")
+    completed_turns = len(result.events)
+    if completed_turns != result.turn_limit:
+        reasons.append(f"incomplete_turns:{completed_turns}/{result.turn_limit}")
+    return bool(reasons), tuple(reasons)
+
+
+def _representative_log_refs(result: RunResult) -> list[str]:
+    if not result.events:
+        return []
+    selected = [result.events[0]]
+    selected.extend(
+        event
+        for event in result.events
+        if event.action_type in {"issue_correction", "request_cross_check"} or event.dissent_delivered
+    )
+    selected.append(result.events[-1])
+    turns = list(dict.fromkeys(event.turn for event in selected))[:3]
+    return [f"{result.run_id}#event-turn-{turn}" for turn in turns]
+
+
+def _metric_delta(candidate: float, baseline: float, metric: str) -> float:
+    raw = candidate - baseline if metric in _HIGHER_IS_BETTER else baseline - candidate
+    return round(raw, 6)
+
+
+def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
+    """比較batchを、結論ではなく検証可能な観測カードへ変換する。"""
+
+    run_cards = []
+    for run in batch.runs:
+        failed, reasons = classify_run_failure(run.result)
+        run_cards.append(
+            {
+                "run_id": run.result.run_id,
+                "mode": run.requested_mode.value,
+                "effective_mode": run.effective_mode.value,
+                "seed": run.seed,
+                "metrics": dict(run.result.metrics),
+                "representative_log_refs": _representative_log_refs(run.result),
+                "failed_run": failed,
+                "failure_reasons": list(reasons),
+                "termination_reason": run.result.termination_reason,
+                "completed_turns": len(run.result.events),
+                "turn_limit": run.result.turn_limit,
+            }
+        )
+
+    by_mode_seed = {(run.requested_mode, run.seed): run for run in batch.runs}
+    checks = project_refutation_checks(batch.to_dict())
+
+    sensitivity_by_mode: dict[str, dict[str, dict[str, float]]] = {}
+    for mode in ReplicaMode:
+        mode_runs = [
+            run
+            for run in batch.runs
+            if run.requested_mode is mode and run.effective_mode is mode and not run.audit.fallback_applied
+        ]
+        if not mode_runs:
+            continue
+        metrics = sorted(set.intersection(*(set(run.result.metrics) for run in mode_runs)))
+        sensitivity_by_mode[mode.value] = {}
+        for metric in metrics:
+            values = [run.result.metrics[metric] for run in mode_runs]
+            sensitivity_by_mode[mode.value][metric] = {
+                "min": min(values),
+                "max": max(values),
+                "range": round(max(values) - min(values), 6),
+            }
+
+    sign_reversals = []
+    paired = [
+        (by_mode_seed[(ReplicaMode.PLURAL, seed)], by_mode_seed[(ReplicaMode.CENTRALIZED, seed)])
+        for seed in sorted(batch.seeds)
+        if (ReplicaMode.PLURAL, seed) in by_mode_seed and (ReplicaMode.CENTRALIZED, seed) in by_mode_seed
+        and by_mode_seed[(ReplicaMode.PLURAL, seed)].effective_mode is ReplicaMode.PLURAL
+        and by_mode_seed[(ReplicaMode.CENTRALIZED, seed)].effective_mode is ReplicaMode.CENTRALIZED
+        and not by_mode_seed[(ReplicaMode.PLURAL, seed)].audit.fallback_applied
+        and not by_mode_seed[(ReplicaMode.CENTRALIZED, seed)].audit.fallback_applied
+    ]
+    if paired:
+        for metric in sorted(paired[0][0].result.metrics):
+            deltas = [
+                _metric_delta(plural.result.metrics[metric], centralized.result.metrics[metric], metric)
+                for plural, centralized in paired
+            ]
+            signs = {-1 if delta < 0 else 1 if delta > 0 else 0 for delta in deltas}
+            if {-1, 1} <= signs:
+                sign_reversals.append(metric)
+
+    return {
+        "schema_version": "result-card-v1",
+        "run_count": len(run_cards),
+        "runs": run_cards,
+        "failure_runs": [card for card in run_cards if card["failed_run"]],
+        "refutation_checks": checks,
+        "seed_sensitivity": {
+            "seeds": sorted(batch.seeds),
+            "by_mode": sensitivity_by_mode,
+            "plural_vs_centralized_sign_reversals": sign_reversals,
+        },
+        "limitations": [
+            "synthetic_scenario_not_real_world_prediction",
+            "parameter_sweep_not_run",
+            "model_and_prompt_sensitivity_not_observable_without_live_llm",
+            "no_single_winner_score",
+        ],
+    }
 
 
 def run_replica_scenario(
@@ -105,6 +222,8 @@ def run_replica_batch(
     fixed_seeds = tuple(seeds)
     if not fixed_seeds or any(isinstance(seed, bool) or not isinstance(seed, int) for seed in fixed_seeds):
         raise ValueError("seeds must be a non-empty integer sequence")
+    if len(set(fixed_seeds)) != len(fixed_seeds):
+        raise ValueError("seeds must be unique")
     runs = tuple(
         run_replica_scenario(
             requested_mode=mode,

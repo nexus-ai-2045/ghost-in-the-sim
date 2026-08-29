@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 import json
+from dataclasses import replace
 
 import pytest
 
 from ghost_in_the_sim.decision import (
     DecisionContext,
+    DecisionValidationError,
     DecisionStatus,
     RecordedDecisionEngine,
     ReplicaAction,
@@ -14,7 +16,14 @@ from ghost_in_the_sim.decision import (
     RuleDecisionEngine,
 )
 from ghost_in_the_sim.actual_trace import _trace_hash_from_bytes, load_actual_ai_trace
-from ghost_in_the_sim.replica import DEFAULT_SEEDS, run_replica_batch, run_replica_scenario
+from ghost_in_the_sim.replica import (
+    DEFAULT_SEEDS,
+    build_result_card,
+    classify_run_failure,
+    run_replica_batch,
+    run_replica_scenario,
+)
+from ghost_in_the_sim.evidence_contract import project_evidence, validate_derived_evidence
 
 
 def test_rule_engine_is_deterministic_and_maps_all_modes() -> None:
@@ -126,16 +135,35 @@ def test_actual_ai_trace_replays_nine_decisions_without_claiming_live_api() -> N
 
 
 def test_tracked_comparison_is_exactly_reproducible_from_current_engine() -> None:
+    from ghost_in_the_sim.batch_cli import artifact_revision
+
     root = Path(__file__).resolve().parents[1]
+    batch = run_replica_batch(seeds=DEFAULT_SEEDS, turn_limit=12)
     records = load_actual_ai_trace(root / "fixtures" / "actual-ai-trace-seed42.json")
-    batch = run_replica_batch(
+    evidence_batch = run_replica_batch(
         seeds=(42,),
         turn_limit=12,
         decision_engine=RecordedDecisionEngine(record.to_dict() for record in records),
     )
     tracked = json.loads((root / "web" / "data" / "comparison.json").read_text(encoding="utf-8"))
-
-    assert batch.to_dict() == tracked
+    card = build_result_card(batch)
+    card["ai_replay_evidence"] = {
+        "run_count": len(evidence_batch.runs),
+        "decision_sources": sorted(
+            {decision.decision_source for run in evidence_batch.runs for decision in run.decisions}
+        ),
+        "fallback_count": sum(run.audit.fallback_applied for run in evidence_batch.runs),
+    }
+    revision = artifact_revision(root, evidence_fixture=root / "fixtures" / "actual-ai-trace-seed42.json")
+    card["artifact_revision"] = revision
+    expected = {
+        **batch.to_dict(),
+        "artifact_revision": revision,
+        "ai_evidence_runs": [run.to_dict() for run in evidence_batch.runs],
+        "result_card": card,
+    }
+    expected["evidence_summary"] = project_evidence(expected)
+    assert tracked == expected
 
 
 def test_actual_trace_hash_is_independent_of_checkout_line_endings() -> None:
@@ -197,3 +225,221 @@ def test_duplicate_decision_id_causes_audited_fallback() -> None:
     assert run.audit.fallback_applied
     assert run.audit.reason_code == "decision_invalid"
     assert run.effective_mode is ReplicaMode.PLURAL
+
+
+def test_failure_classifier_is_pure_and_reports_incomplete_synthetic_run() -> None:
+    completed = run_replica_scenario(requested_mode=ReplicaMode.PLURAL, seed=17, turn_limit=3).result
+    failed = replace(
+        completed,
+        events=completed.events[:2],
+        termination_reason="absorbing_state_continuity_lost",
+    )
+
+    assert classify_run_failure(completed) == (False, ())
+    assert classify_run_failure(failed) == (
+        True,
+        ("termination:absorbing_state_continuity_lost", "incomplete_turns:2/3"),
+    )
+
+
+def test_result_card_is_machine_readable_and_seed_falsification_is_deterministic() -> None:
+    batch = run_replica_batch(seeds=(17, 42, 99), turn_limit=3)
+
+    first = build_result_card(batch)
+    second = build_result_card(batch)
+
+    assert first == second
+    assert first["schema_version"] == "result-card-v1"
+    assert first["run_count"] == 9
+    assert len(first["runs"]) == 9
+    assert first["failure_runs"] == []
+    assert all(not run["failed_run"] for run in first["runs"])
+    assert all(run["completed_turns"] == run["turn_limit"] == 3 for run in first["runs"])
+    assert all(run["representative_log_refs"] for run in first["runs"])
+    checks = first["refutation_checks"]
+    assert {item["check_id"] for item in checks} == {
+        "plural_always_better_without_tradeoff",
+        "centralized_always_better_without_tradeoff",
+    }
+    assert all(item["seed"] is None for item in checks)
+    assert all({entry["seed"] for entry in item["evidence"]["per_seed"]} == {17, 42, 99} for item in checks)
+    for item in checks:
+        per_seed = item["evidence"]["per_seed"]
+        expected = "triggered" if all(entry["status"] == "triggered" for entry in per_seed) else "not_triggered"
+        assert item["status"] == expected
+    assert first["seed_sensitivity"]["seeds"] == [17, 42, 99]
+    assert first["seed_sensitivity"]["by_mode"]["plural"]["public_trust"]["range"] > 0
+    assert "parameter_sweep_not_run" in first["limitations"]
+
+
+def test_canonical_evidence_projection_rejects_derived_summary_mutations() -> None:
+    batch = run_replica_batch(seeds=DEFAULT_SEEDS, turn_limit=3)
+    payload = {**batch.to_dict(), "result_card": build_result_card(batch)}
+    payload["evidence_summary"] = project_evidence(payload)
+    validate_derived_evidence(payload)
+    for mutation in ("failure", "reversal"):
+        changed = json.loads(json.dumps(payload))
+        if mutation == "failure":
+            changed["result_card"]["failure_runs"] = [changed["result_card"]["runs"][0]]
+        else:
+            changed["result_card"]["seed_sensitivity"]["plural_vs_centralized_sign_reversals"] = ["fabricated"]
+        with pytest.raises(ValueError):
+            validate_derived_evidence(changed)
+
+
+def test_result_card_does_not_compare_modes_that_fell_back_to_another_mode() -> None:
+    batch = run_replica_batch(
+        seeds=(17,),
+        turn_limit=3,
+        decision_engine=RecordedDecisionEngine([]),
+    )
+
+    checks = build_result_card(batch)["refutation_checks"]
+
+    assert all(check["status"] == "not_observable" for check in checks)
+    assert all(
+        entry["evidence"]["reason"] == "required_effective_mode_missing"
+        for check in checks
+        for entry in check["evidence"]["per_seed"]
+    )
+    sensitivity = build_result_card(batch)["seed_sensitivity"]
+    assert sensitivity["by_mode"] == {}
+    assert sensitivity["plural_vs_centralized_sign_reversals"] == []
+
+
+def test_partial_fallback_is_excluded_from_every_comparison_surface() -> None:
+    class PluralFailureEngine:
+        def decide(self, context: DecisionContext):
+            if context.requested_mode is ReplicaMode.PLURAL:
+                raise DecisionValidationError("decision_invalid", "synthetic plural failure")
+            return RuleDecisionEngine().decide(context)
+
+    card = build_result_card(run_replica_batch(seeds=(17,), turn_limit=3, decision_engine=PluralFailureEngine()))
+
+    assert all(check["status"] == "not_observable" for check in card["refutation_checks"])
+    assert set(card["seed_sensitivity"]["by_mode"]) == {"centralized", "autonomous"}
+    assert card["seed_sensitivity"]["plural_vs_centralized_sign_reversals"] == []
+
+
+def test_batch_cli_writes_result_card_without_changing_canonical_batch_payload(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ghost_in_the_sim import batch_cli
+
+    output = tmp_path / "comparison.json"
+    monkeypatch.setattr("sys.argv", ["batch_cli", "--output", str(output), "--turn-limit", "3"])
+
+    assert batch_cli.main() == 0
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert "result_card" in payload
+    expected = build_result_card(run_replica_batch(turn_limit=3))
+    expected["artifact_revision"] = payload["artifact_revision"]
+    assert payload["result_card"] == expected
+
+
+def test_batch_cli_keeps_actual_ai_evidence_separate_from_rule_comparison(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ghost_in_the_sim import batch_cli
+
+    root = Path(__file__).resolve().parents[1]
+    output = tmp_path / "comparison.json"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "batch_cli",
+            "--output",
+            str(output),
+            "--turn-limit",
+            "3",
+            "--actual-ai-evidence-trace",
+            str(root / "fixtures" / "actual-ai-trace-seed42.json"),
+        ],
+    )
+
+    assert batch_cli.main() == 0
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert len(payload["runs"]) == 9
+    assert {decision["decision_source"] for run in payload["runs"] for decision in run["decisions"]} == {"deterministic_rule"}
+    assert len(payload["ai_evidence_runs"]) == 3
+    assert payload["result_card"]["ai_replay_evidence"] == {
+        "decision_sources": ["llm_generated_in_codex_session"],
+        "fallback_count": 0,
+        "run_count": 3,
+    }
+    assert payload["artifact_revision"] == payload["result_card"]["artifact_revision"]
+
+
+def test_batch_cli_rejects_mixed_comparison_and_actual_ai_evidence_providers(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ghost_in_the_sim import batch_cli
+
+    fixture = Path(__file__).resolve().parents[1] / "fixtures" / "actual-ai-trace-seed42.json"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "batch_cli",
+            "--output",
+            str(tmp_path / "comparison.json"),
+            "--actual-ai-trace",
+            str(fixture),
+            "--actual-ai-evidence-trace",
+            str(fixture),
+        ],
+    )
+
+    with pytest.raises(SystemExit, match="2"):
+        batch_cli.main()
+
+
+def test_artifact_revision_changes_for_every_declared_generator_input() -> None:
+    from ghost_in_the_sim.batch_cli import ARTIFACT_INPUTS, _artifact_revision_from_inputs
+
+    baseline_inputs = {name: f"content:{name}".encode() for name in ARTIFACT_INPUTS}
+    baseline_inputs["actual-ai-evidence-trace"] = b"fixture"
+    baseline = _artifact_revision_from_inputs(baseline_inputs)
+
+    for name in baseline_inputs:
+        changed = dict(baseline_inputs)
+        changed[name] += b"\nchanged"
+        assert _artifact_revision_from_inputs(changed) != baseline, name
+
+
+def test_artifact_revision_binds_each_selected_fixture_role(tmp_path: Path) -> None:
+    from ghost_in_the_sim.batch_cli import artifact_revision
+
+    root = Path(__file__).resolve().parents[1]
+    first = tmp_path / "first.json"
+    second = tmp_path / "second.json"
+    first.write_text('{"fixture": 1}', encoding="utf-8")
+    second.write_text('{"fixture": 2}', encoding="utf-8")
+    assert artifact_revision(root, comparison_fixture=first) != artifact_revision(root, comparison_fixture=second)
+    assert artifact_revision(root, evidence_fixture=first) != artifact_revision(root, evidence_fixture=second)
+    assert artifact_revision(root, comparison_fixture=first) != artifact_revision(root, evidence_fixture=first)
+
+
+def test_cli_artifact_revision_changes_with_selected_decision_fixture(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ghost_in_the_sim import batch_cli
+
+    contexts = [DecisionContext.for_run(mode=mode, seed=42, turn=1) for mode in ReplicaMode]
+    outputs = []
+    for version in ("v1", "v2"):
+        fixture = tmp_path / f"{version}.json"
+        records = [RuleDecisionEngine(prompt_hash=f"sha256:{version}").decide(context).to_dict() for context in contexts]
+        fixture.write_text(json.dumps(records), encoding="utf-8")
+        output = tmp_path / f"{version}-output.json"
+        monkeypatch.setattr(
+            "sys.argv",
+            ["batch_cli", "--output", str(output), "--turn-limit", "1", "--seed", "42", "--decision-fixture", str(fixture)],
+        )
+        assert batch_cli.main() == 0
+        outputs.append(json.loads(output.read_text(encoding="utf-8"))["artifact_revision"])
+    assert outputs[0] != outputs[1]
+
+
+def test_duplicate_seeds_are_rejected_by_batch_and_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ghost_in_the_sim import batch_cli
+
+    with pytest.raises(ValueError, match="unique"):
+        run_replica_batch(seeds=(42, 42), turn_limit=3)
+    monkeypatch.setattr(
+        "sys.argv",
+        ["batch_cli", "--output", str(tmp_path / "comparison.json"), "--seed", "42", "--seed", "42"],
+    )
+    with pytest.raises(SystemExit, match="2"):
+        batch_cli.main()

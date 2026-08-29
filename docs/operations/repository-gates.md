@@ -35,3 +35,9 @@ baselineの更新、workflowの弱体化、CIのskip、公開・merge・release�
 trusted workflow、候補側workflow、検査器、consistency設定を変更するPRは自動承認しない。初回導入と更新はbootstrap扱いの人間レビューを必要とする。詳細は[ADR-007](../adr/ADR-007-trusted-repository-gate.md)を参照する。
 
 trusted workflowが差分基準を渡す際は、イベントで確定したbase SHAを候補clone内の専用remote-tracking refへ固定し、readbackしてから使う。`origin/main`のような可動refや生SHAを直接渡さず、実行中のbase driftと検査器契約の不一致を同時に防ぐ。
+
+## deterministic coreのruntime契約
+
+`verify.yml` の `deterministic-core` jobは、`src` layoutのpackageをpytestだけでなく設計・公開・IPの各検証スクリプトからも同じ条件でimportできるよう、job全体へ `PYTHONPATH=src` を設定する。検証stepごとにruntime設定を重複させず、新しいPython gateを追加したときも同じpackage境界を継承させる。
+
+このruntime契約はローカル検証でも再現し、`PYTHONPATH=src python tests/check_design_contract.py` と全pytestを実行する。CIだけでimport経路を特別扱いせず、Linux runnerとWindows worktreeの環境差を検知可能に保つ。

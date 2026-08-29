@@ -4,13 +4,16 @@
 
 ## 現在地 — 再現可能な比較MVP
 
+今日のMVP完了判定は [AI複製主体MVPの受入条件](architecture/ai-replica-mvp.md#今日の受入条件) を唯一の正本とする。
+Phase 6以降、live provider、mobile実機は次段であり、今日のMVP完了へ混ぜない。
+
 - [x] 決定論的12ターン、条件A/B/C、seed固定、JSONL trace
 - [x] 共通乱数による複数条件・複数run比較
 - [x] ルール主体、異議・留保、AI trace replayとfail-closed fallback
 - [x] 3方式比較Web UIと代表実験
 - [x] 2036年、ポセイドン、御影冴、接界機動班、命名体系、10事件の設定正本
-- [ ] 失敗runと反証判定を結果へ出力
-- [ ] 複数seedの代表結果と提出資料を同期
+- [x] 失敗runと反証判定を機械可読なresult cardへ出力
+- [x] 複数seedの代表結果と提出資料を同期
 - [ ] プレゼン資料とデモを同期
 - [ ] 提出直前に公式要件と公開境界を人間が再確認
 
