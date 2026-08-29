@@ -43,11 +43,16 @@ def _public_files() -> list[Path]:
         if not relative_bytes:
             continue
         relative = relative_bytes.decode("utf-8")
-        normalized = relative.replace("\\", "/")
         path = ROOT / relative
-        if normalized not in ATTRIBUTION_EXEMPTIONS and path.is_file():
+        if not _is_attribution_exempt(relative) and (path.is_file() or path.is_symlink()):
             files.append(path)
     return files
+
+
+def _is_attribution_exempt(git_path: str) -> bool:
+    """Match Git paths literally; POSIX backslashes are filename characters."""
+
+    return git_path in ATTRIBUTION_EXEMPTIONS
 
 
 def _decode_text(raw: bytes) -> str | None:
@@ -69,6 +74,9 @@ def _find_terms(text: str) -> list[str]:
 def main() -> int:
     findings: list[str] = []
     for path in _public_files():
+        if path.is_symlink():
+            findings.append(f"{path.relative_to(ROOT)}: シンボリックリンクは公開内容を間接化するため検査不能")
+            continue
         raw = path.read_bytes()
         try:
             text = _decode_text(raw)

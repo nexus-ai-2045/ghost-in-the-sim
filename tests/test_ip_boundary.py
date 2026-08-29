@@ -1,6 +1,9 @@
+import os
 from pathlib import Path
 
-from check_ip_boundary import ROOT, _decode_text, _find_terms, _public_files
+import pytest
+
+from check_ip_boundary import ROOT, _decode_text, _find_terms, _is_attribution_exempt, _public_files, main
 
 
 def test_boundary_uses_identifier_edges() -> None:
@@ -36,3 +39,19 @@ def test_decode_text_handles_utf16_bom_and_rejects_opaque_nul() -> None:
     utf16 = "攻殻機動隊".encode("utf-16")
     assert "攻殻機動隊" in (_decode_text(utf16) or "")
     assert _decode_text(b"opaque\x00binary") is None
+
+
+def test_backslash_filename_cannot_inherit_an_attribution_exemption() -> None:
+    assert _is_attribution_exempt("docs/adr/ADR-001-original-agent-model.md")
+    assert not _is_attribution_exempt(r"docs\adr\ADR-001-original-agent-model.md")
+
+
+@pytest.mark.skipif(os.name == "nt", reason="POSIX symlink semantics are verified by Linux CI")
+def test_symlink_surface_fails_closed() -> None:
+    target = ROOT / "boundary-link"
+    target.symlink_to("攻殻機動隊")
+    try:
+        with pytest.raises(SystemExit, match="シンボリックリンク"):
+            main()
+    finally:
+        target.unlink(missing_ok=True)
