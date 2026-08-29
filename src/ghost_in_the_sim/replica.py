@@ -284,6 +284,8 @@ def run_replica_batch(
     fixed_seeds = tuple(seeds)
     if not fixed_seeds or any(isinstance(seed, bool) or not isinstance(seed, int) for seed in fixed_seeds):
         raise ValueError("seeds must be a non-empty integer sequence")
+    if len(set(fixed_seeds)) != len(fixed_seeds):
+        raise ValueError("seeds must be unique")
     runs = tuple(
         run_replica_scenario(
             requested_mode=mode,

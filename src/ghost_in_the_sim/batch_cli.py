@@ -31,10 +31,17 @@ def _artifact_revision_from_inputs(inputs: dict[str, bytes]) -> str:
     return digest.hexdigest()[:16]
 
 
-def artifact_revision(root: Path, trace_path: Path | None = None) -> str:
+def artifact_revision(
+    root: Path,
+    *,
+    comparison_fixture: Path | None = None,
+    evidence_fixture: Path | None = None,
+) -> str:
     inputs = {name: (root / name).read_bytes() for name in ARTIFACT_INPUTS}
-    if trace_path is not None:
-        inputs["actual-ai-evidence-trace"] = trace_path.read_bytes()
+    if comparison_fixture is not None:
+        inputs["selected-comparison-fixture"] = comparison_fixture.read_bytes()
+    if evidence_fixture is not None:
+        inputs["selected-evidence-fixture"] = evidence_fixture.read_bytes()
     return _artifact_revision_from_inputs(inputs)
 
 
@@ -62,6 +69,8 @@ def main() -> int:
         parser.error("--decision-fixture and --actual-ai-trace are mutually exclusive")
     if args.actual_ai_evidence_trace and (args.decision_fixture or args.actual_ai_trace):
         parser.error("--actual-ai-evidence-trace requires the deterministic rule comparison provider")
+    if args.seeds and len(set(args.seeds)) != len(args.seeds):
+        parser.error("--seed values must be unique")
     decision_engine = (
         RecordedDecisionEngine(record.to_dict() for record in load_actual_ai_trace(args.actual_ai_trace))
         if args.actual_ai_trace
@@ -77,7 +86,11 @@ def main() -> int:
     payload = batch.to_dict()
     payload["result_card"] = build_result_card(batch)
     root = Path(__file__).resolve().parents[2]
-    payload["artifact_revision"] = artifact_revision(root, args.actual_ai_evidence_trace)
+    payload["artifact_revision"] = artifact_revision(
+        root,
+        comparison_fixture=args.actual_ai_trace or args.decision_fixture,
+        evidence_fixture=args.actual_ai_evidence_trace,
+    )
     payload["result_card"]["artifact_revision"] = payload["artifact_revision"]
     if args.actual_ai_evidence_trace:
         evidence_records = load_actual_ai_trace(args.actual_ai_evidence_trace)

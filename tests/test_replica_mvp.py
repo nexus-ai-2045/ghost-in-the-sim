@@ -153,7 +153,7 @@ def test_tracked_comparison_is_exactly_reproducible_from_current_engine() -> Non
         ),
         "fallback_count": sum(run.audit.fallback_applied for run in evidence_batch.runs),
     }
-    revision = artifact_revision(root, root / "fixtures" / "actual-ai-trace-seed42.json")
+    revision = artifact_revision(root, evidence_fixture=root / "fixtures" / "actual-ai-trace-seed42.json")
     card["artifact_revision"] = revision
     assert tracked == {
         **batch.to_dict(),
@@ -380,3 +380,48 @@ def test_artifact_revision_changes_for_every_declared_generator_input() -> None:
         changed = dict(baseline_inputs)
         changed[name] += b"\nchanged"
         assert _artifact_revision_from_inputs(changed) != baseline, name
+
+
+def test_artifact_revision_binds_each_selected_fixture_role(tmp_path: Path) -> None:
+    from ghost_in_the_sim.batch_cli import artifact_revision
+
+    root = Path(__file__).resolve().parents[1]
+    first = tmp_path / "first.json"
+    second = tmp_path / "second.json"
+    first.write_text('{"fixture": 1}', encoding="utf-8")
+    second.write_text('{"fixture": 2}', encoding="utf-8")
+    assert artifact_revision(root, comparison_fixture=first) != artifact_revision(root, comparison_fixture=second)
+    assert artifact_revision(root, evidence_fixture=first) != artifact_revision(root, evidence_fixture=second)
+    assert artifact_revision(root, comparison_fixture=first) != artifact_revision(root, evidence_fixture=first)
+
+
+def test_cli_artifact_revision_changes_with_selected_decision_fixture(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ghost_in_the_sim import batch_cli
+
+    contexts = [DecisionContext.for_run(mode=mode, seed=42, turn=1) for mode in ReplicaMode]
+    outputs = []
+    for version in ("v1", "v2"):
+        fixture = tmp_path / f"{version}.json"
+        records = [RuleDecisionEngine(prompt_hash=f"sha256:{version}").decide(context).to_dict() for context in contexts]
+        fixture.write_text(json.dumps(records), encoding="utf-8")
+        output = tmp_path / f"{version}-output.json"
+        monkeypatch.setattr(
+            "sys.argv",
+            ["batch_cli", "--output", str(output), "--turn-limit", "1", "--seed", "42", "--decision-fixture", str(fixture)],
+        )
+        assert batch_cli.main() == 0
+        outputs.append(json.loads(output.read_text(encoding="utf-8"))["artifact_revision"])
+    assert outputs[0] != outputs[1]
+
+
+def test_duplicate_seeds_are_rejected_by_batch_and_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ghost_in_the_sim import batch_cli
+
+    with pytest.raises(ValueError, match="unique"):
+        run_replica_batch(seeds=(42, 42), turn_limit=3)
+    monkeypatch.setattr(
+        "sys.argv",
+        ["batch_cli", "--output", str(tmp_path / "comparison.json"), "--seed", "42", "--seed", "42"],
+    )
+    with pytest.raises(SystemExit, match="2"):
+        batch_cli.main()

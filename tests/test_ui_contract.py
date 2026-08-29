@@ -14,6 +14,7 @@ class DemoUiContractTest(unittest.TestCase):
     def test_required_assets_and_accessibility_contract(self) -> None:
         index = (ROOT / "web/index.html").read_text(encoding="utf-8")
         script = (ROOT / "web/app.js").read_text(encoding="utf-8")
+        contract = (ROOT / "web/result-card-contract.js").read_text(encoding="utf-8")
         style = (ROOT / "web/styles.css").read_text(encoding="utf-8")
         for phrase in ("3つの統治条件", "比較指標", "タイムライン", "合成仮説", "因果効果"):
             self.assertIn(phrase, index)
@@ -42,11 +43,12 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertIn("formatEvidence(check.evidence)", script)
         self.assertIn("Array.isArray(aiReplay?.decision_sources)", script)
         self.assertIn("Number.isFinite(Number(aiReplay?.run_count))", script)
-        self.assertIn("validateResultCard(payload)", script)
-        self.assertIn("isNonNegativeInteger(card.run_count)", script)
-        self.assertIn("card.run_count === payload.runs.length", script)
-        self.assertIn("replay.run_count === evidenceRuns.length", script)
+        self.assertIn("ResultCardContract.validate(payload)", script)
+        self.assertIn("nonNegativeInteger(card.run_count)", contract)
+        self.assertIn("card.run_count === runs.length", contract)
+        self.assertIn("replay.run_count === evidenceRuns.length", contract)
         self.assertIn("結果カード不正", script)
+        self.assertIn('src="result-card-contract.js"', index)
 
     def test_fixture_has_three_distinct_conditions_and_required_metrics(self) -> None:
         fixture = json.loads((ROOT / "web/data/sample-comparison.json").read_text(encoding="utf-8"))

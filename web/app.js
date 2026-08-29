@@ -22,30 +22,11 @@ function escapeText(value) {
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   })[character]);
 }
-function isNonNegativeInteger(value) { return Number.isInteger(value) && value >= 0; }
-function validateResultCard(payload) {
-  const card = payload.result_card;
-  if (card == null) return { card: null, invalid: false };
-  const evidenceRuns = payload.ai_evidence_runs;
-  const replay = card.ai_replay_evidence;
-  const valid = card.schema_version === "result-card-v1"
-    && isNonNegativeInteger(card.run_count)
-    && Array.isArray(payload.runs) && card.run_count === payload.runs.length
-    && Array.isArray(card.failure_runs) && card.failure_runs.length <= card.run_count
-    && Array.isArray(card.refutation_checks) && card.refutation_checks.every(item => item && typeof item === "object")
-    && Array.isArray(card.limitations) && card.limitations.every(item => typeof item === "string")
-    && Array.isArray(evidenceRuns)
-    && replay && isNonNegativeInteger(replay.run_count) && replay.run_count === evidenceRuns.length
-    && isNonNegativeInteger(replay.fallback_count) && replay.fallback_count <= replay.run_count
-    && Array.isArray(replay.decision_sources) && replay.decision_sources.length > 0
-    && replay.decision_sources.every(item => typeof item === "string" && item.length > 0);
-  return valid ? { card, invalid: false } : { card: null, invalid: true };
-}
 function normalize(payload) {
   if (Array.isArray(payload.runs)) {
     const selectedSeed = payload.seeds?.includes(42) ? 42 : payload.seeds?.[0];
     const conditions = payload.runs.filter(item => item.seed === selectedSeed);
-    const resultCard = validateResultCard(payload);
+    const resultCard = ResultCardContract.validate(payload);
     return { ...payload, result_card: resultCard.card, result_card_invalid: resultCard.invalid, scenario_id: conditions[0]?.manifest?.scenario_id, seed: selectedSeed, conditions };
   }
   if (Array.isArray(payload.conditions)) return payload;

@@ -1612,7 +1612,7 @@
       "seed": 42
     }
   ],
-  "artifact_revision": "49d253e132086b1e",
+  "artifact_revision": "439e29a4e8c0b0e8",
   "result_card": {
     "ai_replay_evidence": {
       "decision_sources": [
@@ -1621,7 +1621,7 @@
       "fallback_count": 0,
       "run_count": 3
     },
-    "artifact_revision": "49d253e132086b1e",
+    "artifact_revision": "439e29a4e8c0b0e8",
     "failure_runs": [],
     "limitations": [
       "synthetic_scenario_not_real_world_prediction",
