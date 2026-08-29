@@ -242,6 +242,7 @@ def main() -> int:
         "## 失敗run・反証判定": results_document,
         "## actual AI replay証拠": results_document,
         "llm_generated_in_codex_session": results_document,
+        "seed 17/42/99・符号反転・actual AI replayを実測": (root / "docs/knowledge/artifacts.md").read_text(encoding="utf-8"),
     }
     missing_completion_terms = [term for term, document in completion_terms.items() if term not in document]
     if missing_completion_terms:

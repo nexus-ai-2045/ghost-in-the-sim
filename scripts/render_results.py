@@ -15,6 +15,11 @@ MODES = ("centralized", "plural", "autonomous")
 def render(payload: dict) -> str:
     card = payload["result_card"]
     runs = payload["runs"]
+    comparison_sources = sorted(
+        {decision.get("decision_source") for run in runs for decision in run.get("decisions", [])}
+    )
+    if comparison_sources != ["deterministic_rule"]:
+        raise ValueError("canonical RESULTS requires an exclusively deterministic_rule comparison")
     first = runs[0]
     lines = [
         "# RESULTS",
@@ -29,7 +34,8 @@ def render(payload: dict) -> str:
         f"| seed集合 | `{{{', '.join(map(str, payload['seeds']))}}}` |",
         f"| run数 | `{card['run_count']}` |",
         f"| コード版 | `{first['manifest']['code_version']}` |",
-        f"| source revision | `{first['manifest']['source_revision']}` |",
+        f"| engine source revision | `{first['manifest']['source_revision']}` |",
+        f"| artifact revision | `{payload['artifact_revision']}` |",
         f"| result card | `{card['schema_version']}` |",
         "| 境界 | 合成仮説。現実予測・因果証明・政策推奨ではない |",
         "",

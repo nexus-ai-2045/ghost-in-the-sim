@@ -42,6 +42,11 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertIn("formatEvidence(check.evidence)", script)
         self.assertIn("Array.isArray(aiReplay?.decision_sources)", script)
         self.assertIn("Number.isFinite(Number(aiReplay?.run_count))", script)
+        self.assertIn("validateResultCard(payload)", script)
+        self.assertIn("isNonNegativeInteger(card.run_count)", script)
+        self.assertIn("card.run_count === payload.runs.length", script)
+        self.assertIn("replay.run_count === evidenceRuns.length", script)
+        self.assertIn("結果カード不正", script)
 
     def test_fixture_has_three_distinct_conditions_and_required_metrics(self) -> None:
         fixture = json.loads((ROOT / "web/data/sample-comparison.json").read_text(encoding="utf-8"))
@@ -67,6 +72,7 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertEqual(card["ai_replay_evidence"]["fallback_count"], 0)
         self.assertEqual(card["ai_replay_evidence"]["decision_sources"], ["llm_generated_in_codex_session"])
         self.assertEqual(len(payload["ai_evidence_runs"]), 3)
+        self.assertEqual(payload["artifact_revision"], card["artifact_revision"])
 
 
 if __name__ == "__main__":

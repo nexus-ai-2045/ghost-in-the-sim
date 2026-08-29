@@ -161,6 +161,8 @@ def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
         if (
             centralized is None
             or plural is None
+            or centralized.audit.fallback_applied
+            or plural.audit.fallback_applied
             or centralized.effective_mode is not ReplicaMode.CENTRALIZED
             or plural.effective_mode is not ReplicaMode.PLURAL
         ):
@@ -188,7 +190,7 @@ def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
         mode_runs = [
             run
             for run in batch.runs
-            if run.requested_mode is mode and run.effective_mode is mode
+            if run.requested_mode is mode and run.effective_mode is mode and not run.audit.fallback_applied
         ]
         if not mode_runs:
             continue
@@ -209,6 +211,8 @@ def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
         if (ReplicaMode.PLURAL, seed) in by_mode_seed and (ReplicaMode.CENTRALIZED, seed) in by_mode_seed
         and by_mode_seed[(ReplicaMode.PLURAL, seed)].effective_mode is ReplicaMode.PLURAL
         and by_mode_seed[(ReplicaMode.CENTRALIZED, seed)].effective_mode is ReplicaMode.CENTRALIZED
+        and not by_mode_seed[(ReplicaMode.PLURAL, seed)].audit.fallback_applied
+        and not by_mode_seed[(ReplicaMode.CENTRALIZED, seed)].audit.fallback_applied
     ]
     if paired:
         for metric in sorted(paired[0][0].result.metrics):

@@ -10,7 +10,8 @@
 | seed集合 | `{17, 42, 99}` |
 | run数 | `9` |
 | コード版 | `deterministic-core-v2` |
-| source revision | `1c81c9e92c0c0e80` |
+| engine source revision | `1c81c9e92c0c0e80` |
+| artifact revision | `49d253e132086b1e` |
 | result card | `result-card-v1` |
 | 境界 | 合成仮説。現実予測・因果証明・政策推奨ではない |
 

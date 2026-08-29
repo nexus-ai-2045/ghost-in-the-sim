@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from hashlib import sha256
 import json
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,31 @@ from typing import Any
 from .decision import RecordedDecisionEngine
 from .actual_trace import load_actual_ai_trace
 from .replica import DEFAULT_SEEDS, build_result_card, run_replica_batch
+
+
+ARTIFACT_INPUTS = (
+    "src/ghost_in_the_sim/engine.py",
+    "src/ghost_in_the_sim/decision.py",
+    "src/ghost_in_the_sim/replica.py",
+    "src/ghost_in_the_sim/actual_trace.py",
+    "src/ghost_in_the_sim/batch_cli.py",
+    "scripts/render_results.py",
+)
+
+
+def _artifact_revision_from_inputs(inputs: dict[str, bytes]) -> str:
+    digest = sha256()
+    for name in sorted(inputs):
+        digest.update(name.encode("utf-8") + b"\0")
+        digest.update(inputs[name].replace(b"\r\n", b"\n") + b"\0")
+    return digest.hexdigest()[:16]
+
+
+def artifact_revision(root: Path, trace_path: Path | None = None) -> str:
+    inputs = {name: (root / name).read_bytes() for name in ARTIFACT_INPUTS}
+    if trace_path is not None:
+        inputs["actual-ai-evidence-trace"] = trace_path.read_bytes()
+    return _artifact_revision_from_inputs(inputs)
 
 
 def _load_fixture(path: Path) -> RecordedDecisionEngine:
@@ -34,6 +60,8 @@ def main() -> int:
     args = parser.parse_args()
     if args.decision_fixture and args.actual_ai_trace:
         parser.error("--decision-fixture and --actual-ai-trace are mutually exclusive")
+    if args.actual_ai_evidence_trace and (args.decision_fixture or args.actual_ai_trace):
+        parser.error("--actual-ai-evidence-trace requires the deterministic rule comparison provider")
     decision_engine = (
         RecordedDecisionEngine(record.to_dict() for record in load_actual_ai_trace(args.actual_ai_trace))
         if args.actual_ai_trace
@@ -48,6 +76,9 @@ def main() -> int:
     )
     payload = batch.to_dict()
     payload["result_card"] = build_result_card(batch)
+    root = Path(__file__).resolve().parents[2]
+    payload["artifact_revision"] = artifact_revision(root, args.actual_ai_evidence_trace)
+    payload["result_card"]["artifact_revision"] = payload["artifact_revision"]
     if args.actual_ai_evidence_trace:
         evidence_records = load_actual_ai_trace(args.actual_ai_evidence_trace)
         evidence_batch = run_replica_batch(

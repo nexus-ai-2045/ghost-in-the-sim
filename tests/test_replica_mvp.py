@@ -8,6 +8,7 @@ import pytest
 
 from ghost_in_the_sim.decision import (
     DecisionContext,
+    DecisionValidationError,
     DecisionStatus,
     RecordedDecisionEngine,
     ReplicaAction,
@@ -133,6 +134,8 @@ def test_actual_ai_trace_replays_nine_decisions_without_claiming_live_api() -> N
 
 
 def test_tracked_comparison_is_exactly_reproducible_from_current_engine() -> None:
+    from ghost_in_the_sim.batch_cli import artifact_revision
+
     root = Path(__file__).resolve().parents[1]
     batch = run_replica_batch(seeds=DEFAULT_SEEDS, turn_limit=12)
     records = load_actual_ai_trace(root / "fixtures" / "actual-ai-trace-seed42.json")
@@ -150,8 +153,11 @@ def test_tracked_comparison_is_exactly_reproducible_from_current_engine() -> Non
         ),
         "fallback_count": sum(run.audit.fallback_applied for run in evidence_batch.runs),
     }
+    revision = artifact_revision(root, root / "fixtures" / "actual-ai-trace-seed42.json")
+    card["artifact_revision"] = revision
     assert tracked == {
         **batch.to_dict(),
+        "artifact_revision": revision,
         "ai_evidence_runs": [run.to_dict() for run in evidence_batch.runs],
         "result_card": card,
     }
@@ -279,8 +285,22 @@ def test_result_card_does_not_compare_modes_that_fell_back_to_another_mode() -> 
         for entry in check["evidence"]["per_seed"]
     )
     sensitivity = build_result_card(batch)["seed_sensitivity"]
-    assert set(sensitivity["by_mode"]) == {"plural"}
+    assert sensitivity["by_mode"] == {}
     assert sensitivity["plural_vs_centralized_sign_reversals"] == []
+
+
+def test_partial_fallback_is_excluded_from_every_comparison_surface() -> None:
+    class PluralFailureEngine:
+        def decide(self, context: DecisionContext):
+            if context.requested_mode is ReplicaMode.PLURAL:
+                raise DecisionValidationError("decision_invalid", "synthetic plural failure")
+            return RuleDecisionEngine().decide(context)
+
+    card = build_result_card(run_replica_batch(seeds=(17,), turn_limit=3, decision_engine=PluralFailureEngine()))
+
+    assert all(check["status"] == "not_observable" for check in card["refutation_checks"])
+    assert set(card["seed_sensitivity"]["by_mode"]) == {"centralized", "autonomous"}
+    assert card["seed_sensitivity"]["plural_vs_centralized_sign_reversals"] == []
 
 
 def test_batch_cli_writes_result_card_without_changing_canonical_batch_payload(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -292,7 +312,9 @@ def test_batch_cli_writes_result_card_without_changing_canonical_batch_payload(t
     assert batch_cli.main() == 0
     payload = json.loads(output.read_text(encoding="utf-8"))
     assert "result_card" in payload
-    assert payload["result_card"] == build_result_card(run_replica_batch(turn_limit=3))
+    expected = build_result_card(run_replica_batch(turn_limit=3))
+    expected["artifact_revision"] = payload["artifact_revision"]
+    assert payload["result_card"] == expected
 
 
 def test_batch_cli_keeps_actual_ai_evidence_separate_from_rule_comparison(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -323,3 +345,38 @@ def test_batch_cli_keeps_actual_ai_evidence_separate_from_rule_comparison(tmp_pa
         "fallback_count": 0,
         "run_count": 3,
     }
+    assert payload["artifact_revision"] == payload["result_card"]["artifact_revision"]
+
+
+def test_batch_cli_rejects_mixed_comparison_and_actual_ai_evidence_providers(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ghost_in_the_sim import batch_cli
+
+    fixture = Path(__file__).resolve().parents[1] / "fixtures" / "actual-ai-trace-seed42.json"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "batch_cli",
+            "--output",
+            str(tmp_path / "comparison.json"),
+            "--actual-ai-trace",
+            str(fixture),
+            "--actual-ai-evidence-trace",
+            str(fixture),
+        ],
+    )
+
+    with pytest.raises(SystemExit, match="2"):
+        batch_cli.main()
+
+
+def test_artifact_revision_changes_for_every_declared_generator_input() -> None:
+    from ghost_in_the_sim.batch_cli import ARTIFACT_INPUTS, _artifact_revision_from_inputs
+
+    baseline_inputs = {name: f"content:{name}".encode() for name in ARTIFACT_INPUTS}
+    baseline_inputs["actual-ai-evidence-trace"] = b"fixture"
+    baseline = _artifact_revision_from_inputs(baseline_inputs)
+
+    for name in baseline_inputs:
+        changed = dict(baseline_inputs)
+        changed[name] += b"\nchanged"
+        assert _artifact_revision_from_inputs(changed) != baseline, name
