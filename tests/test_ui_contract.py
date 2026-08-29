@@ -20,6 +20,18 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertIn('aria-live="polite"', index)
         self.assertIn('prefers-reduced-motion', style)
         self.assertIn('data/sample-comparison.json', script)
+        for contract_key in (
+            "result_card",
+            "failure_runs",
+            "refutation_checks",
+            "limitations",
+            "fallback_applied",
+            "decision_source",
+            "termination_reason",
+        ):
+            self.assertIn(contract_key, script)
+        self.assertIn('id="seed-select"', index)
+        self.assertIn('id="result-card"', index)
         for escaped in ("&amp;", "&lt;", "&gt;", "&quot;", "&#39;"):
             self.assertIn(escaped, script)
         self.assertNotIn('function escapeText(value) { return String(value ?? "—"); }', script)
@@ -34,6 +46,16 @@ class DemoUiContractTest(unittest.TestCase):
         for item in conditions:
             self.assertTrue(required.issubset(item["metrics"]))
             self.assertGreater(len(item["events"]), 0)
+
+    def test_generated_comparison_contains_multi_seed_result_card(self) -> None:
+        payload = json.loads((ROOT / "web/data/comparison.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload["seeds"], [17, 42, 99])
+        self.assertEqual(len(payload["runs"]), 9)
+        card = payload["result_card"]
+        self.assertEqual(card["run_count"], 9)
+        self.assertIn("failure_runs", card)
+        self.assertIn("refutation_checks", card)
+        self.assertTrue(card["limitations"])
 
 
 if __name__ == "__main__":

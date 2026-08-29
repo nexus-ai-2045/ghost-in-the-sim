@@ -72,13 +72,45 @@ function renderEvent(event) {
   if (!event) { detail.innerHTML = `<div><h3>イベント詳細なし</h3></div><p>イベントを含む比較JSONを読み込むと、主体・主張・留保を表示します。</p>`; return; }
   detail.innerHTML = `<div><span class="turn">TURN ${event.turn}</span><h3>${escapeText(event.actor_id)}</h3><div class="badges"><span class="badge fallback">可逆性: ${escapeText(event.reversibility)}</span><span class="badge authority">確信: ${Math.round(Number(event.confidence ?? 0) * 100)}</span></div></div><div><p><strong>主張</strong><br>${escapeText(event.claim)}</p><p><strong>留保</strong><br>${escapeText(event.reservation)}</p><dl><dt>行動</dt><dd>${escapeText(event.action_type)}</dd><dt>観測</dt><dd>${(event.observation_ids ?? []).map(escapeText).join(", ") || "—"}</dd><dt>根拠参照</dt><dd>${(event.rationale_refs ?? []).map(escapeText).join(", ") || "—"}</dd><dt>異議</dt><dd>${event.dissent_raised ? (event.dissent_delivered ? "提起・到達" : "提起・未到達") : "提起なし"}</dd></dl></div>`;
 }
+function renderSeedSelector() {
+  const select = document.querySelector("#seed-select");
+  const seeds = Array.isArray(model.seeds) && model.seeds.length ? model.seeds : [model.seed];
+  select.innerHTML = seeds.map(seed => `<option value="${escapeText(seed)}" ${Number(seed) === Number(model.seed) ? "selected" : ""}>${escapeText(seed)}</option>`).join("");
+  select.disabled = seeds.length < 2;
+  select.onchange = () => {
+    const seed = Number(select.value);
+    model.seed = seed;
+    model.conditions = model.runs.filter(item => Number(item.seed) === seed);
+    activeCondition = 0;
+    document.querySelector("#seed").textContent = seed;
+    renderConditions(); renderMetrics(); renderTabs(); renderTimeline(); renderResultCard();
+  };
+}
+function renderResultCard() {
+  const target = document.querySelector("#result-card");
+  const card = model.result_card;
+  if (!card) {
+    target.innerHTML = `<article class="warning"><h3>結果カードなし</h3><p>このJSONは旧形式です。失敗run・反証・限界は未検査として扱います。</p></article>`;
+    return;
+  }
+  const failures = card.failure_runs ?? [];
+  const checks = card.refutation_checks ?? [];
+  const limitations = card.limitations ?? [];
+  const selectedRuns = model.conditions ?? [];
+  const fallbackCount = selectedRuns.filter(item => item.audit?.fallback_applied).length;
+  const sources = [...new Set(selectedRuns.flatMap(item => (item.decisions ?? []).map(decision => decision.decision_source).filter(Boolean)))];
+  target.innerHTML = `
+    <article><h3>Run監査</h3><p class="${failures.length ? "warning" : "ok"}">${escapeText(card.run_count)} runs / 失敗 ${escapeText(failures.length)}</p><p>選択seedのfallback: ${escapeText(fallbackCount)}</p><p>AI判断由来: ${sources.map(escapeText).join(", ") || "未記録"}</p><p>終了: ${selectedRuns.map(item => escapeText(item.manifest?.termination_reason)).join(", ")}</p></article>
+    <article><h3>反証チェック</h3><ul>${checks.map(check => `<li><strong>${escapeText(check.check_id)}</strong>: ${escapeText(check.status)}${check.evidence ? `<br><small>${escapeText(check.evidence)}</small>` : ""}</li>`).join("") || "<li>未評価</li>"}</ul></article>
+    <article><h3>限界</h3><ul>${limitations.map(item => `<li>${escapeText(item)}</li>`).join("") || "<li>未記録</li>"}</ul></article>`;
+}
 function render(payload, sourceLabel) {
   model = normalize(payload);
   if (!model.conditions.length) throw new Error("比較条件がありません");
   document.querySelector("#scenario").textContent = model.scenario_id ?? model.conditions[0]?.manifest?.scenario_id ?? "synthetic-replica-crisis";
   document.querySelector("#seed").textContent = model.seed ?? model.conditions[0]?.manifest?.seed ?? "—";
   document.querySelector("#source-status").textContent = sourceLabel;
-  renderConditions(); renderMetrics(); renderTabs(); renderTimeline();
+  renderSeedSelector(); renderConditions(); renderMetrics(); renderTabs(); renderTimeline(); renderResultCard();
 }
 async function load() {
   try {
