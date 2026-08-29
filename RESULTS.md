@@ -7,17 +7,17 @@
 | 項目 | 値 |
 |---|---|
 | 記録日 | `2026-08-29` |
-| 実行実装commit | `77126d73d40d13a8d4bda9cf7b50ea4759368012` |
+| 実行実装commit | （指標紐付け修正コミット。下記 `source_revision` / `model_config_hash` で再照合） |
 | コード版 | `deterministic-core-v2` |
 | モデル版 | `0.2.0` |
-| `model_config_hash` | `73600b9ad2e89d17` |
-| `source_revision` | `cbdd4ed3a193d8ff` |
+| `model_config_hash` | `5e0a6024438037de` |
+| `source_revision` | `9ee803f346799ea8` |
 | シナリオ | `poseidon-public-infrastructure-01` |
 | seed集合 | `{42}`（代表1 seed。複数seedの正式実験は未実行） |
 | 比較条件 | A=`centralized` / B=`plural` / C=`overconnected` |
 | ターン上限 | `12` |
 | モデル設定 | 標準ライブラリによるルールベース。LLMなし |
-| 指標定義 | `docs/architecture/evaluation.md` の MVP運用定義 |
+| 指標定義 | `docs/architecture/evaluation.md` の MVP運用定義（claim↔検証は observation 参照で紐付け） |
 | Python | `3.12.3` |
 | 実行環境 | Linux / `PYTHONPATH=src` |
 
@@ -28,10 +28,10 @@
 | 記録キー | 契約上の意味 | 本runでの算出 |
 |---|---|---|
 | `continuity` | 生活継続（維持ターン比率） | 各ターン後 `continuity >= 0.5` の比率（早期終了後は非維持） |
-| `evidence_calibration` | 証拠校正（確信度と後続検証の整合） | 後続 `issue_correction` / `request_cross_check` に対する `1 - \|confidence - 実現値\|` の平均 |
+| `evidence_calibration` | 証拠校正（確信度と後続検証の整合） | 主張の `observation_ids` を `rationale_refs` で明示参照する後続検証だけを実現値に使う |
 | `correction_turn` | 訂正時間 | 訂正前の情報共有から `issue_correction` までのターン差（共有が無ければ訂正ターン番号） |
 | `dissent_reach` | 異議到達率 | `dissent_delivered / dissent_raised` |
-| `coordination_dependence` | 調整依存（単一ノード停止損失） | 協調量の leave-one-out 最大相対損失 |
+| `coordination_dependence` | 調整依存（単一ノード停止損失） | 協調量の leave-one-out 最大相対損失（内部シミュレーション。公開 run_id には載せない） |
 | `over_disclosure` | 過剰開示 | 必要性超過の共有**回数** |
 | `public_trust` | 契約表外の補助 | 最終 `WorldState.public_trust` |
 
@@ -51,9 +51,9 @@ python3 -m ghost_in_the_sim.compare_cli --baseline centralized --candidate plura
 
 | 条件 | run_id | 終了理由 | 完了ターン |
 |---|---|---|---:|
-| A centralized | `run-779260b38191` | `turn_limit_reached` | 12 |
-| B plural | `run-c51a074b4c52` | `turn_limit_reached` | 12 |
-| C overconnected | `run-d2844dd50ea2` | `turn_limit_reached` | 12 |
+| A centralized | `run-b72031ea5243` | `turn_limit_reached` | 12 |
+| B plural | `run-d4809191b634` | `turn_limit_reached` | 12 |
+| C overconnected | `run-6a7e80b8780c` | `turn_limit_reached` | 12 |
 
 ## 結果（契約指標・seed 42 実測）
 
@@ -62,7 +62,7 @@ python3 -m ghost_in_the_sim.compare_cli --baseline centralized --candidate plura
 | 指標 | 条件A centralized | 条件B plural | 条件C overconnected | 読み（仮定下・断定しない） |
 |---|---:|---:|---:|---|
 | 生活継続 (`continuity`) | 1.0 | 1.0 | 1.0 | 閾値0.5のもと、3条件とも全ターン維持 |
-| 証拠校正 (`evidence_calibration`) | 0.444964 | 0.636714 | 0.482653 | Bが最も高い |
+| 証拠校正 (`evidence_calibration`) | 0.422288 | 0.636714 | 0.512426 | 紐付け後。Bが最も高い |
 | 訂正時間 (`correction_turn`) | 3.0 | 2.0 | 5.0 | 低いほど速い。Bが最短 |
 | 異議到達率 (`dissent_reach`) | 0.083333 | 1.0 | 0.083333 | Bのみ全件配信 |
 | 調整依存 (`coordination_dependence`) | 0.246895 | 0.259159 | 0.30005 | 単一ノード停止の最大相対損失。Cが最大 |
@@ -74,7 +74,7 @@ python3 -m ghost_in_the_sim.compare_cli --baseline centralized --candidate plura
 | 差分キー | candidate − baseline |
 |---|---:|
 | continuity | 0.0 |
-| evidence_calibration | +0.19175 |
+| evidence_calibration | +0.214426 |
 | correction_turn | -1.0 |
 | dissent_reach | +0.916667 |
 | coordination_dependence | +0.012264 |
