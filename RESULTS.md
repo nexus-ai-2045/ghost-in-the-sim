@@ -64,6 +64,14 @@ plural対centralizedでseedにより符号反転した指標: `coordination_depe
 | `plural_always_better_without_tradeoff` | `not_triggered` |
 | `centralized_always_better_without_tradeoff` | `not_triggered` |
 
+## actual AI replay証拠
+
+| 項目 | 値 |
+|---|---|
+| replay run数 | `3` |
+| decision source | `llm_generated_in_codex_session` |
+| fallback | `0` |
+
 ## 限界
 
 - `synthetic_scenario_not_real_world_prediction`
@@ -75,9 +83,9 @@ plural対centralizedでseedにより符号反転した指標: `coordination_depe
 
 ```powershell
 $env:PYTHONPATH = "src"
-py -3.13 -m ghost_in_the_sim.batch_cli --output web/data/comparison.json
+py -3.13 -m ghost_in_the_sim.batch_cli --output web/data/comparison.json --actual-ai-evidence-trace fixtures/actual-ai-trace-seed42.json
 py -3.13 scripts/render_results.py --check
 ```
 
-actual AI由来の型付き判断は `fixtures/actual-ai-trace-seed42.json` を独立fixtureとしてreplay検証する。
+actual AI由来の型付き判断は `fixtures/actual-ai-trace-seed42.json` を独立fixtureとしてreplayし、上の機械可読証拠へ反映する。
 比較本体はseed間の条件を揃えるためrule providerを使い、両者を混ぜない。

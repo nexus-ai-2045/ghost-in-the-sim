@@ -26,6 +26,11 @@ def main() -> int:
     parser.add_argument("--seed", type=int, action="append", dest="seeds")
     parser.add_argument("--decision-fixture", type=Path)
     parser.add_argument("--actual-ai-trace", type=Path)
+    parser.add_argument(
+        "--actual-ai-evidence-trace",
+        type=Path,
+        help="比較条件には混ぜず、実AI由来fixtureの独立replay証拠を同じartifactへ記録します",
+    )
     args = parser.parse_args()
     if args.decision_fixture and args.actual_ai_trace:
         parser.error("--decision-fixture and --actual-ai-trace are mutually exclusive")
@@ -43,6 +48,21 @@ def main() -> int:
     )
     payload = batch.to_dict()
     payload["result_card"] = build_result_card(batch)
+    if args.actual_ai_evidence_trace:
+        evidence_records = load_actual_ai_trace(args.actual_ai_evidence_trace)
+        evidence_batch = run_replica_batch(
+            seeds=(42,),
+            turn_limit=args.turn_limit,
+            decision_engine=RecordedDecisionEngine(record.to_dict() for record in evidence_records),
+        )
+        payload["ai_evidence_runs"] = [run.to_dict() for run in evidence_batch.runs]
+        payload["result_card"]["ai_replay_evidence"] = {
+            "run_count": len(evidence_batch.runs),
+            "decision_sources": sorted(
+                {decision.decision_source for run in evidence_batch.runs for decision in run.decisions}
+            ),
+            "fallback_count": sum(run.audit.fallback_applied for run in evidence_batch.runs),
+        }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps({"output": str(args.output), "run_count": len(batch.runs), "seeds": list(batch.seeds)}, ensure_ascii=False, sort_keys=True))

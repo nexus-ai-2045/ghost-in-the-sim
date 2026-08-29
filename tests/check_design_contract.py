@@ -240,6 +240,8 @@ def main() -> int:
         "{17, 42, 99}": results_document,
         "## 複数seed感度": results_document,
         "## 失敗run・反証判定": results_document,
+        "## actual AI replay証拠": results_document,
+        "llm_generated_in_codex_session": results_document,
     }
     missing_completion_terms = [term for term, document in completion_terms.items() if term not in document]
     if missing_completion_terms:

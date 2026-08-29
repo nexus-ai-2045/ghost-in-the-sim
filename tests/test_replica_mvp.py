@@ -135,9 +135,26 @@ def test_actual_ai_trace_replays_nine_decisions_without_claiming_live_api() -> N
 def test_tracked_comparison_is_exactly_reproducible_from_current_engine() -> None:
     root = Path(__file__).resolve().parents[1]
     batch = run_replica_batch(seeds=DEFAULT_SEEDS, turn_limit=12)
+    records = load_actual_ai_trace(root / "fixtures" / "actual-ai-trace-seed42.json")
+    evidence_batch = run_replica_batch(
+        seeds=(42,),
+        turn_limit=12,
+        decision_engine=RecordedDecisionEngine(record.to_dict() for record in records),
+    )
     tracked = json.loads((root / "web" / "data" / "comparison.json").read_text(encoding="utf-8"))
-
-    assert tracked == {**batch.to_dict(), "result_card": build_result_card(batch)}
+    card = build_result_card(batch)
+    card["ai_replay_evidence"] = {
+        "run_count": len(evidence_batch.runs),
+        "decision_sources": sorted(
+            {decision.decision_source for run in evidence_batch.runs for decision in run.decisions}
+        ),
+        "fallback_count": sum(run.audit.fallback_applied for run in evidence_batch.runs),
+    }
+    assert tracked == {
+        **batch.to_dict(),
+        "ai_evidence_runs": [run.to_dict() for run in evidence_batch.runs],
+        "result_card": card,
+    }
 
 
 def test_actual_trace_hash_is_independent_of_checkout_line_endings() -> None:
@@ -246,6 +263,26 @@ def test_result_card_is_machine_readable_and_seed_falsification_is_deterministic
     assert "parameter_sweep_not_run" in first["limitations"]
 
 
+def test_result_card_does_not_compare_modes_that_fell_back_to_another_mode() -> None:
+    batch = run_replica_batch(
+        seeds=(17,),
+        turn_limit=3,
+        decision_engine=RecordedDecisionEngine([]),
+    )
+
+    checks = build_result_card(batch)["refutation_checks"]
+
+    assert all(check["status"] == "not_observable" for check in checks)
+    assert all(
+        entry["evidence"]["reason"] == "required_effective_mode_missing"
+        for check in checks
+        for entry in check["evidence"]["per_seed"]
+    )
+    sensitivity = build_result_card(batch)["seed_sensitivity"]
+    assert set(sensitivity["by_mode"]) == {"plural"}
+    assert sensitivity["plural_vs_centralized_sign_reversals"] == []
+
+
 def test_batch_cli_writes_result_card_without_changing_canonical_batch_payload(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from ghost_in_the_sim import batch_cli
 
@@ -256,3 +293,33 @@ def test_batch_cli_writes_result_card_without_changing_canonical_batch_payload(t
     payload = json.loads(output.read_text(encoding="utf-8"))
     assert "result_card" in payload
     assert payload["result_card"] == build_result_card(run_replica_batch(turn_limit=3))
+
+
+def test_batch_cli_keeps_actual_ai_evidence_separate_from_rule_comparison(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ghost_in_the_sim import batch_cli
+
+    root = Path(__file__).resolve().parents[1]
+    output = tmp_path / "comparison.json"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "batch_cli",
+            "--output",
+            str(output),
+            "--turn-limit",
+            "3",
+            "--actual-ai-evidence-trace",
+            str(root / "fixtures" / "actual-ai-trace-seed42.json"),
+        ],
+    )
+
+    assert batch_cli.main() == 0
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert len(payload["runs"]) == 9
+    assert {decision["decision_source"] for run in payload["runs"] for decision in run["decisions"]} == {"deterministic_rule"}
+    assert len(payload["ai_evidence_runs"]) == 3
+    assert payload["result_card"]["ai_replay_evidence"] == {
+        "decision_sources": ["llm_generated_in_codex_session"],
+        "fallback_count": 0,
+        "run_count": 3,
+    }

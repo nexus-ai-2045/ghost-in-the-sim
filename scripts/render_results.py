@@ -57,6 +57,18 @@ def render(payload: dict) -> str:
     ]
     for check in card["refutation_checks"]:
         lines.append(f"| `{check['check_id']}` | `{check['status']}` |")
+    ai_replay = card.get("ai_replay_evidence")
+    lines += ["", "## actual AI replay証拠", ""]
+    if ai_replay:
+        lines += [
+            "| 項目 | 値 |",
+            "|---|---|",
+            f"| replay run数 | `{ai_replay['run_count']}` |",
+            f"| decision source | `{', '.join(ai_replay['decision_sources'])}` |",
+            f"| fallback | `{ai_replay['fallback_count']}` |",
+        ]
+    else:
+        lines.append("未記録。")
     lines += ["", "## 限界", ""] + [f"- `{item}`" for item in card["limitations"]]
     lines += [
         "",
@@ -64,11 +76,11 @@ def render(payload: dict) -> str:
         "",
         "```powershell",
         "$env:PYTHONPATH = \"src\"",
-        "py -3.13 -m ghost_in_the_sim.batch_cli --output web/data/comparison.json",
+        "py -3.13 -m ghost_in_the_sim.batch_cli --output web/data/comparison.json --actual-ai-evidence-trace fixtures/actual-ai-trace-seed42.json",
         "py -3.13 scripts/render_results.py --check",
         "```",
         "",
-        "actual AI由来の型付き判断は `fixtures/actual-ai-trace-seed42.json` を独立fixtureとしてreplay検証する。",
+        "actual AI由来の型付き判断は `fixtures/actual-ai-trace-seed42.json` を独立fixtureとしてreplayし、上の機械可読証拠へ反映する。",
         "比較本体はseed間の条件を揃えるためrule providerを使い、両者を混ぜない。",
         "",
     ]

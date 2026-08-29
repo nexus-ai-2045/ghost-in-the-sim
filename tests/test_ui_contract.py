@@ -27,6 +27,8 @@ class DemoUiContractTest(unittest.TestCase):
             "limitations",
             "fallback_applied",
             "decision_source",
+            "ai_evidence_runs",
+            "ai_replay_evidence",
             "termination_reason",
         ):
             self.assertIn(contract_key, script)
@@ -35,6 +37,11 @@ class DemoUiContractTest(unittest.TestCase):
         for escaped in ("&amp;", "&lt;", "&gt;", "&quot;", "&#39;"):
             self.assertIn(escaped, script)
         self.assertNotIn('function escapeText(value) { return String(value ?? "—"); }', script)
+        self.assertIn("escapeText(event.turn)", script)
+        self.assertNotIn("TURN ${event.turn}", script)
+        self.assertIn("formatEvidence(check.evidence)", script)
+        self.assertIn("Array.isArray(aiReplay?.decision_sources)", script)
+        self.assertIn("Number.isFinite(Number(aiReplay?.run_count))", script)
 
     def test_fixture_has_three_distinct_conditions_and_required_metrics(self) -> None:
         fixture = json.loads((ROOT / "web/data/sample-comparison.json").read_text(encoding="utf-8"))
@@ -56,6 +63,10 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertIn("failure_runs", card)
         self.assertIn("refutation_checks", card)
         self.assertTrue(card["limitations"])
+        self.assertEqual(card["ai_replay_evidence"]["run_count"], 3)
+        self.assertEqual(card["ai_replay_evidence"]["fallback_count"], 0)
+        self.assertEqual(card["ai_replay_evidence"]["decision_sources"], ["llm_generated_in_codex_session"])
+        self.assertEqual(len(payload["ai_evidence_runs"]), 3)
 
 
 if __name__ == "__main__":

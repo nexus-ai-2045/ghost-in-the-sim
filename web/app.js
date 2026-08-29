@@ -41,6 +41,12 @@ function formatMetric(value, type) {
   if (type === "turn") return `${Number(value).toFixed(1)} turn`;
   return Number(value).toFixed(0);
 }
+function formatEvidence(evidence) {
+  if (evidence == null) return "—";
+  if (typeof evidence !== "object") return escapeText(evidence);
+  if (Array.isArray(evidence)) return evidence.map(formatEvidence).join(" / ");
+  return Object.entries(evidence).map(([key, value]) => `${escapeText(key)}: ${formatEvidence(value)}`).join(" / ");
+}
 function badgeMarkup(copy) { return copy.badges.map(([kind, text]) => `<span class="badge ${kind}">${text}</span>`).join(""); }
 
 function renderConditions() {
@@ -63,14 +69,14 @@ function renderTimeline() {
   const events = model.conditions[activeCondition]?.events ?? [];
   const timeline = document.querySelector("#timeline");
   if (!events.length) { timeline.innerHTML = `<li class="error">この結果JSONにはイベント列がありません。指標比較は引き続き利用できます。</li>`; renderEvent(null); return; }
-  timeline.innerHTML = events.map((event, index) => `<li><button type="button" data-index="${index}" aria-current="${index === 0}"><span class="turn">TURN ${event.turn}</span><span class="action">${escapeText(event.action_type)}</span></button></li>`).join("");
+  timeline.innerHTML = events.map((event, index) => `<li><button type="button" data-index="${index}" aria-current="${index === 0}"><span class="turn">TURN ${escapeText(event.turn)}</span><span class="action">${escapeText(event.action_type)}</span></button></li>`).join("");
   timeline.querySelectorAll("button").forEach(button => button.addEventListener("click", () => { timeline.querySelectorAll("button").forEach(item => item.setAttribute("aria-current", "false")); button.setAttribute("aria-current", "true"); renderEvent(events[Number(button.dataset.index)]); }));
   renderEvent(events[0]);
 }
 function renderEvent(event) {
   const detail = document.querySelector("#event-detail");
   if (!event) { detail.innerHTML = `<div><h3>イベント詳細なし</h3></div><p>イベントを含む比較JSONを読み込むと、主体・主張・留保を表示します。</p>`; return; }
-  detail.innerHTML = `<div><span class="turn">TURN ${event.turn}</span><h3>${escapeText(event.actor_id)}</h3><div class="badges"><span class="badge fallback">可逆性: ${escapeText(event.reversibility)}</span><span class="badge authority">確信: ${Math.round(Number(event.confidence ?? 0) * 100)}</span></div></div><div><p><strong>主張</strong><br>${escapeText(event.claim)}</p><p><strong>留保</strong><br>${escapeText(event.reservation)}</p><dl><dt>行動</dt><dd>${escapeText(event.action_type)}</dd><dt>観測</dt><dd>${(event.observation_ids ?? []).map(escapeText).join(", ") || "—"}</dd><dt>根拠参照</dt><dd>${(event.rationale_refs ?? []).map(escapeText).join(", ") || "—"}</dd><dt>異議</dt><dd>${event.dissent_raised ? (event.dissent_delivered ? "提起・到達" : "提起・未到達") : "提起なし"}</dd></dl></div>`;
+  detail.innerHTML = `<div><span class="turn">TURN ${escapeText(event.turn)}</span><h3>${escapeText(event.actor_id)}</h3><div class="badges"><span class="badge fallback">可逆性: ${escapeText(event.reversibility)}</span><span class="badge authority">確信: ${Math.round(Number(event.confidence ?? 0) * 100)}</span></div></div><div><p><strong>主張</strong><br>${escapeText(event.claim)}</p><p><strong>留保</strong><br>${escapeText(event.reservation)}</p><dl><dt>行動</dt><dd>${escapeText(event.action_type)}</dd><dt>観測</dt><dd>${(event.observation_ids ?? []).map(escapeText).join(", ") || "—"}</dd><dt>根拠参照</dt><dd>${(event.rationale_refs ?? []).map(escapeText).join(", ") || "—"}</dd><dt>異議</dt><dd>${event.dissent_raised ? (event.dissent_delivered ? "提起・到達" : "提起・未到達") : "提起なし"}</dd></dl></div>`;
 }
 function renderSeedSelector() {
   const select = document.querySelector("#seed-select");
@@ -99,9 +105,17 @@ function renderResultCard() {
   const selectedRuns = model.conditions ?? [];
   const fallbackCount = selectedRuns.filter(item => item.audit?.fallback_applied).length;
   const sources = [...new Set(selectedRuns.flatMap(item => (item.decisions ?? []).map(decision => decision.decision_source).filter(Boolean)))];
+  const aiEvidenceRuns = model.ai_evidence_runs ?? [];
+  const aiReplay = card.ai_replay_evidence;
+  const aiReplaySources = Array.isArray(aiReplay?.decision_sources) ? aiReplay.decision_sources : [];
+  const aiReplayRunCount = Number.isFinite(Number(aiReplay?.run_count)) ? Number(aiReplay.run_count) : null;
+  const aiReplayFallbackCount = Number.isFinite(Number(aiReplay?.fallback_count)) ? Number(aiReplay.fallback_count) : null;
+  const aiReplaySummary = aiReplayRunCount !== null && aiReplayFallbackCount !== null && aiReplaySources.length
+    ? `${escapeText(aiReplayRunCount)} runs / ${aiReplaySources.map(escapeText).join(", ")} / fallback ${escapeText(aiReplayFallbackCount)}`
+    : "未記録または不正";
   target.innerHTML = `
-    <article><h3>Run監査</h3><p class="${failures.length ? "warning" : "ok"}">${escapeText(card.run_count)} runs / 失敗 ${escapeText(failures.length)}</p><p>選択seedのfallback: ${escapeText(fallbackCount)}</p><p>AI判断由来: ${sources.map(escapeText).join(", ") || "未記録"}</p><p>終了: ${selectedRuns.map(item => escapeText(item.manifest?.termination_reason)).join(", ")}</p></article>
-    <article><h3>反証チェック</h3><ul>${checks.map(check => `<li><strong>${escapeText(check.check_id)}</strong>: ${escapeText(check.status)}${check.evidence ? `<br><small>${escapeText(check.evidence)}</small>` : ""}</li>`).join("") || "<li>未評価</li>"}</ul></article>
+    <article><h3>Run監査</h3><p class="${failures.length ? "warning" : "ok"}">${escapeText(card.run_count)} runs / 失敗 ${escapeText(failures.length)}</p><p>選択seedのfallback: ${escapeText(fallbackCount)}</p><p>比較判断由来: ${sources.map(escapeText).join(", ") || "未記録"}</p><p>実AI replay: ${aiReplaySummary}</p><p>証拠run: ${escapeText(aiEvidenceRuns.length)}</p><p>終了: ${selectedRuns.map(item => escapeText(item.manifest?.termination_reason)).join(", ")}</p></article>
+    <article><h3>反証チェック</h3><ul>${checks.map(check => `<li><strong>${escapeText(check.check_id)}</strong>: ${escapeText(check.status)}${check.evidence ? `<br><small>${formatEvidence(check.evidence)}</small>` : ""}</li>`).join("") || "<li>未評価</li>"}</ul></article>
     <article><h3>限界</h3><ul>${limitations.map(item => `<li>${escapeText(item)}</li>`).join("") || "<li>未記録</li>"}</ul></article>`;
 }
 function render(payload, sourceLabel) {

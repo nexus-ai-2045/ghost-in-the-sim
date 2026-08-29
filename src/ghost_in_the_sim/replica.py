@@ -158,8 +158,17 @@ def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
     for seed in sorted(batch.seeds):
         centralized = by_mode_seed.get((ReplicaMode.CENTRALIZED, seed))
         plural = by_mode_seed.get((ReplicaMode.PLURAL, seed))
-        if centralized is None or plural is None:
-            missing = {"seed": seed, "status": "not_observable", "evidence": {"reason": "required_mode_missing"}}
+        if (
+            centralized is None
+            or plural is None
+            or centralized.effective_mode is not ReplicaMode.CENTRALIZED
+            or plural.effective_mode is not ReplicaMode.PLURAL
+        ):
+            missing = {
+                "seed": seed,
+                "status": "not_observable",
+                "evidence": {"reason": "required_effective_mode_missing"},
+            }
             plural_observations.append({"check_id": "plural_dominates_centralized", **missing})
             centralized_observations.append({"check_id": "centralized_dominates_plural", **missing})
             continue
@@ -176,7 +185,11 @@ def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
 
     sensitivity_by_mode: dict[str, dict[str, dict[str, float]]] = {}
     for mode in ReplicaMode:
-        mode_runs = [run for run in batch.runs if run.requested_mode is mode]
+        mode_runs = [
+            run
+            for run in batch.runs
+            if run.requested_mode is mode and run.effective_mode is mode
+        ]
         if not mode_runs:
             continue
         metrics = sorted(set.intersection(*(set(run.result.metrics) for run in mode_runs)))
@@ -194,6 +207,8 @@ def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
         (by_mode_seed[(ReplicaMode.PLURAL, seed)], by_mode_seed[(ReplicaMode.CENTRALIZED, seed)])
         for seed in sorted(batch.seeds)
         if (ReplicaMode.PLURAL, seed) in by_mode_seed and (ReplicaMode.CENTRALIZED, seed) in by_mode_seed
+        and by_mode_seed[(ReplicaMode.PLURAL, seed)].effective_mode is ReplicaMode.PLURAL
+        and by_mode_seed[(ReplicaMode.CENTRALIZED, seed)].effective_mode is ReplicaMode.CENTRALIZED
     ]
     if paired:
         for metric in sorted(paired[0][0].result.metrics):
