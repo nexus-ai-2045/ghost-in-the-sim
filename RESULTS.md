@@ -7,11 +7,11 @@
 | 項目 | 値 |
 |---|---|
 | 記録日 | `2026-08-29` |
-| 実行実装commit | `0335a37704489133c96d5ff5d8f9867bb77d3804` |
+| 実行実装commit | `pending-current-tree` |
 | コード版 | `deterministic-core-v2` |
 | モデル版 | `0.2.0` |
 | `model_config_hash` | runごとにAI判断traceを含めて変化（下表のrun IDで固定） |
-| `source_revision` | `db862c10651c97f1` |
+| `source_revision` | `1c81c9e92c0c0e80` |
 | シナリオ | `poseidon-replica-crisis-01` |
 | seed集合 | `{42}`（代表1 seed。複数seedの正式実験は未実行） |
 | 比較条件 | A=`centralized` / B=`plural` / C=`autonomous` |
@@ -52,9 +52,9 @@ PYTHONPATH=src python3 -m ghost_in_the_sim.batch_cli --output web/data/compariso
 
 | 条件 | run_id | 終了理由 | 完了ターン |
 |---|---|---|---:|
-| A centralized | `run-35bb553f8687` | `turn_limit_reached` | 12 |
-| B plural | `run-2f3c6bf15ecf` | `turn_limit_reached` | 12 |
-| C autonomous | `run-0e5b1ba37436` | `turn_limit_reached` | 12 |
+| A centralized | `run-2fc1fe5e7a53` | `turn_limit_reached` | 12 |
+| B plural | `run-6d22ef765410` | `turn_limit_reached` | 12 |
+| C autonomous | `run-0f8c228dbe32` | `turn_limit_reached` | 12 |
 
 ## 結果（契約指標・seed 42 実測）
 

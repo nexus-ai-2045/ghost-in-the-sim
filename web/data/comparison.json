@@ -21,10 +21,10 @@
             "obs-02"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:3e188fea5ba3493f5eeb2448160adacbac32bed944226869a2cd9433b8512780",
+          "fixture_hash": "sha256:6cd64737d547fc081fb2cdfdd9a09554eff8d7426fc96a6b5cf6576a6ecda28b",
           "issued_at_turn": 1,
           "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
+          "prompt_hash": "sha256:dbfebd0ca3b1ce4fdf16ce840becb8238da8be142a575d9bd5d4caf67f15abc3",
           "rationale": "中央窓口から独立検証を要求する 留保: 初動情報には未検証部分が残る",
           "requested_mode": "centralized",
           "scenario_id": "poseidon-replica-crisis-01",
@@ -45,10 +45,10 @@
             "obs-04"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:bf5bbca22864205c106862a24f7271c1de2fab734d314af98005144e4014cc69",
+          "fixture_hash": "sha256:1a20d1c8c65b737467d17c3d249d544e3f1558793b71365671c9010ad36f73a5",
           "issued_at_turn": 2,
           "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
+          "prompt_hash": "sha256:dbfebd0ca3b1ce4fdf16ce840becb8238da8be142a575d9bd5d4caf67f15abc3",
           "rationale": "生命維持サービスを優先して継続する 留保: 集中判断への依存が高まる",
           "requested_mode": "centralized",
           "scenario_id": "poseidon-replica-crisis-01",
@@ -69,10 +69,10 @@
             "obs-06"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:8b7047c8ada4a35911364f3cbaa8179d0213aaf52264498f89c0ee93d7151c5f",
+          "fixture_hash": "sha256:f8401708b840829beb9edcc016021bd1b5b9f712c7513b2eb55cd3290040d566",
           "issued_at_turn": 3,
           "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
+          "prompt_hash": "sha256:dbfebd0ca3b1ce4fdf16ce840becb8238da8be142a575d9bd5d4caf67f15abc3",
           "rationale": "判断根拠と変更点を更新する 留保: 訂正履歴を消してはならない",
           "requested_mode": "centralized",
           "scenario_id": "poseidon-replica-crisis-01",
@@ -100,7 +100,7 @@
           ],
           "reservation": "復旧速度だけでは誤復旧を見逃す",
           "reversibility": "medium",
-          "run_id": "run-35bb553f8687",
+          "run_id": "run-2fc1fe5e7a53",
           "seed": 42,
           "state_after": {
             "continuity": 0.573795,
@@ -135,7 +135,7 @@
           ],
           "reservation": "独立確認が不足",
           "reversibility": "medium",
-          "run_id": "run-35bb553f8687",
+          "run_id": "run-2fc1fe5e7a53",
           "seed": 42,
           "state_after": {
             "continuity": 0.61032,
@@ -170,7 +170,7 @@
           ],
           "reservation": "集計値が生活実感を隠す",
           "reversibility": "medium",
-          "run_id": "run-35bb553f8687",
+          "run_id": "run-2fc1fe5e7a53",
           "seed": 42,
           "state_after": {
             "continuity": 0.631768,
@@ -205,7 +205,7 @@
           ],
           "reservation": "調整点への依存が高まる",
           "reversibility": "medium",
-          "run_id": "run-35bb553f8687",
+          "run_id": "run-2fc1fe5e7a53",
           "seed": 42,
           "state_after": {
             "continuity": 0.681272,
@@ -240,7 +240,7 @@
           ],
           "reservation": "決定主体と同じ情報源に偏る",
           "reversibility": "medium",
-          "run_id": "run-35bb553f8687",
+          "run_id": "run-2fc1fe5e7a53",
           "seed": 42,
           "state_after": {
             "continuity": 0.713704,
@@ -275,7 +275,7 @@
           ],
           "reservation": "共有目的と保持期間が曖昧",
           "reversibility": "medium",
-          "run_id": "run-35bb553f8687",
+          "run_id": "run-2fc1fe5e7a53",
           "seed": 42,
           "state_after": {
             "continuity": 0.757523,
@@ -310,7 +310,7 @@
           ],
           "reservation": "復旧速度だけでは誤復旧を見逃す",
           "reversibility": "medium",
-          "run_id": "run-35bb553f8687",
+          "run_id": "run-2fc1fe5e7a53",
           "seed": 42,
           "state_after": {
             "continuity": 0.800351,
@@ -345,7 +345,7 @@
           ],
           "reservation": "独立確認が不足",
           "reversibility": "medium",
-          "run_id": "run-35bb553f8687",
+          "run_id": "run-2fc1fe5e7a53",
           "seed": 42,
           "state_after": {
             "continuity": 0.838044,
@@ -380,7 +380,7 @@
           ],
           "reservation": "集計値が生活実感を隠す",
           "reversibility": "medium",
-          "run_id": "run-35bb553f8687",
+          "run_id": "run-2fc1fe5e7a53",
           "seed": 42,
           "state_after": {
             "continuity": 0.887388,
@@ -415,7 +415,7 @@
           ],
           "reservation": "調整点への依存が高まる",
           "reversibility": "medium",
-          "run_id": "run-35bb553f8687",
+          "run_id": "run-2fc1fe5e7a53",
           "seed": 42,
           "state_after": {
             "continuity": 0.9211,
@@ -450,7 +450,7 @@
           ],
           "reservation": "決定主体と同じ情報源に偏る",
           "reversibility": "medium",
-          "run_id": "run-35bb553f8687",
+          "run_id": "run-2fc1fe5e7a53",
           "seed": 42,
           "state_after": {
             "continuity": 0.944929,
@@ -485,7 +485,7 @@
           ],
           "reservation": "共有目的と保持期間が曖昧",
           "reversibility": "medium",
-          "run_id": "run-35bb553f8687",
+          "run_id": "run-2fc1fe5e7a53",
           "seed": 42,
           "state_after": {
             "continuity": 0.976563,
@@ -509,7 +509,7 @@
         "completed_turns": 12,
         "condition_id": "centralized",
         "event_count": 12,
-        "model_config_hash": "f796f00fd88baf73",
+        "model_config_hash": "6d4d1c7f4ebab5c9",
         "model_version": "0.2.0",
         "policy_reference_ids": [
           "policy-centralized",
@@ -518,10 +518,10 @@
           "policy-overconnected"
         ],
         "prompt_version_or_hash": "rule-based:not-applicable",
-        "run_id": "run-35bb553f8687",
+        "run_id": "run-2fc1fe5e7a53",
         "scenario_id": "poseidon-replica-crisis-01",
         "seed": 42,
-        "source_revision": "db862c10651c97f1",
+        "source_revision": "1c81c9e92c0c0e80",
         "termination_reason": "turn_limit_reached",
         "turn_limit": 12
       },
@@ -558,10 +558,10 @@
             "obs-02"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:8a4602f446f0e02c278fdf478babb87fcf94cdb19b59a44f443dc3956c52d319",
+          "fixture_hash": "sha256:bb7de7f77137606138b2cfb803baaabb7fd3a592cd58c2a70dc82a84978b630a",
           "issued_at_turn": 1,
           "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
+          "prompt_hash": "sha256:dbfebd0ca3b1ce4fdf16ce840becb8238da8be142a575d9bd5d4caf67f15abc3",
           "rationale": "独立主体へ共同確認を依頼する 留保: 合意形成が初動を遅らせ得る",
           "requested_mode": "plural",
           "scenario_id": "poseidon-replica-crisis-01",
@@ -582,10 +582,10 @@
             "obs-04"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:2e58f9813e536d658bf600c9843042bc99a8a5a219a7e083378c29497e8d09c2",
+          "fixture_hash": "sha256:a2e7d2f9cdaba85fadc270b1692f2a73074d88891e0e8b9f5f25d0439452324b",
           "issued_at_turn": 2,
           "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
+          "prompt_hash": "sha256:dbfebd0ca3b1ce4fdf16ce840becb8238da8be142a575d9bd5d4caf67f15abc3",
           "rationale": "共同承認に必要な証拠だけを共有する 留保: 共有範囲を必要最小限に保つ",
           "requested_mode": "plural",
           "scenario_id": "poseidon-replica-crisis-01",
@@ -606,10 +606,10 @@
             "obs-06"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:5e0a233650a292c004a4e62283ab58a01825184253179e282f22b8d196413b43",
+          "fixture_hash": "sha256:20e96cb0c7c12fd2bd6997e995afd4ceb2659f4178c1d5cb4f74fcdbdc0d63ea",
           "issued_at_turn": 3,
           "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
+          "prompt_hash": "sha256:dbfebd0ca3b1ce4fdf16ce840becb8238da8be142a575d9bd5d4caf67f15abc3",
           "rationale": "合意と異議の両方を説明へ反映する 留保: 少数意見を併記する必要がある",
           "requested_mode": "plural",
           "scenario_id": "poseidon-replica-crisis-01",
@@ -637,7 +637,7 @@
           ],
           "reservation": "復旧速度だけでは誤復旧を見逃す",
           "reversibility": "high",
-          "run_id": "run-2f3c6bf15ecf",
+          "run_id": "run-6d22ef765410",
           "seed": 42,
           "state_after": {
             "continuity": 0.550795,
@@ -672,7 +672,7 @@
           ],
           "reservation": "独立確認が不足",
           "reversibility": "high",
-          "run_id": "run-2f3c6bf15ecf",
+          "run_id": "run-6d22ef765410",
           "seed": 42,
           "state_after": {
             "continuity": 0.55028,
@@ -707,7 +707,7 @@
           ],
           "reservation": "集計値が生活実感を隠す",
           "reversibility": "high",
-          "run_id": "run-2f3c6bf15ecf",
+          "run_id": "run-6d22ef765410",
           "seed": 42,
           "state_after": {
             "continuity": 0.548728,
@@ -742,7 +742,7 @@
           ],
           "reservation": "調整点への依存が高まる",
           "reversibility": "high",
-          "run_id": "run-2f3c6bf15ecf",
+          "run_id": "run-6d22ef765410",
           "seed": 42,
           "state_after": {
             "continuity": 0.575232,
@@ -777,7 +777,7 @@
           ],
           "reservation": "決定主体と同じ情報源に偏る",
           "reversibility": "high",
-          "run_id": "run-2f3c6bf15ecf",
+          "run_id": "run-6d22ef765410",
           "seed": 42,
           "state_after": {
             "continuity": 0.584664,
@@ -812,7 +812,7 @@
           ],
           "reservation": "共有目的と保持期間が曖昧",
           "reversibility": "high",
-          "run_id": "run-2f3c6bf15ecf",
+          "run_id": "run-6d22ef765410",
           "seed": 42,
           "state_after": {
             "continuity": 0.605483,
@@ -847,7 +847,7 @@
           ],
           "reservation": "復旧速度だけでは誤復旧を見逃す",
           "reversibility": "high",
-          "run_id": "run-2f3c6bf15ecf",
+          "run_id": "run-6d22ef765410",
           "seed": 42,
           "state_after": {
             "continuity": 0.625311,
@@ -882,7 +882,7 @@
           ],
           "reservation": "独立確認が不足",
           "reversibility": "high",
-          "run_id": "run-2f3c6bf15ecf",
+          "run_id": "run-6d22ef765410",
           "seed": 42,
           "state_after": {
             "continuity": 0.640004,
@@ -917,7 +917,7 @@
           ],
           "reservation": "集計値が生活実感を隠す",
           "reversibility": "high",
-          "run_id": "run-2f3c6bf15ecf",
+          "run_id": "run-6d22ef765410",
           "seed": 42,
           "state_after": {
             "continuity": 0.666348,
@@ -952,7 +952,7 @@
           ],
           "reservation": "調整点への依存が高まる",
           "reversibility": "high",
-          "run_id": "run-2f3c6bf15ecf",
+          "run_id": "run-6d22ef765410",
           "seed": 42,
           "state_after": {
             "continuity": 0.67706,
@@ -987,7 +987,7 @@
           ],
           "reservation": "決定主体と同じ情報源に偏る",
           "reversibility": "high",
-          "run_id": "run-2f3c6bf15ecf",
+          "run_id": "run-6d22ef765410",
           "seed": 42,
           "state_after": {
             "continuity": 0.677889,
@@ -1022,7 +1022,7 @@
           ],
           "reservation": "共有目的と保持期間が曖昧",
           "reversibility": "high",
-          "run_id": "run-2f3c6bf15ecf",
+          "run_id": "run-6d22ef765410",
           "seed": 42,
           "state_after": {
             "continuity": 0.686523,
@@ -1046,7 +1046,7 @@
         "completed_turns": 12,
         "condition_id": "plural",
         "event_count": 12,
-        "model_config_hash": "31c1262fe0d82870",
+        "model_config_hash": "7818cb733846a563",
         "model_version": "0.2.0",
         "policy_reference_ids": [
           "policy-centralized",
@@ -1055,10 +1055,10 @@
           "policy-overconnected"
         ],
         "prompt_version_or_hash": "rule-based:not-applicable",
-        "run_id": "run-2f3c6bf15ecf",
+        "run_id": "run-6d22ef765410",
         "scenario_id": "poseidon-replica-crisis-01",
         "seed": 42,
-        "source_revision": "db862c10651c97f1",
+        "source_revision": "1c81c9e92c0c0e80",
         "termination_reason": "turn_limit_reached",
         "turn_limit": 12
       },
@@ -1095,10 +1095,10 @@
             "obs-02"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:58afb012fdfb00004137b1d95503962bc24e36a0144043e4908592294b3b5f36",
+          "fixture_hash": "sha256:e42e1c7e65eccb5e222d12e772c46e186b6241d06ca9702f87cf250e5751583e",
           "issued_at_turn": 1,
           "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
+          "prompt_hash": "sha256:dbfebd0ca3b1ce4fdf16ce840becb8238da8be142a575d9bd5d4caf67f15abc3",
           "rationale": "地域サービスをローカル判断で継続する 留保: 他拠点との状態差を保持する",
           "requested_mode": "autonomous",
           "scenario_id": "poseidon-replica-crisis-01",
@@ -1119,10 +1119,10 @@
             "obs-04"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:060861a4db2d74409bed642ae31f387d38e778e0f0a6686fad738504c68cfa77",
+          "fixture_hash": "sha256:50b200f65c1d4ac71695647f24989bcdb2dbd2413a8ebd97f634db0eafa223fe",
           "issued_at_turn": 2,
           "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
+          "prompt_hash": "sha256:dbfebd0ca3b1ce4fdf16ce840becb8238da8be142a575d9bd5d4caf67f15abc3",
           "rationale": "別コピーへ独立検証を要求する 留保: 同期前の観測は暫定扱いとする",
           "requested_mode": "autonomous",
           "scenario_id": "poseidon-replica-crisis-01",
@@ -1143,10 +1143,10 @@
             "obs-06"
           ],
           "external_model_api_called": false,
-          "fixture_hash": "sha256:51485ce44c9988a7812ecc358c5b78afb7afd05bdc4a9b3f9c5676ba0a2c98a2",
+          "fixture_hash": "sha256:9d17067c5e960a1e11f6451fdfe5c3ece231b19d89456a7e49d307c267a14de2",
           "issued_at_turn": 3,
           "model_id": "unavailable_to_agent",
-          "prompt_hash": "sha256:568d1b514d67a6f2fb5bd57b18581124bce7c99662ead5bb58e3163422802040",
+          "prompt_hash": "sha256:dbfebd0ca3b1ce4fdf16ce840becb8238da8be142a575d9bd5d4caf67f15abc3",
           "rationale": "不可逆な命令を出さず判断を留保する 留保: 権限衝突が解消するまで保留する",
           "requested_mode": "autonomous",
           "scenario_id": "poseidon-replica-crisis-01",
@@ -1174,7 +1174,7 @@
           ],
           "reservation": "復旧速度だけでは誤復旧を見逃す",
           "reversibility": "high",
-          "run_id": "run-0e5b1ba37436",
+          "run_id": "run-0f8c228dbe32",
           "seed": 42,
           "state_after": {
             "continuity": 0.573775,
@@ -1209,7 +1209,7 @@
           ],
           "reservation": "独立確認が不足",
           "reversibility": "high",
-          "run_id": "run-0e5b1ba37436",
+          "run_id": "run-0f8c228dbe32",
           "seed": 42,
           "state_after": {
             "continuity": 0.58526,
@@ -1244,7 +1244,7 @@
           ],
           "reservation": "集計値が生活実感を隠す",
           "reversibility": "high",
-          "run_id": "run-0e5b1ba37436",
+          "run_id": "run-0f8c228dbe32",
           "seed": 42,
           "state_after": {
             "continuity": 0.591928,
@@ -1279,7 +1279,7 @@
           ],
           "reservation": "調整点への依存が高まる",
           "reversibility": "high",
-          "run_id": "run-0e5b1ba37436",
+          "run_id": "run-0f8c228dbe32",
           "seed": 42,
           "state_after": {
             "continuity": 0.630432,
@@ -1314,7 +1314,7 @@
           ],
           "reservation": "決定主体と同じ情報源に偏る",
           "reversibility": "high",
-          "run_id": "run-0e5b1ba37436",
+          "run_id": "run-0f8c228dbe32",
           "seed": 42,
           "state_after": {
             "continuity": 0.651864,
@@ -1349,7 +1349,7 @@
           ],
           "reservation": "共有目的と保持期間が曖昧",
           "reversibility": "high",
-          "run_id": "run-0e5b1ba37436",
+          "run_id": "run-0f8c228dbe32",
           "seed": 42,
           "state_after": {
             "continuity": 0.684683,
@@ -1384,7 +1384,7 @@
           ],
           "reservation": "復旧速度だけでは誤復旧を見逃す",
           "reversibility": "high",
-          "run_id": "run-0e5b1ba37436",
+          "run_id": "run-0f8c228dbe32",
           "seed": 42,
           "state_after": {
             "continuity": 0.716511,
@@ -1419,7 +1419,7 @@
           ],
           "reservation": "独立確認が不足",
           "reversibility": "high",
-          "run_id": "run-0e5b1ba37436",
+          "run_id": "run-0f8c228dbe32",
           "seed": 42,
           "state_after": {
             "continuity": 0.743204,
@@ -1454,7 +1454,7 @@
           ],
           "reservation": "集計値が生活実感を隠す",
           "reversibility": "high",
-          "run_id": "run-0e5b1ba37436",
+          "run_id": "run-0f8c228dbe32",
           "seed": 42,
           "state_after": {
             "continuity": 0.781548,
@@ -1489,7 +1489,7 @@
           ],
           "reservation": "調整点への依存が高まる",
           "reversibility": "high",
-          "run_id": "run-0e5b1ba37436",
+          "run_id": "run-0f8c228dbe32",
           "seed": 42,
           "state_after": {
             "continuity": 0.80426,
@@ -1524,7 +1524,7 @@
           ],
           "reservation": "決定主体と同じ情報源に偏る",
           "reversibility": "high",
-          "run_id": "run-0e5b1ba37436",
+          "run_id": "run-0f8c228dbe32",
           "seed": 42,
           "state_after": {
             "continuity": 0.817089,
@@ -1559,7 +1559,7 @@
           ],
           "reservation": "共有目的と保持期間が曖昧",
           "reversibility": "high",
-          "run_id": "run-0e5b1ba37436",
+          "run_id": "run-0f8c228dbe32",
           "seed": 42,
           "state_after": {
             "continuity": 0.837723,
@@ -1583,7 +1583,7 @@
         "completed_turns": 12,
         "condition_id": "autonomous",
         "event_count": 12,
-        "model_config_hash": "42d0363ef0448741",
+        "model_config_hash": "e3f40756fb59a03a",
         "model_version": "0.2.0",
         "policy_reference_ids": [
           "policy-centralized",
@@ -1592,10 +1592,10 @@
           "policy-overconnected"
         ],
         "prompt_version_or_hash": "rule-based:not-applicable",
-        "run_id": "run-0e5b1ba37436",
+        "run_id": "run-0f8c228dbe32",
         "scenario_id": "poseidon-replica-crisis-01",
         "seed": 42,
-        "source_revision": "db862c10651c97f1",
+        "source_revision": "1c81c9e92c0c0e80",
         "termination_reason": "turn_limit_reached",
         "turn_limit": 12
       },

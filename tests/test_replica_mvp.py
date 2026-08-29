@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 
 import pytest
 
@@ -122,6 +123,19 @@ def test_actual_ai_trace_replays_nine_decisions_without_claiming_live_api() -> N
     assert all(decision.actual_ai_participated for run in batch.runs for decision in run.decisions)
     assert all(not decision.external_model_api_called for run in batch.runs for decision in run.decisions)
     assert all(decision.model_id == "unavailable_to_agent" for run in batch.runs for decision in run.decisions)
+
+
+def test_tracked_comparison_is_exactly_reproducible_from_current_engine() -> None:
+    root = Path(__file__).resolve().parents[1]
+    records = load_actual_ai_trace(root / "fixtures" / "actual-ai-trace-seed42.json")
+    batch = run_replica_batch(
+        seeds=(42,),
+        turn_limit=12,
+        decision_engine=RecordedDecisionEngine(record.to_dict() for record in records),
+    )
+    tracked = json.loads((root / "web" / "data" / "comparison.json").read_text(encoding="utf-8"))
+
+    assert batch.to_dict() == tracked
 
 
 def test_two_valid_action_traces_causally_change_events_and_metrics() -> None:

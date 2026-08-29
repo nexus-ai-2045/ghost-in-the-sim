@@ -12,6 +12,7 @@ from ghost_in_the_sim.engine import (
     TRANSITION_PARAMETERS,
     Condition,
     _actor_adjusted_deltas,
+    _source_revision_from_bytes,
     run_experiment,
 )
 
@@ -23,6 +24,13 @@ def test_same_input_produces_identical_manifest_events_and_metrics() -> None:
     assert first.manifest() == second.manifest()
     assert [event.to_dict() for event in first.events] == [event.to_dict() for event in second.events]
     assert first.metrics == second.metrics
+
+
+def test_source_revision_is_independent_of_checkout_line_endings() -> None:
+    lf = b"alpha\nbeta\n"
+    crlf = b"alpha\r\nbeta\r\n"
+
+    assert _source_revision_from_bytes(lf) == _source_revision_from_bytes(crlf)
 
 
 def test_conditions_produce_distinct_auditable_traces_with_same_seed() -> None:

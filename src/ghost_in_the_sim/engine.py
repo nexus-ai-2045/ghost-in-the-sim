@@ -191,7 +191,14 @@ def _model_config_hash() -> str:
 def _source_revision() -> str:
     """状態遷移を定義するこのmoduleの内容digestを返す。"""
 
-    return sha256(Path(__file__).read_bytes()).hexdigest()[:16]
+    return _source_revision_from_bytes(Path(__file__).read_bytes())
+
+
+def _source_revision_from_bytes(raw: bytes) -> str:
+    """checkoutの改行規則に依存しないmodule digestを返す。"""
+
+    normalized = raw.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return sha256(normalized).hexdigest()[:16]
 
 
 def _run_id(*, scenario_id: str, condition_id: str, seed: int, turn_limit: int, model_config_hash: str) -> str:
