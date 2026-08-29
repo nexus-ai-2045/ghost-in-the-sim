@@ -4,18 +4,19 @@
 
 `public_visibility_confirmed` — 機械確認済みの公開状態記録。公開承認・merge承認・release承認ではない。
 
-## live read-back（2026-08-28）
+## live read-back（2026-08-29）
 
 | 項目 | 値 |
 |---|---|
 | repository | `nexus-ai-2045/ghost-in-the-sim` |
 | visibility | `PUBLIC`（変更しない。この文書は状態の正本化のみ） |
 | default branch | `main` |
-| 基準commit（実測記録時点） | `48542c9b02bfd8dcfab85c8a612dac3cfce24278` |
+| 基準commit（実装開始時点） | `9df64cdcb3e322586d0416ad6df37ad068fb3b3e` |
 
 ## 今回の公開対象
 
-- Nexus作成のREADME、運用文書、オリジナル実装（決定論コア）
+- Nexus作成のREADME、運用文書、オリジナル実装（決定論コア、判断replay、比較UI）
+- この開発セッションでAIが生成した9件の型付き判断fixtureと、そこから生成した比較JSON
 - ハッカソン公式サイトへのリンク
 - `RESULTS.md` に記録した架空シナリオの仮定下比較（現実予測ではない）
 
@@ -24,7 +25,7 @@
 - 片山氏のコンセプトペーパー本文
 - 創作作品の画像、本文、台詞、OCR、アーカイブ、再現素材
 - 個人情報、会話ログ、認証情報、非公開リンク
-- `artifacts/` 配下のローカル実験出力（追跡しない）
+- `artifacts/` 配下のローカル実験出力（追跡しない）。`web/data/comparison.json` はデモ再現用の追跡済み生成物として公開対象
 
 ## 確認済み（機械）
 

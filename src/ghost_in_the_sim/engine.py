@@ -14,9 +14,9 @@ from typing import Any
 MODEL_VERSION = "0.2.0"
 CODE_VERSION = "deterministic-core-v2"
 PROMPT_VERSION_OR_HASH = "rule-based:not-applicable"
-POLICY_VERSION = "poseidon-policy-v2"
-SCENARIO_ID = "poseidon-public-infrastructure-01"
-POLICY_REFERENCE_IDS = ("policy-centralized", "policy-plural", "policy-overconnected")
+POLICY_VERSION = "harbor-loop-policy-v3"
+SCENARIO_ID = "harbor-loop-replica-crisis-01"
+POLICY_REFERENCE_IDS = ("policy-centralized", "policy-plural", "policy-autonomous", "policy-overconnected")
 
 
 class Condition(StrEnum):
@@ -24,6 +24,7 @@ class Condition(StrEnum):
 
     CENTRALIZED = "centralized"
     PLURAL = "plural"
+    AUTONOMOUS = "autonomous"
     OVERCONNECTED = "overconnected"
 
 
@@ -132,6 +133,15 @@ class ActorProfile:
     disclosure_bias: float = 0.0
 
 
+@dataclass(frozen=True)
+class ActionInfluence:
+    """AI actionを任意deltaへせず、固定表からのみ状態へ反映する入力。"""
+
+    turn: int
+    action_type: str
+    confidence: float
+
+
 ACTOR_PROFILES = (
     ActorProfile("service_steward", "生活サービスを止めない", "復旧速度だけでは誤復旧を見逃す", "独立検証で安全が確認される", continuity_bias=0.010),
     ActorProfile("evidence_verifier", "主張の来歴と反証を残す", "独立確認が不足", "二つの独立経路が一致する", evidence_bias=0.012),
@@ -146,7 +156,18 @@ ACTORS = tuple(profile.actor_id for profile in ACTOR_PROFILES)
 TRANSITION_PARAMETERS = {
     "centralized": {"continuity": 0.055, "evidence_quality": 0.018, "public_trust": 0.006, "coordination_dependence": 0.058, "disclosure_pressure": 0.018},
     "plural": {"continuity": 0.032, "evidence_quality": 0.066, "public_trust": 0.041, "coordination_dependence": -0.034, "disclosure_pressure": -0.021},
+    "autonomous": {"continuity": 0.044, "evidence_quality": 0.031, "public_trust": 0.018, "coordination_dependence": -0.048, "disclosure_pressure": 0.012},
     "overconnected": {"continuity": 0.039, "evidence_quality": 0.009, "public_trust": -0.014, "coordination_dependence": -0.009, "disclosure_pressure": 0.071},
+}
+
+# 1 turnあたり絶対値0.018以下。AI出力が任意の状態変更量を注入することを防ぐ。
+ACTION_DELTA_PARAMETERS = {
+    "request_verification": {"evidence_quality": 0.016, "public_trust": 0.004},
+    "share_evidence": {"evidence_quality": 0.010, "public_trust": 0.008, "disclosure_pressure": 0.009},
+    "protect_continuity": {"continuity": 0.018, "coordination_dependence": 0.005},
+    "update_explanation": {"evidence_quality": 0.006, "public_trust": 0.014},
+    "request_cooperation": {"public_trust": 0.008, "coordination_dependence": -0.010},
+    "abstain": {"continuity": -0.006, "evidence_quality": 0.004, "disclosure_pressure": -0.006},
 }
 
 
@@ -224,6 +245,10 @@ def _policy(
         else:
             refs = (policy_ref, observation_id)
         return (action, profile.reservation, "high", refs, TRANSITION_PARAMETERS[condition.value], True, True)
+    if condition is Condition.AUTONOMOUS:
+        action = "request_peer_sync" if turn in {3, 6, 9, 12} else "coordinate_local_response"
+        refs = (policy_ref, *resolved_observation_ids) if resolved_observation_ids else (policy_ref, observation_id)
+        return (action, profile.reservation, "high", refs, TRANSITION_PARAMETERS[condition.value], True, action == "request_peer_sync")
     action = "issue_correction" if turn == 6 else "broadcast_status"
     refs = (policy_ref, *resolved_observation_ids) if action == "issue_correction" and resolved_observation_ids else (policy_ref, observation_id)
     return (
@@ -245,6 +270,19 @@ def _actor_adjusted_deltas(deltas: dict[str, float], profile: ActorProfile) -> d
         "coordination_dependence": deltas["coordination_dependence"] + profile.dependence_bias,
         "disclosure_pressure": deltas["disclosure_pressure"] + profile.disclosure_bias,
     }
+
+
+def _action_adjusted_deltas(deltas: dict[str, float], influence: ActionInfluence | None) -> dict[str, float]:
+    adjusted = dict(deltas)
+    if influence is None:
+        return adjusted
+    if influence.action_type not in ACTION_DELTA_PARAMETERS:
+        raise ValueError("action influence is not allowed")
+    if isinstance(influence.confidence, bool) or not 0.0 <= influence.confidence <= 1.0:
+        raise ValueError("action influence confidence must be between zero and one")
+    for key, amount in ACTION_DELTA_PARAMETERS[influence.action_type].items():
+        adjusted[key] += amount * influence.confidence
+    return adjusted
 
 
 def _advance(state: WorldState, deltas: dict[str, float], disturbance: float) -> WorldState:
@@ -436,6 +474,7 @@ def _simulate_events(
     turn_limit: int,
     disabled_actors: frozenset[str] = frozenset(),
     run_id: str = INTERNAL_METRIC_RUN_ID,
+    action_influences: tuple[ActionInfluence, ...] = (),
 ) -> tuple[tuple[Event, ...], WorldState, str]:
     """状態遷移イベント列を作る。disabled_actors は指標用の内部介入であり公開run identityに含めない。"""
 
@@ -443,6 +482,9 @@ def _simulate_events(
     exogenous_rng = _stream_rng(seed, "exogenous")
     decision_rng = _stream_rng(seed, "decision", condition)
     events: list[Event] = []
+    influence_by_turn = {influence.turn: influence for influence in action_influences}
+    if len(influence_by_turn) != len(action_influences):
+        raise ValueError("action influences must contain at most one action per turn")
     for turn in range(1, turn_limit + 1):
         profile = ACTOR_PROFILES[(turn - 1) % len(ACTOR_PROFILES)]
         observation_id = f"obs-{turn:02d}"
@@ -473,6 +515,10 @@ def _simulate_events(
                 else (
                     "request_cross_check"
                     if condition is Condition.PLURAL
+                    else "request_peer_sync"
+                    if condition is Condition.AUTONOMOUS and turn in {3, 6, 9, 12}
+                    else "coordinate_local_response"
+                    if condition is Condition.AUTONOMOUS
                     else "coordinate_response"
                     if condition is Condition.CENTRALIZED
                     else "broadcast_status"
@@ -480,7 +526,7 @@ def _simulate_events(
             )
             resolved = (
                 _targets_for_verification(events, pending_action)
-                if pending_action in VERIFICATION_ACTIONS
+                if pending_action in VERIFICATION_ACTIONS or pending_action == "request_peer_sync"
                 else ()
             )
             action_type, reservation, reversibility, refs, deltas, dissent_raised, dissent_delivered = _policy(
@@ -491,7 +537,8 @@ def _simulate_events(
                 resolved_observation_ids=resolved,
             )
             confidence = _clamp(0.35 + state.evidence_quality * 0.45 + confidence_draw)
-            next_state = _advance(state, _actor_adjusted_deltas(deltas, profile), disturbance)
+            governed_deltas = _actor_adjusted_deltas(deltas, profile)
+            next_state = _advance(state, _action_adjusted_deltas(governed_deltas, influence_by_turn.get(turn)), disturbance)
         events.append(
             Event(
                 run_id=run_id,
@@ -518,7 +565,9 @@ def _simulate_events(
     return tuple(events), state, "turn_limit_reached"
 
 
-def run_experiment(*, condition: Condition | str, seed: int, turn_limit: int = 12) -> RunResult:
+def run_experiment(
+    *, condition: Condition | str, seed: int, turn_limit: int = 12, action_influences: tuple[ActionInfluence, ...] = ()
+) -> RunResult:
     """同一入力から同一イベント列を作る。外部I/O・LLM・実在データは使わない。
 
     単一ノード停止は公開runの引数にしない。調整依存の算出でのみ内部シミュレーションする。
@@ -528,7 +577,12 @@ def run_experiment(*, condition: Condition | str, seed: int, turn_limit: int = 1
     if not 1 <= turn_limit <= 12:
         raise ValueError("turn_limit must be between 1 and 12")
 
-    config_hash = _model_config_hash()
+    for influence in action_influences:
+        if not 1 <= influence.turn <= turn_limit:
+            raise ValueError("action influence turn is outside the run")
+        _action_adjusted_deltas({key: 0.0 for key in WorldState.__dataclass_fields__}, influence)
+    action_identity = json.dumps([asdict(item) for item in action_influences], sort_keys=True, separators=(",", ":"))
+    config_hash = sha256(f"{_model_config_hash()}|{action_identity}".encode("utf-8")).hexdigest()[:16]
     run_id = _run_id(
         scenario_id=SCENARIO_ID,
         condition_id=chosen.value,
@@ -542,6 +596,7 @@ def run_experiment(*, condition: Condition | str, seed: int, turn_limit: int = 1
         turn_limit=turn_limit,
         disabled_actors=frozenset(),
         run_id=run_id,
+        action_influences=action_influences,
     )
     return RunResult(
         scenario_id=SCENARIO_ID,

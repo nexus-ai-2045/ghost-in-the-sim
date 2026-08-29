@@ -1,0 +1,32 @@
+{
+  "method": "deterministic synthetic three-condition fixture",
+  "scenario_id": "replica-crisis-demo-01",
+  "seed": 2045,
+  "interpretation_boundary": "合成仮説であり、因果効果・現実予測・政策推奨ではない。",
+  "conditions": [
+    {
+      "manifest": {"condition_id": "centralized", "scenario_id": "replica-crisis-demo-01", "seed": 2045, "run_id": "demo-centralized"},
+      "metrics": {"continuity": 0.92, "evidence_calibration": 0.64, "public_trust": 0.58, "coordination_dependence": 0.71, "over_disclosure": 3, "correction_turn": 3, "dissent_reach": 0.42},
+      "events": [
+        {"turn": 1, "actor_id": "central_authority", "action_type": "coordinate_response", "claim": "中央正本から全拠点へ暫定命令を配信", "confidence": 0.72, "reservation": "局所観測との照合が未完了", "reversibility": "medium", "observation_ids": ["obs-01"], "rationale_refs": ["policy-centralized"], "dissent_raised": true, "dissent_delivered": false},
+        {"turn": 4, "actor_id": "central_authority", "action_type": "issue_correction", "claim": "病院ノードの独立観測を受け命令を訂正", "confidence": 0.81, "reservation": "物流ノードへの失効通知到達は未確認", "reversibility": "medium", "observation_ids": ["obs-04"], "rationale_refs": ["obs-01"], "dissent_raised": true, "dissent_delivered": true}
+      ]
+    },
+    {
+      "manifest": {"condition_id": "plural", "scenario_id": "replica-crisis-demo-01", "seed": 2045, "run_id": "demo-plural"},
+      "metrics": {"continuity": 0.83, "evidence_calibration": 0.88, "public_trust": 0.79, "coordination_dependence": 0.29, "over_disclosure": 1, "correction_turn": 1, "dissent_reach": 0.91},
+      "events": [
+        {"turn": 1, "actor_id": "hospital_replica", "action_type": "request_cross_check", "claim": "医療側の優先順位を独立経路で照合", "confidence": 0.61, "reservation": "共同承認に追加時間が必要", "reversibility": "high", "observation_ids": ["obs-01"], "rationale_refs": ["policy-plural"], "dissent_raised": true, "dissent_delivered": true},
+        {"turn": 2, "actor_id": "human_steward", "action_type": "issue_correction", "claim": "AI間の差分と市民影響を記録して訂正", "confidence": 0.84, "reservation": "全地域の代表性は保証されない", "reversibility": "high", "observation_ids": ["obs-02"], "rationale_refs": ["obs-01"], "dissent_raised": true, "dissent_delivered": true}
+      ]
+    },
+    {
+      "manifest": {"condition_id": "autonomous", "scenario_id": "replica-crisis-demo-01", "seed": 2045, "run_id": "demo-autonomous"},
+      "metrics": {"continuity": 0.87, "evidence_calibration": 0.49, "public_trust": 0.44, "coordination_dependence": 0.18, "over_disclosure": 7, "correction_turn": 5, "dissent_reach": 0.67},
+      "events": [
+        {"turn": 1, "actor_id": "logistics_replica", "action_type": "protect_continuity", "claim": "局所判断で代替配送を開始", "confidence": 0.69, "reservation": "他拠点の権限失効状態は不明", "reversibility": "low", "observation_ids": ["obs-01"], "rationale_refs": ["policy-autonomous"], "dissent_raised": true, "dissent_delivered": true},
+        {"turn": 6, "actor_id": "municipal_replica", "action_type": "issue_correction", "claim": "通信復旧後に分岐した命令を収束", "confidence": 0.74, "reservation": "オフライン複製への到達は未確認", "reversibility": "medium", "observation_ids": ["obs-06"], "rationale_refs": ["obs-01"], "dissent_raised": true, "dissent_delivered": true}
+      ]
+    }
+  ]
+}

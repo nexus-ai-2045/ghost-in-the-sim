@@ -1,4 +1,4 @@
-# ODD: 決定論MVP
+# ODD: 決定論世界＋AI判断replay MVP
 
 この文書は ODD（Overview, Design concepts, Details）を、再実装可能な最小単位へ縮約して適用する。物語上の着想は入力の説明に留め、モデル本体には特定作品・人物・実在組織を持ち込まない。
 
@@ -17,9 +17,10 @@
 ## Details
 
 - **初期化**: `scenario × seed`から初期状態用・外生事象用の乱数列を分離して作る。条件固有判断の乱数列はさらに分離し、一条件の消費順が他条件の外生事象を変えない。
-- **入力**: `condition`、`seed`、`turn_limit`。
-- **出力**: `run_manifest.json`、`events.jsonl`、`metrics.json`、`final_state.json`。
-- **非対象**: LLM、外部API、実在データ、攻撃・追跡・個人特定・政策最適化。
+- **入力**: `condition`、`seed`、`turn_limit`、任意の署名可能な判断fixture。
+- **出力**: manifest、判断監査、イベント列、指標を含む比較JSON。
+- **AI境界**: AI生成判断をstrict schemaでreplayする。許可済みactionとconfidenceだけを固定・有界deltaへ変換し、統治方式の決定論遷移へ加算する。
+- **非対象**: ライブ外部API、実在データ、攻撃・追跡・個人特定・政策最適化。
 
 ## 参照
 

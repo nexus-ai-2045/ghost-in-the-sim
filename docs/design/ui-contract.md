@@ -31,9 +31,9 @@ flowchart TB
 - 主張には必ず確信と留保を同居させる。断定だけを強調表示しない。
 - モバイルでは連鎖マップ、根拠台帳、比較パネルを縦に分割し、重要情報を隠さない。
 
-## 実装候補
+## 実装
 
-初期Web版は React + Vite + TypeScript を候補とする。状態遷移はUIから分離し、`core`（決定論的）、`adapter`（LLM/ルールベース）、`viewer`（ブラウザ）の三層にする。実装前にUIコンセプトを生成・レビューし、画面ごとのデザインシステムを確定する。
+初期Web版は依存を増やさないHTML/CSS/JavaScript viewerとして実装する。Pythonの`core`（決定論的）と`adapter`（判断replay）、`viewer`（ブラウザ）を分離し、生成した`web/data/comparison.json`だけを表示正本とする。
 
 ## アクセシビリティ
 

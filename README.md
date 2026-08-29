@@ -10,10 +10,10 @@
 
 | これは | これはしない |
 |---|---|
-| 同じ初期条件で、統制・多元・接続過多を比べる実験台 | 現実の危機・組織・個人を予測、評価、指示する道具 |
+| 同じ初期条件で、中央正本・複数承認・自律分身を比べる実験台 | 現実の危機・組織・個人を予測、評価、指示する道具 |
 | 根拠、留保、異議、訂正、依存をログとして残す | 単一の正解や「最強の統治」を決める装置 |
 
-> 現在地: **設計レビュー中・決定論コアのMVP**。seed `42` の代表比較は [RESULTS.md](RESULTS.md) に**評価契約どおりの実測**で記録済み。未解決事項（複数seedなど）は [設計上の未解決事項](docs/knowledge/open-questions.md) に記録しています。実在組織、現実の危機、政策・安全保障上の行為を指示・予測するものではありません。
+> 現在地: **決定論コア＋AI判断replay＋3方式比較UIのMVP**。AI判断は監査traceとして再生し、許可済みactionだけが有界deltaとして状態へ反映されます。実測済みの結果だけを [RESULTS.md](RESULTS.md) に記録します。
 
 ## 実験の見取り図
 
@@ -24,7 +24,7 @@ flowchart LR
     A --> C{比較する調整方式}
     C -->|統制型| X[情報と発信を集約]
     C -->|多元型| Y[検証と異議を複線化]
-    C -->|接続過多| Z[共有・通知を増やす]
+    C -->|自律分身| Z[各拠点が局所判断]
     X --> R[同一seedで比較]
     Y --> R
     Z --> R
@@ -37,20 +37,23 @@ flowchart LR
 |---|---|---|
 | 事象、主体、資源、seed | 調整方式と接続の設計 | 生活継続、証拠校正、訂正時間、異議、開示、依存 |
 
-最初の舞台は、港湾・物流・医療・地域メディアがつながる**架空都市圏「ポセイドン」**です。公共データ連携の障害、物流の遅れ、不確かな情報の拡散が重なったとき、6〜8のオリジナル主体が12ターン行動します。
+最初の舞台は、港湾・物流・医療・地域メディアがつながる**架空都市圏「ハーバー・ループ」**です。危機対応AIの複製が各拠点へ配備された後に通信が分断され、記憶・方針・権限世代が分岐します。再接続までの12ターンで、正本集中・複数承認・自律分身の3方式を同じ外生事象列で比較します。
 
 固有の作品、人物、地名、組織、画像、台詞、技術設定は使いません。創作から得た問いは、比較可能なオリジナルの状態・制約・指標に翻訳します。
+
+結果は合成データと仮定に基づく観測であり、現実予測、因果証明、政策の正しさ、実在する人物・組織の評価を示しません。
 
 ## 最初に読むもの
 
 1. [一枚設計](docs/architecture/overview.md) — 問い、MVP、比較実験、反証条件
 2. [シミュレーション契約](docs/architecture/simulation-contract.md) — 再現性、ターン、入力・出力、禁止事項
 3. [エージェント契約](docs/architecture/agent-contract.md) — 単純な役職ではない主体モデル
-4. [画面・可視化仕様](docs/design/ui-contract.md) — 将来のWebアプリで何を見せ、何を操作するか
-5. [意思決定記録（最初の設計判断）](docs/adr/ADR-001-original-agent-model.md) — 設計上の選択と却下した代案
-6. [PRセルフレビュー](docs/pr-self-review.md) — 横断的な再発防止ルールに沿った変更前確認
-7. [ODD形式のモデル記述](docs/architecture/model.odd.md) — 目的、主体、ターン順序、入出力
-8. [用語と先行手法](docs/research/simulation-terms.md) — ABM、ODD、CRN、監査ログの採用範囲
+4. [AI複製主体MVP](docs/architecture/ai-replica-mvp.md) — 分岐、権限失効、3方式、AI安全境界
+5. [画面・可視化仕様](docs/design/ui-contract.md) — Web実験画面で何を見せ、何を操作するか
+6. [意思決定記録（最初の設計判断）](docs/adr/ADR-001-original-agent-model.md) — 設計上の選択と却下した代案
+7. [PRセルフレビュー](docs/pr-self-review.md) — 横断的な再発防止ルールに沿った変更前確認
+8. [ODD形式のモデル記述](docs/architecture/model.odd.md) — 目的、主体、ターン順序、入出力
+9. [用語と先行手法](docs/research/simulation-terms.md) — ABM、ODD、CRN、監査ログの採用範囲
 
 ## 中心の問い
 
@@ -65,9 +68,9 @@ flowchart LR
 
 詳しくは [MVP仕様](docs/architecture/overview.md#mvp) と [評価設計](docs/architecture/evaluation.md) を参照してください。
 
-## 目指す画面
+## 実験画面
 
-将来のWebアプリは、物語を眺めるだけの画面ではなく、同じ世界を条件だけ変えて比較する実験台です。
+Web画面は物語を眺めるだけでなく、同じ世界を条件だけ変えて比較する実験台です。
 
 - 世界状態と三相（モノ／組織／意味）の連鎖
 - 各主体の観測・確信度・留保・提案の台帳
@@ -109,11 +112,11 @@ UI仕様は [画面・可視化仕様](docs/design/ui-contract.md)、実装順�
 
 ```powershell
 $env:PYTHONPATH = "src"
-py -3.13 -m ghost_in_the_sim.cli --condition plural --seed 42 --output-dir artifacts/run-42-plural
-py -3.13 -m ghost_in_the_sim.compare_cli --baseline centralized --candidate plural --seed 42 --output artifacts/compare-42.json
+py -3.13 -m ghost_in_the_sim.batch_cli --output web/data/comparison.json --seed 42 --actual-ai-trace fixtures/actual-ai-trace-seed42.json
+py -3.13 scripts/serve_demo.py
 ```
 
-`artifacts/` はローカル実験出力であり、追跡・公開しない。出力には再実行用の `run_manifest.json`、イベント列 `events.jsonl`、指標 `metrics.json` を含める。
+ブラウザで `http://127.0.0.1:8045/` を開くと、3方式の指標と12ターンのイベントを比較できます。fixtureには、この開発セッションでAIが生成した9判断と来歴を保存しています。外部モデルAPIをライブ呼び出す機能ではありません。actionの影響は固定・有界で、自由文をコードや命令として実行しません。
 
 GitHub Actionsでも、同一入力の再現性・条件差・イベント契約・公開境界を回帰検査する。CI成功は、現実予測の妥当性や公開承認を意味しない。
 
