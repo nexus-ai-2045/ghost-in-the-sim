@@ -7,7 +7,7 @@
 | 項目 | 値 |
 |---|---|
 | 記録日 | `2026-08-29` |
-| 実行実装commit | `pending-current-tree`（PR commit後に固定） |
+| 実行実装commit | `pending-current-tree` |
 | コード版 | `deterministic-core-v2` |
 | モデル版 | `0.2.0` |
 | `model_config_hash` | runごとにAI判断traceを含めて変化（下表のrun IDで固定） |
