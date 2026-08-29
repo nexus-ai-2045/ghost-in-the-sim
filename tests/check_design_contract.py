@@ -14,6 +14,7 @@ REQUIRED = (
     "docs/architecture/overview.md",
     "docs/architecture/simulation-contract.md",
     "docs/architecture/agent-contract.md",
+    "docs/architecture/ai-replica-mvp.md",
     "docs/architecture/evaluation.md",
     "docs/architecture/model.odd.md",
     "docs/research/simulation-terms.md",
@@ -47,6 +48,7 @@ def main() -> int:
         "docs/architecture/overview.md",
         "docs/architecture/simulation-contract.md",
         "docs/architecture/agent-contract.md",
+        "docs/architecture/ai-replica-mvp.md",
         "docs/design/ui-contract.md",
     )
     destinations = {
@@ -112,7 +114,13 @@ def main() -> int:
             "docs/knowledge/sources.md",
         )
     )
-    forbidden_claims = ("Version 1.0", "katayama-meta-security-v1", "application-0165")
+    forbidden_claims = (
+        "Version 1.0",
+        "katayama-meta-security-v1",
+        "application-0165",
+        "ポセイドン",
+        "poseidon-public-infrastructure-01",
+    )
     leaked_claims = [term for term in forbidden_claims if term in public_documents]
     if leaked_claims:
         raise SystemExit("design-contract: FAIL\n未確認または非公開の識別子があります:\n" + "\n".join(leaked_claims))

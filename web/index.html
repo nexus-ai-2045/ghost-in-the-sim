@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>ghost-in-the-sim 比較ラボ</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#comparison">比較結果へ移動</a>
+  <header class="masthead">
+    <div>
+      <p class="product-name">ghost-in-the-sim</p>
+      <h1>複製された判断権限を、同じ条件で比較する</h1>
+      <p class="lead">行政・病院・物流へ分岐した危機対応AI。正本、共同承認、自律分身の違いを、生活継続と訂正可能性の両方から読みます。</p>
+    </div>
+    <div class="run-meta" aria-label="実験メタデータ">
+      <span>Scenario <strong id="scenario">読み込み中</strong></span>
+      <span>Seed <strong id="seed">—</strong></span>
+      <span id="source-status" role="status" aria-live="polite">結果を読み込み中</span>
+    </div>
+  </header>
+
+  <main>
+    <aside class="disclaimer" aria-label="重要な留保">
+      <strong>合成仮説による実験です。</strong>
+      <span>実在の都市・組織・人物を表さず、結果は因果効果、現実予測、政策推奨を意味しません。</span>
+    </aside>
+
+    <section id="comparison" aria-labelledby="comparison-title">
+      <div class="section-heading">
+        <div><p class="section-index">01 / GOVERNANCE</p><h2 id="comparison-title">3つの統治条件</h2></div>
+        <p>値は0–100の表示尺度（訂正時間と過剰開示を除く）。高いほど良いとは限りません。</p>
+      </div>
+      <div id="condition-grid" class="condition-grid" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="metric-title">
+      <div class="section-heading">
+        <div><p class="section-index">02 / MEASURES</p><h2 id="metric-title">比較指標</h2></div>
+        <p>各指標を同じ行で照合します。短い解釈は仮説であり、評価結論ではありません。</p>
+      </div>
+      <div class="metric-table-wrap">
+        <table id="metric-table">
+          <caption class="visually-hidden">統治条件ごとの比較指標</caption>
+          <thead><tr id="metric-head"><th scope="col">指標</th></tr></thead>
+          <tbody id="metric-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="timeline-title">
+      <div class="section-heading">
+        <div><p class="section-index">03 / TRACE</p><h2 id="timeline-title">判断と訂正のタイムライン</h2></div>
+        <p>ボタンを選ぶと、そのターンの主体・主張・留保・可逆性を確認できます。</p>
+      </div>
+      <div class="timeline-shell">
+        <div id="timeline-tabs" class="timeline-tabs" role="tablist" aria-label="条件を選択"></div>
+        <ol id="timeline" class="timeline"></ol>
+        <article id="event-detail" class="event-detail" aria-live="polite"></article>
+      </div>
+    </section>
+  </main>
+
+  <footer>offline viewer · 外部送信なし · JSONを差し替えて再読込できます</footer>
+  <script src="app.js" defer></script>
+</body>
+</html>

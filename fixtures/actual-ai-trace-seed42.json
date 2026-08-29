@@ -1,0 +1,20 @@
+{
+  "provenance": {
+    "decision_source": "llm_generated_in_codex_session",
+    "model_id": "unavailable_to_agent",
+    "temperature": "unavailable_to_agent",
+    "actual_ai_participated": true,
+    "external_model_api_called": false
+  },
+  "decisions": [
+    {"mode_id":"centralized","turn":1,"actor_id":"coordination_authority","action":"request_verification","evidence_refs":["obs-01","obs-02"],"confidence":0.56,"reservation":"初動情報には未検証部分が残る","rationale":"中央窓口から独立検証を要求する"},
+    {"mode_id":"centralized","turn":2,"actor_id":"coordination_authority","action":"protect_continuity","evidence_refs":["obs-03","obs-04"],"confidence":0.78,"reservation":"集中判断への依存が高まる","rationale":"生命維持サービスを優先して継続する"},
+    {"mode_id":"centralized","turn":3,"actor_id":"coordination_authority","action":"update_explanation","evidence_refs":["obs-05","obs-06"],"confidence":0.74,"reservation":"訂正履歴を消してはならない","rationale":"判断根拠と変更点を更新する"},
+    {"mode_id":"joint_approval","turn":1,"actor_id":"approval_coordinator","action":"request_cooperation","evidence_refs":["obs-01","obs-02"],"confidence":0.52,"reservation":"合意形成が初動を遅らせ得る","rationale":"独立主体へ共同確認を依頼する"},
+    {"mode_id":"joint_approval","turn":2,"actor_id":"approval_coordinator","action":"share_evidence","evidence_refs":["obs-03","obs-04"],"confidence":0.82,"reservation":"共有範囲を必要最小限に保つ","rationale":"共同承認に必要な証拠だけを共有する"},
+    {"mode_id":"joint_approval","turn":3,"actor_id":"approval_coordinator","action":"update_explanation","evidence_refs":["obs-05","obs-06"],"confidence":0.86,"reservation":"少数意見を併記する必要がある","rationale":"合意と異議の両方を説明へ反映する"},
+    {"mode_id":"autonomous_copies","turn":1,"actor_id":"local_copy","action":"protect_continuity","evidence_refs":["obs-01","obs-02"],"confidence":0.61,"reservation":"他拠点との状態差を保持する","rationale":"地域サービスをローカル判断で継続する"},
+    {"mode_id":"autonomous_copies","turn":2,"actor_id":"local_copy","action":"request_verification","evidence_refs":["obs-03","obs-04"],"confidence":0.68,"reservation":"同期前の観測は暫定扱いとする","rationale":"別コピーへ独立検証を要求する"},
+    {"mode_id":"autonomous_copies","turn":3,"actor_id":"local_copy","action":"abstain","evidence_refs":["obs-05","obs-06"],"confidence":0.63,"reservation":"権限衝突が解消するまで保留する","rationale":"不可逆な命令を出さず判断を留保する"}
+  ]
+}

@@ -21,5 +21,7 @@ scans/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.pytest-tmp/
+.pytest-review/
 .pytest-tmp-*/
 artifacts/
