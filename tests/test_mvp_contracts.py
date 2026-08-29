@@ -21,6 +21,12 @@ def _design_module():
     return module
 
 
+def test_verify_workflow_exposes_src_package_to_every_python_gate() -> None:
+    workflow = (ROOT / ".github/workflows/verify.yml").read_text(encoding="utf-8")
+    job_header = "  deterministic-core:\n    runs-on: ubuntu-latest\n    env:\n      PYTHONPATH: src\n"
+    assert job_header in workflow
+
+
 def test_mvp_completion_sync_detects_drift_on_every_status_surface() -> None:
     module = _design_module()
     roadmap = (ROOT / "docs/roadmap.md").read_text(encoding="utf-8")
