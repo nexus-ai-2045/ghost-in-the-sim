@@ -7,7 +7,7 @@
 | 項目 | 値 |
 |---|---|
 | 記録日 | `2026-08-29` |
-| 実行実装commit | （このPRの指標実装コミット。下記 `source_revision` / `model_config_hash` で再照合） |
+| 実行実装commit | `77126d73d40d13a8d4bda9cf7b50ea4759368012` |
 | コード版 | `deterministic-core-v2` |
 | モデル版 | `0.2.0` |
 | `model_config_hash` | `73600b9ad2e89d17` |
