@@ -8,16 +8,18 @@ import subprocess
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ATTRIBUTION_EXEMPTIONS = {
-    "THIRD_PARTY_NOTICES.md",
-    "docs/application-theme-memo.md",
-    "docs/adr/ADR-001-original-agent-model.md",
-    "docs/adr/ADR-007-source-and-name-boundary.md",
-    "docs/adr/ADR-011-named-homage-boundary.md",
-    "tests/check_ip_boundary.py",
-    "tests/test_ip_boundary.py",
+JAPANESE_FORBIDDEN = (
+    "\u653b\u6bbb\u6a5f\u52d5\u968a",
+    "\u8349\u8599\u7d20\u5b50",
+    "\u516c\u5b899\u8ab2",
+    "\u7b11\u3044\u7537",
+    "\u4eba\u5f62\u4f7f\u3044",
+    "\u30bf\u30c1\u30b3\u30de",
+)
+ATTRIBUTION_ALLOWANCES = {
+    "THIRD_PARTY_NOTICES.md": {JAPANESE_FORBIDDEN[0]: 1},
+    "docs/application-theme-memo.md": {JAPANESE_FORBIDDEN[0]: 1},
 }
-JAPANESE_FORBIDDEN = ("攻殻機動隊", "草薙素子", "公安9課", "笑い男", "人形使い", "タチコマ")
 ENGLISH_FORBIDDEN = tuple(
     re.compile(rf"(?<![a-z0-9_]){term}(?![a-z0-9_])", re.IGNORECASE)
     for term in (r"ghost\s+in\s+the\s+shell", r"motoko\s+kusanagi", r"section\s+9")
@@ -44,15 +46,15 @@ def _public_files() -> list[Path]:
             continue
         relative = relative_bytes.decode("utf-8")
         path = ROOT / relative
-        if not _is_attribution_exempt(relative) and (path.is_file() or path.is_symlink()):
+        if path.is_file() or path.is_symlink():
             files.append(path)
     return files
 
 
-def _is_attribution_exempt(git_path: str) -> bool:
-    """Match Git paths literally; POSIX backslashes are filename characters."""
+def _attribution_allowance(git_path: str) -> dict[str, int]:
+    """Return exact term counts for a literal Git path, never a whole-file exemption."""
 
-    return git_path in ATTRIBUTION_EXEMPTIONS
+    return ATTRIBUTION_ALLOWANCES.get(git_path, {})
 
 
 def _decode_text(raw: bytes) -> str | None:
@@ -71,22 +73,36 @@ def _find_terms(text: str) -> list[str]:
     return findings
 
 
+def _term_count_mismatches(text: str, git_path: str) -> list[str]:
+    folded = text.casefold()
+    actual = {term: folded.count(term.casefold()) for term in JAPANESE_FORBIDDEN}
+    actual.update({pattern.pattern: len(pattern.findall(text)) for pattern in ENGLISH_FORBIDDEN})
+    expected = _attribution_allowance(git_path)
+    return [
+        f"{term} expected={expected.get(term, 0)} actual={count}"
+        for term, count in actual.items()
+        if count != expected.get(term, 0)
+    ]
+
+
 def main() -> int:
     findings: list[str] = []
     for path in _public_files():
+        relative = path.relative_to(ROOT).as_posix()
+        findings.extend(f"{relative}: path-name:{term}" for term in _find_terms(relative))
         if path.is_symlink():
-            findings.append(f"{path.relative_to(ROOT)}: シンボリックリンクは公開内容を間接化するため検査不能")
+            findings.append(f"{relative}: シンボリックリンクは公開内容を間接化するため検査不能")
             continue
         raw = path.read_bytes()
         try:
             text = _decode_text(raw)
         except UnicodeDecodeError as error:
-            findings.append(f"{path.relative_to(ROOT)}: テキストとして読めません ({error})")
+            findings.append(f"{relative}: テキストとして読めません ({error})")
             continue
         if text is None:
-            findings.append(f"{path.relative_to(ROOT)}: NULを含む未対応エンコーディングのため検査不能")
+            findings.append(f"{relative}: NULを含む未対応エンコーディングのため検査不能")
             continue
-        findings.extend(f"{path.relative_to(ROOT)}: {term}" for term in _find_terms(text))
+        findings.extend(f"{relative}: {mismatch}" for mismatch in _term_count_mismatches(text, relative))
     if findings:
         raise SystemExit("ip-boundary: FAIL\n" + "\n".join(findings))
     print("ip-boundary: PASS")

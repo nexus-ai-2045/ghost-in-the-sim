@@ -2,6 +2,15 @@
 
 この文書は世界の時代、舞台、制度、技術、物語上の不変条件を所有する。人物は [characters.md](characters.md)、命名規則は [naming-taxonomy.md](naming-taxonomy.md)、事件は [cases.md](cases.md)、実装への写像は [実働者契約](../architecture/operative-contract.md) を正本とする。
 
+## Canonical identity
+
+| field | value |
+|---|---|
+| city | ポセイドン |
+| organization | 境界事象調整局 |
+| unit | 接界機動班 |
+| protagonist | 御影冴 |
+
 ## 作品の約束
 
 プレイヤーは2036年の日本で、複合情報災害へ介入する最高水準の実働調整官・**御影冴**になる。複数の身体、AI、センサー、組織を横断して事件を解くが、神の視点は持たない。自分の観測、記憶、命令系統、分岐した自己も侵害され得る。

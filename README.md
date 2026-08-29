@@ -52,7 +52,7 @@ flowchart LR
 5. [世界設定正本](docs/world/setting-bible.md) — 2036年、ポセイドン、境界局、卓越性
 6. [実働者契約](docs/architecture/operative-contract.md) — 設定を状態・行動・評価へ写像する契約
 7. [画面・可視化仕様](docs/design/ui-contract.md) — Web実験画面で何を見せ、何を操作するか
-8. [意思決定記録（最初の設計判断）](docs/adr/ADR-001-original-agent-model.md) — 設計上の選択と却下した代案
+8. [意思決定台帳](docs/knowledge/decisions.md)／[最初の設計判断](docs/adr/ADR-001-original-agent-model.md) — 採用状態、置換関係、却下した代案
 9. [PRセルフレビュー](docs/pr-self-review.md) — 横断的な再発防止ルールに沿った変更前確認
 10. [ODD形式のモデル記述](docs/architecture/model.odd.md) — 目的、主体、ターン順序、入出力
 11. [登場人物正本](docs/world/characters.md)／[事件カタログ](docs/world/cases.md) — 御影冴、真壁迅、10事件

@@ -8,6 +8,51 @@ import re
 from urllib.parse import unquote, urlsplit
 
 
+CANONICAL_LIFECYCLE_STATES = {
+    "concept",
+    "accepted-setting",
+    "contracted",
+    "implemented",
+    "measured",
+    "publication-reviewed",
+}
+
+
+def _section(document: str, heading: str) -> str:
+    marker = f"## {heading}"
+    if document.splitlines().count(marker) != 1:
+        raise ValueError(f"section must occur exactly once: {heading}")
+    body = document.split(marker, 1)[1]
+    return body.split("\n## ", 1)[0]
+
+
+def _table_rows(section: str, header: tuple[str, ...]) -> list[dict[str, str]]:
+    lines = section.splitlines()
+    expected = "| " + " | ".join(header) + " |"
+    if lines.count(expected) != 1:
+        raise ValueError(f"table header must occur exactly once: {expected}")
+    start = lines.index(expected)
+    rows: list[dict[str, str]] = []
+    for line in lines[start + 2 :]:
+        if not line.startswith("|"):
+            break
+        cells = tuple(cell.strip() for cell in line.strip().strip("|").split("|"))
+        if len(cells) != len(header):
+            raise ValueError(f"table row width mismatch: {line}")
+        rows.append(dict(zip(header, cells, strict=True)))
+    return rows
+
+
+def _validate_artifact_registry(document: str) -> None:
+    rows = _table_rows(document, ("artifact_id", "内容", "正本", "canonical_state", "実装・実測注記"))
+    identifiers = [row["artifact_id"] for row in rows]
+    if not identifiers or len(identifiers) != len(set(identifiers)):
+        raise ValueError("artifact_id must be present and unique")
+    invalid = [row for row in rows if row["canonical_state"] not in CANONICAL_LIFECYCLE_STATES]
+    if invalid:
+        raise ValueError("artifact canonical_state must be exactly one ADR-012 state")
+
+
 REQUIRED = (
     "README.md",
     "RESULTS.md",
@@ -43,6 +88,7 @@ REQUIRED = (
     "docs/world/naming-taxonomy.md",
     "docs/world/cases.md",
     "docs/product/repository-goal.md",
+    "docs/roadmap.md",
 )
 
 
@@ -61,6 +107,9 @@ def main() -> int:
         "docs/architecture/operative-contract.md",
         "docs/world/setting-bible.md",
         "docs/design/ui-contract.md",
+        "docs/knowledge/decisions.md",
+        "docs/product/repository-goal.md",
+        "docs/roadmap.md",
     )
     destinations = {
         unquote(urlsplit(match.group(1).strip().strip("<>")).path).lstrip("./")
@@ -140,6 +189,10 @@ def main() -> int:
         raise SystemExit("design-contract: FAIL\n公開境界の説明がありません:\n" + "\n".join(missing_boundaries))
     setting = (root / "docs/world/setting-bible.md").read_text(encoding="utf-8")
     operative = (root / "docs/architecture/operative-contract.md").read_text(encoding="utf-8")
+    adr_010 = (root / "docs/adr/ADR-010-elite-operative-perspective.md").read_text(encoding="utf-8")
+    adr_011 = (root / "docs/adr/ADR-011-named-homage-boundary.md").read_text(encoding="utf-8")
+    decisions = (root / "docs/knowledge/decisions.md").read_text(encoding="utf-8")
+    characters = (root / "docs/world/characters.md").read_text(encoding="utf-8")
     setting_terms = {
         "ほぼ何でもできる。それでも、何をするべきかは決まらない。": setting,
         "境界事象調整局": setting,
@@ -153,6 +206,31 @@ def main() -> int:
     missing_setting_terms = [term for term, document in setting_terms.items() if term not in document]
     if missing_setting_terms:
         raise SystemExit("design-contract: FAIL\n設定正本の必須語がありません:\n" + "\n".join(missing_setting_terms))
+    try:
+        identity_rows = _table_rows(_section(setting, "Canonical identity"), ("field", "value"))
+        identity = {row["field"]: row["value"] for row in identity_rows}
+        expected_identity = {
+            "city": "ポセイドン",
+            "organization": "境界事象調整局",
+            "unit": "接界機動班",
+            "protagonist": "御影冴",
+        }
+        if len(identity_rows) != len(identity) or identity != expected_identity:
+            raise ValueError("Canonical identity must contain each expected field exactly once")
+        canonical_contracts = (
+            (adr_010, "- 状態: 一部をADR-011で置換"),
+            (adr_011, "舞台名を海洋複合都市圏 **ポセイドン**、主人公を **御影冴**、実働班を **接界機動班**"),
+            (operative, "| 組織 | 境界事象調整局・接界機動班 |"),
+            (decisions, "| ADR-011 | ポセイドン／御影冴と名称オマージュ境界を採用する | accepted |"),
+        )
+        if any(document.count(contract) != 1 for document, contract in canonical_contracts):
+            raise ValueError("Canonical identity contracts must occur exactly once")
+        canonical_surfaces = "\n".join((readme, setting, operative, adr_010, adr_011, decisions, characters))
+        if "臨界対応班" in canonical_surfaces:
+            raise ValueError("superseded unit name remains on a canonical surface")
+        _validate_artifact_registry((root / "docs/knowledge/artifacts.md").read_text(encoding="utf-8"))
+    except ValueError as error:
+        raise SystemExit(f"design-contract: FAIL\nCanonical contract error: {error}") from error
     print("design-contract: PASS")
     return 0
 
