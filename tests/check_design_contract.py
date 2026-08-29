@@ -15,6 +15,7 @@ REQUIRED = (
     "docs/architecture/simulation-contract.md",
     "docs/architecture/agent-contract.md",
     "docs/architecture/ai-replica-mvp.md",
+    "docs/architecture/operative-contract.md",
     "docs/architecture/evaluation.md",
     "docs/architecture/model.odd.md",
     "docs/research/simulation-terms.md",
@@ -34,6 +35,8 @@ REQUIRED = (
     "docs/adr/ADR-005-ui-as-lab.md",
     "docs/adr/ADR-006-replayable-experiment-loop.md",
     "docs/adr/ADR-007-source-and-name-boundary.md",
+    "docs/adr/ADR-010-elite-operative-perspective.md",
+    "docs/world/setting-bible.md",
 )
 
 
@@ -49,6 +52,8 @@ def main() -> int:
         "docs/architecture/simulation-contract.md",
         "docs/architecture/agent-contract.md",
         "docs/architecture/ai-replica-mvp.md",
+        "docs/architecture/operative-contract.md",
+        "docs/world/setting-bible.md",
         "docs/design/ui-contract.md",
     )
     destinations = {
@@ -128,6 +133,20 @@ def main() -> int:
     missing_boundaries = [term for term in required_boundaries if term not in public_documents]
     if missing_boundaries:
         raise SystemExit("design-contract: FAIL\n公開境界の説明がありません:\n" + "\n".join(missing_boundaries))
+    setting = (root / "docs/world/setting-bible.md").read_text(encoding="utf-8")
+    operative = (root / "docs/architecture/operative-contract.md").read_text(encoding="utf-8")
+    setting_terms = {
+        "ほぼ何でもできる。それでも、何をするべきかは決まらない。": setting,
+        "境界事象調整局": setting,
+        "臨界対応班": setting,
+        "鏡雨事案": setting,
+        "主人公を弱くして難易度を作らない": operative,
+        "provider-neutral": operative,
+        "capability_failure": operative,
+    }
+    missing_setting_terms = [term for term, document in setting_terms.items() if term not in document]
+    if missing_setting_terms:
+        raise SystemExit("design-contract: FAIL\n設定正本の必須語がありません:\n" + "\n".join(missing_setting_terms))
     print("design-contract: PASS")
     return 0
 
