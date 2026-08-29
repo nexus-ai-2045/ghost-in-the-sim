@@ -7,6 +7,8 @@ import subprocess
 
 import pytest
 
+from ghost_in_the_sim.evidence_contract import project_evidence
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -35,6 +37,13 @@ def test_mvp_completion_sync_detects_drift_on_every_status_surface() -> None:
     for mutation in mutations:
         with pytest.raises(ValueError):
             module._validate_mvp_completion_sync(*mutation)
+    missing_replay = json.loads(json.dumps(payload))
+    missing_replay["result_card"].pop("ai_replay_evidence")
+    empty_reversal = json.loads(json.dumps(payload))
+    empty_reversal["result_card"]["seed_sensitivity"]["plural_vs_centralized_sign_reversals"] = []
+    for candidate in (missing_replay, empty_reversal):
+        with pytest.raises(ValueError):
+            module._validate_mvp_completion_sync(roadmap, artifacts, questions, candidate)
 
 
 def _validate_in_node(payload: dict) -> dict:
@@ -56,6 +65,7 @@ def test_result_card_contract_accepts_optional_replay_and_rejects_nested_drift()
     without_replay = json.loads(json.dumps(payload))
     without_replay.pop("ai_evidence_runs")
     without_replay["result_card"].pop("ai_replay_evidence")
+    without_replay["evidence_summary"] = project_evidence(without_replay)
     assert _validate_in_node(without_replay)["invalid"] is False
     malformed = []
     failure_null = json.loads(json.dumps(payload))
@@ -70,5 +80,15 @@ def test_result_card_contract_accepts_optional_replay_and_rejects_nested_drift()
     raw_run = json.loads(json.dumps(payload))
     raw_run["runs"][0] = None
     malformed.append(raw_run)
+    fabricated_failure = json.loads(json.dumps(payload))
+    fabricated_failure["result_card"]["runs"][0]["failed_run"] = True
+    fabricated_failure["result_card"]["failure_runs"] = [fabricated_failure["result_card"]["runs"][0]]
+    malformed.append(fabricated_failure)
+    replay_summary = json.loads(json.dumps(payload))
+    replay_summary["result_card"]["ai_replay_evidence"]["fallback_count"] = 1
+    malformed.append(replay_summary)
+    replay_source = json.loads(json.dumps(payload))
+    replay_source["result_card"]["ai_replay_evidence"]["decision_sources"] = ["fabricated"]
+    malformed.append(replay_source)
     for candidate in malformed:
         assert _validate_in_node(candidate) == {"card": None, "invalid": True}

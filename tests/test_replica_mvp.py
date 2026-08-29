@@ -23,6 +23,7 @@ from ghost_in_the_sim.replica import (
     run_replica_batch,
     run_replica_scenario,
 )
+from ghost_in_the_sim.evidence_contract import project_evidence, validate_derived_evidence
 
 
 def test_rule_engine_is_deterministic_and_maps_all_modes() -> None:
@@ -155,12 +156,14 @@ def test_tracked_comparison_is_exactly_reproducible_from_current_engine() -> Non
     }
     revision = artifact_revision(root, evidence_fixture=root / "fixtures" / "actual-ai-trace-seed42.json")
     card["artifact_revision"] = revision
-    assert tracked == {
+    expected = {
         **batch.to_dict(),
         "artifact_revision": revision,
         "ai_evidence_runs": [run.to_dict() for run in evidence_batch.runs],
         "result_card": card,
     }
+    expected["evidence_summary"] = project_evidence(expected)
+    assert tracked == expected
 
 
 def test_actual_trace_hash_is_independent_of_checkout_line_endings() -> None:
@@ -267,6 +270,21 @@ def test_result_card_is_machine_readable_and_seed_falsification_is_deterministic
     assert first["seed_sensitivity"]["seeds"] == [17, 42, 99]
     assert first["seed_sensitivity"]["by_mode"]["plural"]["public_trust"]["range"] > 0
     assert "parameter_sweep_not_run" in first["limitations"]
+
+
+def test_canonical_evidence_projection_rejects_derived_summary_mutations() -> None:
+    batch = run_replica_batch(seeds=DEFAULT_SEEDS, turn_limit=3)
+    payload = {**batch.to_dict(), "result_card": build_result_card(batch)}
+    payload["evidence_summary"] = project_evidence(payload)
+    validate_derived_evidence(payload)
+    for mutation in ("failure", "reversal"):
+        changed = json.loads(json.dumps(payload))
+        if mutation == "failure":
+            changed["result_card"]["failure_runs"] = [changed["result_card"]["runs"][0]]
+        else:
+            changed["result_card"]["seed_sensitivity"]["plural_vs_centralized_sign_reversals"] = ["fabricated"]
+        with pytest.raises(ValueError):
+            validate_derived_evidence(changed)
 
 
 def test_result_card_does_not_compare_modes_that_fell_back_to_another_mode() -> None:

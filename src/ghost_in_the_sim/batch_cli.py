@@ -11,6 +11,7 @@ from typing import Any
 from .decision import RecordedDecisionEngine
 from .actual_trace import load_actual_ai_trace
 from .replica import DEFAULT_SEEDS, build_result_card, run_replica_batch
+from .evidence_contract import project_evidence, validate_derived_evidence
 
 
 ARTIFACT_INPUTS = (
@@ -19,6 +20,7 @@ ARTIFACT_INPUTS = (
     "src/ghost_in_the_sim/replica.py",
     "src/ghost_in_the_sim/actual_trace.py",
     "src/ghost_in_the_sim/batch_cli.py",
+    "src/ghost_in_the_sim/evidence_contract.py",
     "scripts/render_results.py",
 )
 
@@ -107,6 +109,8 @@ def main() -> int:
             ),
             "fallback_count": sum(run.audit.fallback_applied for run in evidence_batch.runs),
         }
+    payload["evidence_summary"] = project_evidence(payload)
+    validate_derived_evidence(payload)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps({"output": str(args.output), "run_count": len(batch.runs), "seeds": list(batch.seeds)}, ensure_ascii=False, sort_keys=True))

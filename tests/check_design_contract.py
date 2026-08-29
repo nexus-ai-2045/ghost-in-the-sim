@@ -8,6 +8,8 @@ import json
 import re
 from urllib.parse import unquote, urlsplit
 
+from ghost_in_the_sim.evidence_contract import project_evidence, validate_derived_evidence
+
 
 CANONICAL_LIFECYCLE_STATES = {
     "concept",
@@ -62,6 +64,8 @@ def _validate_mvp_completion_sync(
 ) -> None:
     seeds = result_payload.get("seeds")
     card = result_payload.get("result_card", {})
+    validate_derived_evidence(result_payload)
+    evidence = project_evidence(result_payload)
     if seeds != [17, 42, 99] or card.get("run_count") != 9:
         raise ValueError("canonical MVP completion requires seeds 17/42/99 and 9 runs")
     if "- [x] 複数seedの代表結果と提出資料を同期" not in roadmap:
@@ -71,6 +75,11 @@ def _validate_mvp_completion_sync(
         raise ValueError("artifact registry does not match measured multi-seed state")
     if "複数seed集合での順位安定性" in open_questions:
         raise ValueError("completed multi-seed work remains in open questions")
+    replay = evidence["ai_replay"]
+    if replay != {"run_count": 3, "decision_sources": ["llm_generated_in_codex_session"], "fallback_count": 0}:
+        raise ValueError("artifact registry claims actual AI replay without matching raw evidence")
+    if not evidence["plural_vs_centralized_sign_reversals"]:
+        raise ValueError("artifact registry claims a sign reversal without matching raw evidence")
 
 
 REQUIRED = (

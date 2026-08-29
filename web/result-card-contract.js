@@ -19,6 +19,33 @@
     && object(value.audit) && typeof value.audit.fallback_applied === "boolean"
     && object(value.manifest) && object(value.metrics)
     && Array.isArray(value.decisions) && Array.isArray(value.events);
+  const canonical = value => JSON.stringify(value, (_, nested) => object(nested)
+    ? Object.fromEntries(Object.entries(nested).sort(([left], [right]) => left.localeCompare(right)))
+    : nested);
+
+  function project(payload) {
+    const runs = payload.runs;
+    const failureRunIds = runs
+      .filter(run => run.manifest.termination_reason !== "turn_limit_reached" || run.events.length !== run.manifest.turn_limit)
+      .map(run => run.manifest.run_id).sort();
+    const evidenceRuns = payload.ai_evidence_runs;
+    const aiReplay = evidenceRuns === undefined ? null : {
+      run_count: evidenceRuns.length,
+      decision_sources: [...new Set(evidenceRuns.flatMap(run => run.decisions.map(item => item.decision_source)))].sort(),
+      fallback_count: evidenceRuns.filter(run => run.audit.fallback_applied).length
+    };
+    const byModeSeed = new Map(runs.map(run => [`${run.requested_mode}:${run.seed}`, run]));
+    const pairs = [...new Set(payload.seeds)].sort((a, b) => a - b).flatMap(seed => {
+      const plural = byModeSeed.get(`plural:${seed}`); const centralized = byModeSeed.get(`centralized:${seed}`);
+      return plural && centralized && !plural.audit.fallback_applied && !centralized.audit.fallback_applied ? [[plural, centralized]] : [];
+    });
+    const higher = new Set(["continuity", "evidence_calibration", "public_trust", "dissent_reach"]);
+    const reversals = pairs.length ? Object.keys(pairs[0][0].metrics).sort().filter(metric => {
+      const deltas = pairs.map(([plural, centralized]) => (higher.has(metric) ? 1 : -1) * (plural.metrics[metric] - centralized.metrics[metric]));
+      return deltas.some(value => value < 0) && deltas.some(value => value > 0);
+    }) : [];
+    return { seeds: [...new Set(payload.seeds)].sort((a, b) => a - b), run_count: runs.length, failure_run_ids: failureRunIds, ai_replay: aiReplay, plural_vs_centralized_sign_reversals: reversals };
+  }
 
   function validate(payload) {
     const card = payload?.result_card;
@@ -50,8 +77,15 @@
       && Array.isArray(replay.decision_sources) && replay.decision_sources.length > 0
       && replay.decision_sources.every(item => typeof item === "string" && item.length > 0);
     valid = valid && (replayAbsent || replayValid);
+    if (valid) {
+      const projected = project(payload);
+      valid = canonical(payload.evidence_summary) === canonical(projected)
+        && canonical(failures.map(item => item.run_id).sort()) === canonical(projected.failure_run_ids)
+        && canonical(replay ?? null) === canonical(projected.ai_replay)
+        && canonical(card.seed_sensitivity?.plural_vs_centralized_sign_reversals) === canonical(projected.plural_vs_centralized_sign_reversals);
+    }
     return valid ? { card, invalid: false } : { card: null, invalid: true };
   }
 
-  return { validate };
+  return { project, validate };
 });
