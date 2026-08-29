@@ -36,7 +36,13 @@ REQUIRED = (
     "docs/adr/ADR-006-replayable-experiment-loop.md",
     "docs/adr/ADR-007-source-and-name-boundary.md",
     "docs/adr/ADR-010-elite-operative-perspective.md",
+    "docs/adr/ADR-011-named-homage-boundary.md",
+    "docs/adr/ADR-012-canon-runtime-expansion.md",
     "docs/world/setting-bible.md",
+    "docs/world/characters.md",
+    "docs/world/naming-taxonomy.md",
+    "docs/world/cases.md",
+    "docs/product/repository-goal.md",
 )
 
 
@@ -123,13 +129,12 @@ def main() -> int:
         "Version 1.0",
         "katayama-meta-security-v1",
         "application-0165",
-        "ポセイドン",
         "poseidon-public-infrastructure-01",
     )
     leaked_claims = [term for term in forbidden_claims if term in public_documents]
     if leaked_claims:
         raise SystemExit("design-contract: FAIL\n未確認または非公開の識別子があります:\n" + "\n".join(leaked_claims))
-    required_boundaries = ("正式な版番号", "第三者作品の地名・設定を再現せず")
+    required_boundaries = ("正式な版番号", "名称オマージュを明示する非公式")
     missing_boundaries = [term for term in required_boundaries if term not in public_documents]
     if missing_boundaries:
         raise SystemExit("design-contract: FAIL\n公開境界の説明がありません:\n" + "\n".join(missing_boundaries))
@@ -138,8 +143,9 @@ def main() -> int:
     setting_terms = {
         "ほぼ何でもできる。それでも、何をするべきかは決まらない。": setting,
         "境界事象調整局": setting,
-        "臨界対応班": setting,
-        "鏡雨事案": setting,
+        "接界機動班": setting,
+        "御影冴": setting,
+        "ポセイドン": setting,
         "主人公を弱くして難易度を作らない": operative,
         "provider-neutral": operative,
         "capability_failure": operative,

@@ -85,7 +85,7 @@ def test_batch_runs_three_modes_across_fixed_seeds_and_replays() -> None:
     assert {(run.requested_mode, run.seed) for run in first.runs} == {
         (mode, seed) for mode in ReplicaMode for seed in DEFAULT_SEEDS
     }
-    assert all(run.result.manifest()["scenario_id"] == "harbor-loop-replica-crisis-01" for run in first.runs)
+    assert all(run.result.manifest()["scenario_id"] == "poseidon-replica-crisis-01" for run in first.runs)
     assert {run.result.condition_id for run in first.runs} == {"centralized", "plural", "autonomous"}
     assert all(decision.model_id and decision.prompt_hash for run in first.runs for decision in run.decisions)
 

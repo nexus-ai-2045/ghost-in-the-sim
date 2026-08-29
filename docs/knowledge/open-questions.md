@@ -11,3 +11,5 @@
 | 提出用実行環境 | 実装フェーズ | ローカル動作確認 | batch生成とviewer起動をREADMEどおり再現（Windows完了） |
 | GitHub Actions の遠隔回帰 | ねく / GitHub Billing | アカウントの支払い・利用上限を確認後に同一HEADで再実行 | `verify` のジョブが開始され、同一HEADで成功する |
 | 公式要件の最終確認 | ねく | 提出直前に公式を再確認 | README・結果・資料の整合 |
+| 鏡潮事案のscenario schema | 実装フェーズ | 現行MVPを型付きmanifestへ移行 | 事件固有例外なしで御影・真壁・反証・代償を再現 |
+| 名称・配色・HUD・宣伝文の束レビュー | ねく | 応募・release前に人間が目視 | `PUBLIC_READY.md` の残務を解消 |

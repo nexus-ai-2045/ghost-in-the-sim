@@ -11,8 +11,8 @@
 | コード版 | `deterministic-core-v2` |
 | モデル版 | `0.2.0` |
 | `model_config_hash` | runごとにAI判断traceを含めて変化（下表のrun IDで固定） |
-| `source_revision` | `a75e7d4876af16f4` |
-| シナリオ | `harbor-loop-replica-crisis-01` |
+| `source_revision` | `57e3d71205c30e77` |
+| シナリオ | `poseidon-replica-crisis-01` |
 | seed集合 | `{42}`（代表1 seed。複数seedの正式実験は未実行） |
 | 比較条件 | A=`centralized` / B=`plural` / C=`autonomous` |
 | ターン上限 | `12` |
@@ -48,9 +48,9 @@ py -3.13 -m ghost_in_the_sim.batch_cli --output web/data/comparison.json --seed 
 
 | 条件 | run_id | 終了理由 | 完了ターン |
 |---|---|---|---:|
-| A centralized | `run-2a9fedd9fa85` | `turn_limit_reached` | 12 |
-| B plural | `run-b1c471e62322` | `turn_limit_reached` | 12 |
-| C autonomous | `run-d0ab22680758` | `turn_limit_reached` | 12 |
+| A centralized | `run-02ede6230f21` | `turn_limit_reached` | 12 |
+| B plural | `run-ca5654a62cac` | `turn_limit_reached` | 12 |
+| C autonomous | `run-14763c2dec27` | `turn_limit_reached` | 12 |
 
 ## 結果（契約指標・seed 42 実測）
 

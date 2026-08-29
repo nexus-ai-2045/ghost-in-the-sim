@@ -14,8 +14,8 @@ from typing import Any
 MODEL_VERSION = "0.2.0"
 CODE_VERSION = "deterministic-core-v2"
 PROMPT_VERSION_OR_HASH = "rule-based:not-applicable"
-POLICY_VERSION = "harbor-loop-policy-v3"
-SCENARIO_ID = "harbor-loop-replica-crisis-01"
+POLICY_VERSION = "poseidon-policy-v4"
+SCENARIO_ID = "poseidon-replica-crisis-01"
 POLICY_REFERENCE_IDS = ("policy-centralized", "policy-plural", "policy-autonomous", "policy-overconnected")
 
 
