@@ -46,6 +46,7 @@ def test_event_contract_and_metric_ranges_are_preserved() -> None:
     result = run_experiment(condition=Condition.OVERCONNECTED, seed=9, turn_limit=6)
 
     assert len(result.events) == 6
+    run_observation_ids = {obs for event in result.events for obs in event.observation_ids}
     for event in result.events:
         assert event.run_id == result.run_id
         assert event.seed == 9
@@ -57,7 +58,7 @@ def test_event_contract_and_metric_ranges_are_preserved() -> None:
         assert event.reversibility in {"high", "medium", "low"}
         assert event.rationale_refs
         assert all(
-            ref in event.observation_ids or ref in result.manifest()["policy_reference_ids"]
+            ref in run_observation_ids or ref in result.manifest()["policy_reference_ids"]
             for ref in event.rationale_refs
         )
         assert isinstance(event.dissent_raised, bool)
@@ -67,16 +68,63 @@ def test_event_contract_and_metric_ranges_are_preserved() -> None:
     assert result.manifest()["code_version"] == "deterministic-core-v2"
     assert result.manifest()["prompt_version_or_hash"] == "rule-based:not-applicable"
     assert len(result.manifest()["source_revision"]) == 16
-    assert result.metrics["correction_turn"] == 6.0
+    # overconnected: broadcast at turn 1, correction at turn 6 → 5 turns until corrected
+    assert result.metrics["correction_turn"] == 5.0
+    assert result.metrics["over_disclosure"] == 5.0
     for metric in (
         "continuity",
         "evidence_calibration",
         "public_trust",
         "coordination_dependence",
-        "over_disclosure",
         "dissent_reach",
     ):
         assert 0.0 <= result.metrics[metric] <= 1.0
+    assert result.metrics["over_disclosure"] >= 0.0
+
+
+def test_contract_metrics_match_evaluation_operational_definitions() -> None:
+    result = run_experiment(condition=Condition.PLURAL, seed=42, turn_limit=12)
+    assert result.metrics["continuity"] == 1.0
+    assert result.metrics["over_disclosure"] == 0.0
+    assert result.metrics["dissent_reach"] == 1.0
+    assert result.metrics["correction_turn"] == 2.0
+    assert 0.0 <= result.metrics["evidence_calibration"] <= 1.0
+    assert 0.0 <= result.metrics["coordination_dependence"] <= 1.0
+
+
+def test_evidence_calibration_matches_linked_observations_only() -> None:
+    result = run_experiment(condition=Condition.CENTRALIZED, seed=42, turn_limit=12)
+    correction = next(event for event in result.events if event.action_type == "issue_correction")
+    resolved = {ref for ref in correction.rationale_refs if ref.startswith("obs-")}
+    assert resolved == {"obs-03"}
+    # obs-01/02 must not be treated as corrected solely by later correction ordering
+    assert "obs-01" not in resolved and "obs-02" not in resolved
+    scored_claim_turns = []
+    for index, event in enumerate(result.events):
+        claim_obs = set(event.observation_ids)
+        for later in result.events[index + 1 :]:
+            if later.action_type != "issue_correction":
+                continue
+            if claim_obs & {ref for ref in later.rationale_refs if ref.startswith("obs-")}:
+                scored_claim_turns.append(event.turn)
+                break
+    assert scored_claim_turns == [3]
+
+
+def test_node_stop_stays_internal_and_does_not_reuse_public_run_id() -> None:
+    public = run_experiment(condition=Condition.PLURAL, seed=42, turn_limit=4)
+    stopped_events, _, _ = engine_module._simulate_events(
+        condition=Condition.PLURAL,
+        seed=42,
+        turn_limit=4,
+        disabled_actors=frozenset({"service_steward"}),
+    )
+    assert any(event.action_type == "node_unavailable" for event in stopped_events)
+    assert stopped_events[0].actor_id == "service_steward"
+    assert stopped_events[0].action_type == "node_unavailable"
+    assert stopped_events[0].run_id == engine_module.INTERNAL_METRIC_RUN_ID
+    assert stopped_events[0].run_id != public.run_id
+    assert "disabled_actors" not in public.manifest()
 
 
 def test_actor_profiles_change_transition_deltas() -> None:

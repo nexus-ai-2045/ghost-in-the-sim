@@ -17,6 +17,21 @@
 | 調整依存 | 単一ノード停止で失われる協調量 | 低い |
 | 過剰開示 | 必要性を超えた共有の回数 | 低い |
 
+## MVP運用定義（決定論コア）
+
+評価表の文言を、現行イベント／状態から再計算できる手続きへ落とす。最終スカラーの代用や推測値は使わない。観測が足りず算出できない場合は欠測とし、捏造しない。
+
+| 記録キー | 算出 |
+|---|---|
+| `continuity`（生活継続） | 分析ホライズン各ターンについて、終了後 `continuity >= 0.5` なら維持。早期吸収終了後の未観測ターンは非維持。維持ターン数 / `turn_limit` |
+| `evidence_calibration`（証拠校正） | 各主張について、後続の検証行動（`issue_correction` / `request_cross_check`）のうち、その主張の `observation_ids` を `rationale_refs` で明示参照するものだけを見る。`issue_correction` なら実現値0、`request_cross_check` なら当該ターンで証拠品質が非低下なら1・低下なら0。`1 - \|confidence - 実現値\|` の平均。紐付く検証が無い主張は母数から除く。母数が0なら `0.0`（検証不能）。検証行動は解決対象の先行観測を `rationale_refs` に記録する |
+| `correction_turn`（訂正時間） | 最初の `issue_correction` より前の情報共有（`broadcast_status` / `coordinate_response`）から訂正までのターン差。共有が無い場合は訂正ターン番号。訂正が無い場合は `turn_limit + 1` |
+| `dissent_reach`（異議到達率） | `dissent_delivered` 件数 / `dissent_raised` 件数。raisedが0なら `0.0` |
+| `coordination_dependence`（調整依存） | 協調量 = 各ターンの継続・公共信頼の正の増分の和。各 `actor_id` を1体ずつ停止（当該主体ターンは政策デルタ無し・外生擾乱のみ）して**内部シミュレーション**し、`(協調量_完全 - 協調量_停止) / 協調量_完全` の最大。協調量_完全が0以下なら `0.0`。停止介入は公開 `run_id` / manifest に含めず、指標算出専用とする |
+| `over_disclosure`（過剰開示） | 必要性を超えた共有の**回数**。`broadcast_status` は常に1回として数える。`coordinate_response` は直前 `disclosure_pressure >= 0.5` のときだけ数える。`issue_correction` / `request_cross_check` は必要共有として数えない |
+
+補助キー `public_trust` は契約表外であり、最終状態の参照用に残してよい。
+
 ## 結果の読み方
 
 総合点を作って「最強の統治」を決めない。条件ごとのPareto差、代表ログ、失敗run、感度分析を並べる。結果は `RESULTS.md` のテンプレートへ記録する。
