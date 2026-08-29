@@ -234,23 +234,143 @@ def _advance(state: WorldState, deltas: dict[str, float], disturbance: float) ->
     )
 
 
-def _metrics(events: tuple[Event, ...], state: WorldState) -> dict[str, float]:
-    correction_turn = next(
-        (event.turn for event in events if event.action_type == "issue_correction"),
-        len(events) + 1,
+SERVICE_MAINTENANCE_THRESHOLD = 0.5
+DISCLOSURE_NECESSITY_THRESHOLD = 0.5
+SHARE_ACTIONS = frozenset({"broadcast_status", "coordinate_response"})
+NECESSARY_SHARE_ACTIONS = frozenset({"issue_correction", "request_cross_check"})
+
+
+def _coordination_amount(events: tuple[Event, ...]) -> float:
+    """単一ノード停止損失の比較に使う協調量（継続・信頼の正の増分和）。"""
+
+    total = 0.0
+    for event in events:
+        total += max(0.0, event.state_after.continuity - event.state_before.continuity)
+        total += max(0.0, event.state_after.public_trust - event.state_before.public_trust)
+    return total
+
+
+def _continuity_ratio(events: tuple[Event, ...], turn_limit: int) -> float:
+    """必要サービスが維持されたターン比率。"""
+
+    maintained = 0
+    observed = {event.turn for event in events if event.state_after.continuity >= SERVICE_MAINTENANCE_THRESHOLD}
+    for turn in range(1, turn_limit + 1):
+        if turn in observed:
+            maintained += 1
+    return round(maintained / turn_limit, 6)
+
+
+def _evidence_calibration(events: tuple[Event, ...]) -> float:
+    """主張の確信度と後続検証信号の整合。"""
+
+    scores: list[float] = []
+    for index, event in enumerate(events):
+        realized: float | None = None
+        for later in events[index + 1 :]:
+            if later.action_type == "issue_correction":
+                realized = 0.0
+                break
+            if later.action_type == "request_cross_check":
+                realized = 1.0 if later.state_after.evidence_quality >= later.state_before.evidence_quality else 0.0
+                break
+        if realized is None:
+            continue
+        scores.append(1.0 - abs(event.confidence - realized))
+    if not scores:
+        return 0.0
+    return round(sum(scores) / len(scores), 6)
+
+
+def _correction_time(events: tuple[Event, ...], turn_limit: int) -> float:
+    """誤った共有が訂正されるまでのターン。"""
+
+    correction_turn = next((event.turn for event in events if event.action_type == "issue_correction"), None)
+    if correction_turn is None:
+        return float(turn_limit + 1)
+    prior_share = next(
+        (event.turn for event in events if event.turn < correction_turn and event.action_type in SHARE_ACTIONS),
+        None,
     )
+    if prior_share is None:
+        return float(correction_turn)
+    return float(correction_turn - prior_share)
+
+
+def _dissent_reach(events: tuple[Event, ...]) -> float:
     raised = sum(event.dissent_raised for event in events)
+    if not raised:
+        return 0.0
     delivered = sum(event.dissent_delivered for event in events)
-    dissent_reach = delivered / raised if raised else 0.0
-    return {
-        "continuity": state.continuity,
-        "evidence_calibration": state.evidence_quality,
+    return round(delivered / raised, 6)
+
+
+def _over_disclosure_count(events: tuple[Event, ...]) -> float:
+    """必要性を超えた共有の回数。"""
+
+    count = 0
+    for event in events:
+        if event.action_type in NECESSARY_SHARE_ACTIONS:
+            continue
+        if event.action_type == "broadcast_status":
+            count += 1
+        elif (
+            event.action_type == "coordinate_response"
+            and event.state_before.disclosure_pressure >= DISCLOSURE_NECESSITY_THRESHOLD
+        ):
+            count += 1
+    return float(count)
+
+
+def _single_node_stop_loss(*, condition: Condition, seed: int, turn_limit: int, events: tuple[Event, ...]) -> float:
+    """単一ノード停止で失われる協調量（相対最大損失）。"""
+
+    baseline = _coordination_amount(events)
+    if baseline <= 0.0:
+        return 0.0
+    worst = 0.0
+    for actor_id in {event.actor_id for event in events}:
+        knocked = run_experiment(
+            condition=condition,
+            seed=seed,
+            turn_limit=turn_limit,
+            disabled_actors=frozenset({actor_id}),
+            include_dependence_metric=False,
+        )
+        loss = max(0.0, baseline - _coordination_amount(knocked.events)) / baseline
+        if loss > worst:
+            worst = loss
+    return round(worst, 6)
+
+
+def _metrics(
+    events: tuple[Event, ...],
+    state: WorldState,
+    *,
+    condition: Condition,
+    seed: int,
+    turn_limit: int,
+    include_dependence_metric: bool,
+) -> dict[str, float]:
+    """evaluation.md のMVP運用定義どおりに契約指標を集計する。"""
+
+    metrics = {
+        "continuity": _continuity_ratio(events, turn_limit),
+        "evidence_calibration": _evidence_calibration(events),
         "public_trust": state.public_trust,
-        "coordination_dependence": state.coordination_dependence,
-        "over_disclosure": state.disclosure_pressure,
-        "correction_turn": float(correction_turn),
-        "dissent_reach": round(dissent_reach, 6),
+        "coordination_dependence": 0.0,
+        "over_disclosure": _over_disclosure_count(events),
+        "correction_turn": _correction_time(events, turn_limit),
+        "dissent_reach": _dissent_reach(events),
     }
+    if include_dependence_metric:
+        metrics["coordination_dependence"] = _single_node_stop_loss(
+            condition=condition,
+            seed=seed,
+            turn_limit=turn_limit,
+            events=events,
+        )
+    return metrics
 
 
 def _stream_rng(seed: int, stream: str, condition: Condition | None = None) -> Random:
@@ -258,7 +378,14 @@ def _stream_rng(seed: int, stream: str, condition: Condition | None = None) -> R
     return Random(int(sha256(identity.encode("utf-8")).hexdigest()[:16], 16))
 
 
-def run_experiment(*, condition: Condition | str, seed: int, turn_limit: int = 12) -> RunResult:
+def run_experiment(
+    *,
+    condition: Condition | str,
+    seed: int,
+    turn_limit: int = 12,
+    disabled_actors: frozenset[str] = frozenset(),
+    include_dependence_metric: bool = True,
+) -> RunResult:
     """同一入力から同一イベント列を作る。外部I/O・LLM・実在データは使わない。"""
 
     chosen = Condition(condition)
@@ -280,12 +407,30 @@ def run_experiment(*, condition: Condition | str, seed: int, turn_limit: int = 1
     for turn in range(1, turn_limit + 1):
         profile = ACTOR_PROFILES[(turn - 1) % len(ACTOR_PROFILES)]
         observation_id = f"obs-{turn:02d}"
-        action_type, reservation, reversibility, refs, deltas, dissent_raised, dissent_delivered = _policy(
-            chosen, turn, profile, observation_id
-        )
-        confidence = _clamp(0.35 + state.evidence_quality * 0.45 + decision_rng.uniform(-0.05, 0.05))
         disturbance = exogenous_rng.uniform(0.0, 1.0)
-        next_state = _advance(state, _actor_adjusted_deltas(deltas, profile), disturbance)
+        confidence_draw = decision_rng.uniform(-0.05, 0.05)
+        if profile.actor_id in disabled_actors:
+            action_type = "node_unavailable"
+            reservation = "単一ノード停止による欠測"
+            reversibility = "high"
+            refs = (f"policy-{chosen.value}", observation_id)
+            deltas = {
+                "continuity": 0.0,
+                "evidence_quality": 0.0,
+                "public_trust": 0.0,
+                "coordination_dependence": 0.0,
+                "disclosure_pressure": 0.0,
+            }
+            dissent_raised = False
+            dissent_delivered = False
+            confidence = 0.0
+            next_state = _advance(state, deltas, disturbance)
+        else:
+            action_type, reservation, reversibility, refs, deltas, dissent_raised, dissent_delivered = _policy(
+                chosen, turn, profile, observation_id
+            )
+            confidence = _clamp(0.35 + state.evidence_quality * 0.45 + confidence_draw)
+            next_state = _advance(state, _actor_adjusted_deltas(deltas, profile), disturbance)
         events.append(
             Event(
                 run_id=run_id,
@@ -325,7 +470,14 @@ def run_experiment(*, condition: Condition | str, seed: int, turn_limit: int = 1
         source_revision=_source_revision(),
         events=event_tuple,
         final_state=state,
-        metrics=_metrics(event_tuple, state),
+        metrics=_metrics(
+            event_tuple,
+            state,
+            condition=chosen,
+            seed=seed,
+            turn_limit=turn_limit,
+            include_dependence_metric=include_dependence_metric and not disabled_actors,
+        ),
         model_config_hash=config_hash,
         termination_reason=termination_reason,
     )

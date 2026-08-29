@@ -6,35 +6,34 @@
 
 | 項目 | 値 |
 |---|---|
-| 記録日 | `2026-08-28` |
-| 実行実装commit | `48542c9b02bfd8dcfab85c8a612dac3cfce24278` |
+| 記録日 | `2026-08-29` |
+| 実行実装commit | （このPRの指標実装コミット。下記 `source_revision` / `model_config_hash` で再照合） |
 | コード版 | `deterministic-core-v2` |
 | モデル版 | `0.2.0` |
-| `model_config_hash` | `74345ee9673ec2bf` |
-| `source_revision` | `62a1c6cb5f5a4251` |
+| `model_config_hash` | `73600b9ad2e89d17` |
+| `source_revision` | `cbdd4ed3a193d8ff` |
 | シナリオ | `poseidon-public-infrastructure-01` |
 | seed集合 | `{42}`（代表1 seed。複数seedの正式実験は未実行） |
 | 比較条件 | A=`centralized` / B=`plural` / C=`overconnected` |
 | ターン上限 | `12` |
 | モデル設定 | 標準ライブラリによるルールベース。LLMなし |
+| 指標定義 | `docs/architecture/evaluation.md` の MVP運用定義 |
 | Python | `3.12.3` |
 | 実行環境 | Linux / `PYTHONPATH=src` |
 
-## 測定物と評価契約の境界
+## 測定物と評価契約
 
-`docs/architecture/evaluation.md` の契約指標（ターン比率・整合・ノード停止損失・開示回数など）は、現行コアでは**未実装**である。
+本記録の数値は `engine._metrics()` が **evaluation.md のMVP運用定義どおり** に集計した契約指標である。最終 `WorldState` スカラーの代用ではない。
 
-本記録の数値は `engine._metrics()` が返す**状態プロキシ／イベント派生値**であり、契約指標そのものではない。同名・類似名で並べても、契約どおりの算出ではない。契約実装後に再実行して差し替える。
-
-| 記録キー | 実際の定義（現行コア） | 契約指標との関係 |
+| 記録キー | 契約上の意味 | 本runでの算出 |
 |---|---|---|
-| `continuity` | 最終 `WorldState.continuity` | 生活継続（維持ターン比率）の**プロキシではない代替**。最終スカラーのみ |
-| `evidence_calibration` | 最終 `WorldState.evidence_quality` | 証拠校正（確信度と後続検証の整合）の**未実装**。最終スカラーのみ |
-| `correction_turn` | 最初の `issue_correction` ターン（なければ turn_limit+1） | 訂正時間に**近いイベント派生**。誤共有の訂正完了判定は未実装 |
-| `dissent_reach` | `dissent_delivered / dissent_raised` | 異議到達率に**近いイベント派生** |
-| `coordination_dependence` | 最終 `WorldState.coordination_dependence` | 調整依存（単一ノード停止損失）の**未実装**。最終スカラーのみ |
-| `over_disclosure` | 最終 `WorldState.disclosure_pressure` | 過剰開示（必要性超過の共有回数）の**未実装**。最終スカラーのみ |
-| `public_trust` | 最終 `WorldState.public_trust` | 契約表外の補助状態 |
+| `continuity` | 生活継続（維持ターン比率） | 各ターン後 `continuity >= 0.5` の比率（早期終了後は非維持） |
+| `evidence_calibration` | 証拠校正（確信度と後続検証の整合） | 後続 `issue_correction` / `request_cross_check` に対する `1 - \|confidence - 実現値\|` の平均 |
+| `correction_turn` | 訂正時間 | 訂正前の情報共有から `issue_correction` までのターン差（共有が無ければ訂正ターン番号） |
+| `dissent_reach` | 異議到達率 | `dissent_delivered / dissent_raised` |
+| `coordination_dependence` | 調整依存（単一ノード停止損失） | 協調量の leave-one-out 最大相対損失 |
+| `over_disclosure` | 過剰開示 | 必要性超過の共有**回数** |
+| `public_trust` | 契約表外の補助 | 最終 `WorldState.public_trust` |
 
 ## 実行コマンド
 
@@ -52,43 +51,43 @@ python3 -m ghost_in_the_sim.compare_cli --baseline centralized --candidate plura
 
 | 条件 | run_id | 終了理由 | 完了ターン |
 |---|---|---|---:|
-| A centralized | `run-ebd1a6e388a7` | `turn_limit_reached` | 12 |
-| B plural | `run-846792cc60bb` | `turn_limit_reached` | 12 |
-| C overconnected | `run-46bb5ac9a8a3` | `turn_limit_reached` | 12 |
+| A centralized | `run-779260b38191` | `turn_limit_reached` | 12 |
+| B plural | `run-c51a074b4c52` | `turn_limit_reached` | 12 |
+| C overconnected | `run-d2844dd50ea2` | `turn_limit_reached` | 12 |
 
-## 結果（状態プロキシ／イベント派生・契約指標ではない）
+## 結果（契約指標・seed 42 実測）
 
-総合点は作らない。列名の日本語は参照用であり、契約指標の達成を意味しない。設計契約検査用に `| 過剰開示 |` 行を残す。
+総合点は作らない。設計契約検査用に `| 過剰開示 |` 行を残す。
 
-| 記録キー（日本語参照名） | 条件A centralized | 条件B plural | 条件C overconnected | 読み（仮定下・プロキシ比較） |
+| 指標 | 条件A centralized | 条件B plural | 条件C overconnected | 読み（仮定下・断定しない） |
 |---|---:|---:|---:|---|
-| 生活継続プロキシ (`continuity`) | 0.97907 | 0.70307 | 0.78707 | Aの最終継続スカラーが最も高い |
-| 証拠品質プロキシ (`evidence_calibration`) | 0.449538 | 1.0 | 0.341538 | Bが上限。校正整合の計測ではない |
-| 初回訂正ターン (`correction_turn`) | 4.0 | 2.0 | 6.0 | イベント派生。低いほど初回訂正が早い |
-| 異議配信比 (`dissent_reach`) | 0.083333 | 1.0 | 0.083333 | イベント派生。Bのみ全件配信 |
-| 調整依存プロキシ (`coordination_dependence`) | 1.0 | 0.0 | 0.218753 | 最終スカラー。ノード停止損失ではない |
-| 過剰開示 | 0.673283 | 0.205283 | 1.0 | 開示圧の最終スカラー（`over_disclosure`）。共有回数ではない |
-| 公共信頼プロキシ (`public_trust`) | 0.31973 | 0.73973 | 0.07973 | 契約表外の補助状態 |
+| 生活継続 (`continuity`) | 1.0 | 1.0 | 1.0 | 閾値0.5のもと、3条件とも全ターン維持 |
+| 証拠校正 (`evidence_calibration`) | 0.444964 | 0.636714 | 0.482653 | Bが最も高い |
+| 訂正時間 (`correction_turn`) | 3.0 | 2.0 | 5.0 | 低いほど速い。Bが最短 |
+| 異議到達率 (`dissent_reach`) | 0.083333 | 1.0 | 0.083333 | Bのみ全件配信 |
+| 調整依存 (`coordination_dependence`) | 0.246895 | 0.259159 | 0.30005 | 単一ノード停止の最大相対損失。Cが最大 |
+| 過剰開示 | 7.0 | 0.0 | 11.0 | 共有回数。Cが最多、Bは0 |
+| 公共信頼（補助 `public_trust`） | 0.31973 | 0.73973 | 0.07973 | 契約表外の最終状態 |
 
-### centralized → plural（seed 42, CRN・プロキシ差分）
+### centralized → plural（seed 42, CRN・契約指標差分）
 
 | 差分キー | candidate − baseline |
 |---|---:|
-| continuity | -0.276 |
-| evidence_calibration | +0.550462 |
-| correction_turn | -2.0 |
+| continuity | 0.0 |
+| evidence_calibration | +0.19175 |
+| correction_turn | -1.0 |
 | dissent_reach | +0.916667 |
-| coordination_dependence | -1.0 |
-| over_disclosure | -0.468 |
+| coordination_dependence | +0.012264 |
+| over_disclosure | -7.0 |
 | public_trust | +0.42 |
 
-同一seedの外生擾乱列は条件間で一致した（CRN）。これは政策優劣の断定ではなく、仮定下のプロキシ差の観測である。
+同一seedの外生擾乱列は条件間で一致した（CRN）。これは政策優劣の断定ではなく、仮定下の契約指標差の観測である。
 
 ## 反証・限界
 
-- **契約未達**: 評価設計の生活継続・証拠校正・調整依存・過剰開示は未実装。本表を契約指標の順位として読まない。
 - **単一seed**: この記録は seed `42` のみ。順位の安定性は未確認。複数seed集合の正式実験は未実行。
-- **勝者なし**: プロキシ上でも方向は一様でない（例: pluralは証拠品質・異議で高く、最終継続は centralized より低い）。総合点による「最強の統治」は主張しない。
+- **生活継続が飽和**: 本seed・閾値0.5では3条件とも比率1.0。条件差は他指標に出る。閾値やシナリオ強度を変えた感度は未実施。
+- **勝者なし**: 方向は一様でない（例: pluralは証拠校正・異議・過剰開示で良く、調整依存の leave-one-out 損失は centralized と近い）。総合点による「最強の統治」は主張しない。
 - **失敗run**: 本seedでは3条件とも `turn_limit_reached`。吸収状態（継続0）による早期終了は未観測。
 - **感度未実施**: 遷移パラメータや主体バイアスの掃引は未実施。
 - **境界**: 仮定とseedのもとでの比較であり、現実予測・政策推奨・実在組織の評価ではない。

@@ -67,16 +67,39 @@ def test_event_contract_and_metric_ranges_are_preserved() -> None:
     assert result.manifest()["code_version"] == "deterministic-core-v2"
     assert result.manifest()["prompt_version_or_hash"] == "rule-based:not-applicable"
     assert len(result.manifest()["source_revision"]) == 16
-    assert result.metrics["correction_turn"] == 6.0
+    # overconnected: broadcast at turn 1, correction at turn 6 → 5 turns until corrected
+    assert result.metrics["correction_turn"] == 5.0
+    assert result.metrics["over_disclosure"] == 5.0
     for metric in (
         "continuity",
         "evidence_calibration",
         "public_trust",
         "coordination_dependence",
-        "over_disclosure",
         "dissent_reach",
     ):
         assert 0.0 <= result.metrics[metric] <= 1.0
+    assert result.metrics["over_disclosure"] >= 0.0
+
+
+def test_contract_metrics_match_evaluation_operational_definitions() -> None:
+    result = run_experiment(condition=Condition.PLURAL, seed=42, turn_limit=12)
+    assert result.metrics["continuity"] == 1.0
+    assert result.metrics["over_disclosure"] == 0.0
+    assert result.metrics["dissent_reach"] == 1.0
+    assert result.metrics["correction_turn"] == 2.0
+    assert 0.0 <= result.metrics["evidence_calibration"] <= 1.0
+    assert 0.0 <= result.metrics["coordination_dependence"] <= 1.0
+
+    stopped = run_experiment(
+        condition=Condition.PLURAL,
+        seed=42,
+        turn_limit=4,
+        disabled_actors=frozenset({"service_steward"}),
+        include_dependence_metric=False,
+    )
+    assert any(event.action_type == "node_unavailable" for event in stopped.events)
+    assert stopped.events[0].actor_id == "service_steward"
+    assert stopped.events[0].action_type == "node_unavailable"
 
 
 def test_actor_profiles_change_transition_deltas() -> None:

@@ -7,5 +7,6 @@
 | application-theme-submission | 通常参加表明 | 応募時テーマ文。個別の参加者番号は公開索引に保持しない | recorded |
 | ghost-in-the-sim-design-2026-08-24 | Codex設計作業 | MVP、主体モデル、比較実験、ADR | reflected |
 | ghost-in-the-sim-seed42-results-2026-08-28 | Cloud Agent実測 | seed 42 の A/B/C 実測を RESULTS へ記録、PUBLIC_READY を PUBLIC に整合 | reflected |
+| ghost-in-the-sim-eval-metrics-2026-08-29 | Cloud Agent実装 | evaluation.md 運用定義どおりの契約指標を実装し、seed 42 で RESULTS を差し替え | reflected |
 
 個人情報、Discordやメールの本文、認証情報、ローカル絶対パスをここへ保存しない。
