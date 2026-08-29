@@ -9,7 +9,7 @@ from typing import Any
 
 from .decision import RecordedDecisionEngine
 from .actual_trace import load_actual_ai_trace
-from .replica import DEFAULT_SEEDS, run_replica_batch
+from .replica import DEFAULT_SEEDS, build_result_card, run_replica_batch
 
 
 def _load_fixture(path: Path) -> RecordedDecisionEngine:
@@ -42,6 +42,7 @@ def main() -> int:
         decision_engine=decision_engine,
     )
     payload = batch.to_dict()
+    payload["result_card"] = build_result_card(batch)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps({"output": str(args.output), "run_count": len(batch.runs), "seeds": list(batch.seeds)}, ensure_ascii=False, sort_keys=True))

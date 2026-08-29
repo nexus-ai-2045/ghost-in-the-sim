@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import json
+from dataclasses import replace
 
 import pytest
 
@@ -14,7 +15,13 @@ from ghost_in_the_sim.decision import (
     RuleDecisionEngine,
 )
 from ghost_in_the_sim.actual_trace import _trace_hash_from_bytes, load_actual_ai_trace
-from ghost_in_the_sim.replica import DEFAULT_SEEDS, run_replica_batch, run_replica_scenario
+from ghost_in_the_sim.replica import (
+    DEFAULT_SEEDS,
+    build_result_card,
+    classify_run_failure,
+    run_replica_batch,
+    run_replica_scenario,
+)
 
 
 def test_rule_engine_is_deterministic_and_maps_all_modes() -> None:
@@ -197,3 +204,53 @@ def test_duplicate_decision_id_causes_audited_fallback() -> None:
     assert run.audit.fallback_applied
     assert run.audit.reason_code == "decision_invalid"
     assert run.effective_mode is ReplicaMode.PLURAL
+
+
+def test_failure_classifier_is_pure_and_reports_incomplete_synthetic_run() -> None:
+    completed = run_replica_scenario(requested_mode=ReplicaMode.PLURAL, seed=17, turn_limit=3).result
+    failed = replace(
+        completed,
+        events=completed.events[:2],
+        termination_reason="absorbing_state_continuity_lost",
+    )
+
+    assert classify_run_failure(completed) == (False, ())
+    assert classify_run_failure(failed) == (
+        True,
+        ("termination:absorbing_state_continuity_lost", "incomplete_turns:2/3"),
+    )
+
+
+def test_result_card_is_machine_readable_and_seed_falsification_is_deterministic() -> None:
+    batch = run_replica_batch(seeds=(17, 42, 99), turn_limit=3)
+
+    first = build_result_card(batch)
+    second = build_result_card(batch)
+
+    assert first == second
+    assert first["schema_version"] == "result-card-v1"
+    assert first["run_count"] == 9
+    assert len(first["runs"]) == 9
+    assert first["failure_runs"] == []
+    assert all(not run["failed_run"] for run in first["runs"])
+    assert all(run["completed_turns"] == run["turn_limit"] == 3 for run in first["runs"])
+    assert all(run["representative_log_refs"] for run in first["runs"])
+    per_seed = [item for item in first["refutation_checks"] if item["seed"] is not None]
+    assert {item["seed"] for item in per_seed} == {17, 42, 99}
+    assert all(item["status"] in {"triggered", "not_triggered", "not_observable"} for item in per_seed)
+    assert all(item["evidence"] for item in per_seed)
+    assert first["seed_sensitivity"]["seeds"] == [17, 42, 99]
+    assert first["seed_sensitivity"]["by_mode"]["plural"]["public_trust"]["range"] > 0
+    assert "parameter_sweep_not_run" in first["limitations"]
+
+
+def test_batch_cli_writes_result_card_without_changing_canonical_batch_payload(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ghost_in_the_sim import batch_cli
+
+    output = tmp_path / "comparison.json"
+    monkeypatch.setattr("sys.argv", ["batch_cli", "--output", str(output), "--turn-limit", "3"])
+
+    assert batch_cli.main() == 0
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert "result_card" in payload
+    assert payload["result_card"] == build_result_card(run_replica_batch(turn_limit=3))
