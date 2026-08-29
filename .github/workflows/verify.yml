@@ -28,4 +28,5 @@ jobs:
         run: |
           python tests/check_public_boundary.py
           python tests/check_design_contract.py
+          python tests/check_ip_boundary.py
           python -m compileall -q src

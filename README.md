@@ -49,11 +49,13 @@ flowchart LR
 2. [シミュレーション契約](docs/architecture/simulation-contract.md) — 再現性、ターン、入力・出力、禁止事項
 3. [エージェント契約](docs/architecture/agent-contract.md) — 単純な役職ではない主体モデル
 4. [AI複製主体MVP](docs/architecture/ai-replica-mvp.md) — 分岐、権限失効、3方式、AI安全境界
-5. [画面・可視化仕様](docs/design/ui-contract.md) — Web実験画面で何を見せ、何を操作するか
-6. [意思決定記録（最初の設計判断）](docs/adr/ADR-001-original-agent-model.md) — 設計上の選択と却下した代案
-7. [PRセルフレビュー](docs/pr-self-review.md) — 横断的な再発防止ルールに沿った変更前確認
-8. [ODD形式のモデル記述](docs/architecture/model.odd.md) — 目的、主体、ターン順序、入出力
-9. [用語と先行手法](docs/research/simulation-terms.md) — ABM、ODD、CRN、監査ログの採用範囲
+5. [世界設定正本](docs/world/setting-bible.md) — 境界局、実働調整官、卓越性、最初の事件
+6. [実働者契約](docs/architecture/operative-contract.md) — 設定を状態・行動・評価へ写像する契約
+7. [画面・可視化仕様](docs/design/ui-contract.md) — Web実験画面で何を見せ、何を操作するか
+8. [意思決定記録（最初の設計判断）](docs/adr/ADR-001-original-agent-model.md) — 設計上の選択と却下した代案
+9. [PRセルフレビュー](docs/pr-self-review.md) — 横断的な再発防止ルールに沿った変更前確認
+10. [ODD形式のモデル記述](docs/architecture/model.odd.md) — 目的、主体、ターン順序、入出力
+11. [用語と先行手法](docs/research/simulation-terms.md) — ABM、ODD、CRN、監査ログの採用範囲
 
 ## 中心の問い
 
@@ -67,6 +69,14 @@ flowchart LR
 - 生活継続と情報開示の範囲
 
 詳しくは [MVP仕様](docs/architecture/overview.md#mvp) と [評価設計](docs/architecture/evaluation.md) を参照してください。
+
+## プレイヤー体験
+
+プレイヤーは、架空組織「境界局・臨界対応班」の最高水準の実働調整官です。複数の遠隔身体、AI、センサー、分岐主体を横断し、事件へ介入します。通常の技術課題は高い確率で処理できますが、すべての現場へ最高精度で同時介入することはできません。
+
+難しさは主人公の能力不足ではなく、相反する正規命令、生活と法の衝突、不可逆な介入、分岐した自己の権利にあります。
+
+> ほぼ何でもできる。それでも、何をするべきかは決まらない。
 
 ## 実験画面
 
