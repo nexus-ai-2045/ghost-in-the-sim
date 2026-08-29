@@ -13,7 +13,7 @@ from ghost_in_the_sim.decision import (
     ReplicaMode,
     RuleDecisionEngine,
 )
-from ghost_in_the_sim.actual_trace import load_actual_ai_trace
+from ghost_in_the_sim.actual_trace import _trace_hash_from_bytes, load_actual_ai_trace
 from ghost_in_the_sim.replica import DEFAULT_SEEDS, run_replica_batch, run_replica_scenario
 
 
@@ -136,6 +136,13 @@ def test_tracked_comparison_is_exactly_reproducible_from_current_engine() -> Non
     tracked = json.loads((root / "web" / "data" / "comparison.json").read_text(encoding="utf-8"))
 
     assert batch.to_dict() == tracked
+
+
+def test_actual_trace_hash_is_independent_of_checkout_line_endings() -> None:
+    lf = b'{"provenance": {},\n"decisions": []}\n'
+    crlf = lf.replace(b"\n", b"\r\n")
+
+    assert _trace_hash_from_bytes(lf) == _trace_hash_from_bytes(crlf)
 
 
 def test_two_valid_action_traces_causally_change_events_and_metrics() -> None:
