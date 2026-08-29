@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 
 import pytest
 
@@ -12,7 +13,7 @@ from ghost_in_the_sim.decision import (
     ReplicaMode,
     RuleDecisionEngine,
 )
-from ghost_in_the_sim.actual_trace import load_actual_ai_trace
+from ghost_in_the_sim.actual_trace import _trace_hash_from_bytes, load_actual_ai_trace
 from ghost_in_the_sim.replica import DEFAULT_SEEDS, run_replica_batch, run_replica_scenario
 
 
@@ -85,7 +86,7 @@ def test_batch_runs_three_modes_across_fixed_seeds_and_replays() -> None:
     assert {(run.requested_mode, run.seed) for run in first.runs} == {
         (mode, seed) for mode in ReplicaMode for seed in DEFAULT_SEEDS
     }
-    assert all(run.result.manifest()["scenario_id"] == "harbor-loop-replica-crisis-01" for run in first.runs)
+    assert all(run.result.manifest()["scenario_id"] == "poseidon-replica-crisis-01" for run in first.runs)
     assert {run.result.condition_id for run in first.runs} == {"centralized", "plural", "autonomous"}
     assert all(decision.model_id and decision.prompt_hash for run in first.runs for decision in run.decisions)
 
@@ -122,6 +123,26 @@ def test_actual_ai_trace_replays_nine_decisions_without_claiming_live_api() -> N
     assert all(decision.actual_ai_participated for run in batch.runs for decision in run.decisions)
     assert all(not decision.external_model_api_called for run in batch.runs for decision in run.decisions)
     assert all(decision.model_id == "unavailable_to_agent" for run in batch.runs for decision in run.decisions)
+
+
+def test_tracked_comparison_is_exactly_reproducible_from_current_engine() -> None:
+    root = Path(__file__).resolve().parents[1]
+    records = load_actual_ai_trace(root / "fixtures" / "actual-ai-trace-seed42.json")
+    batch = run_replica_batch(
+        seeds=(42,),
+        turn_limit=12,
+        decision_engine=RecordedDecisionEngine(record.to_dict() for record in records),
+    )
+    tracked = json.loads((root / "web" / "data" / "comparison.json").read_text(encoding="utf-8"))
+
+    assert batch.to_dict() == tracked
+
+
+def test_actual_trace_hash_is_independent_of_checkout_line_endings() -> None:
+    lf = b'{"provenance": {},\n"decisions": []}\n'
+    crlf = lf.replace(b"\n", b"\r\n")
+
+    assert _trace_hash_from_bytes(lf) == _trace_hash_from_bytes(crlf)
 
 
 def test_two_valid_action_traces_causally_change_events_and_metrics() -> None:

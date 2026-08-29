@@ -20,7 +20,7 @@ def _load_fixture(path: Path) -> RecordedDecisionEngine:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="架空都市圏ハーバー・ループのAI複製配備MVPを実行します")
+    parser = argparse.ArgumentParser(description="海洋複合都市圏ポセイドンのAI複製配備MVPを実行します")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--turn-limit", type=int, default=12)
     parser.add_argument("--seed", type=int, action="append", dest="seeds")

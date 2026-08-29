@@ -14,8 +14,8 @@ from typing import Any
 MODEL_VERSION = "0.2.0"
 CODE_VERSION = "deterministic-core-v2"
 PROMPT_VERSION_OR_HASH = "rule-based:not-applicable"
-POLICY_VERSION = "harbor-loop-policy-v3"
-SCENARIO_ID = "harbor-loop-replica-crisis-01"
+POLICY_VERSION = "poseidon-policy-v4"
+SCENARIO_ID = "poseidon-replica-crisis-01"
 POLICY_REFERENCE_IDS = ("policy-centralized", "policy-plural", "policy-autonomous", "policy-overconnected")
 
 
@@ -191,7 +191,14 @@ def _model_config_hash() -> str:
 def _source_revision() -> str:
     """状態遷移を定義するこのmoduleの内容digestを返す。"""
 
-    return sha256(Path(__file__).read_bytes()).hexdigest()[:16]
+    return _source_revision_from_bytes(Path(__file__).read_bytes())
+
+
+def _source_revision_from_bytes(raw: bytes) -> str:
+    """checkoutの改行規則に依存しないmodule digestを返す。"""
+
+    normalized = raw.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return sha256(normalized).hexdigest()[:16]
 
 
 def _run_id(*, scenario_id: str, condition_id: str, seed: int, turn_limit: int, model_config_hash: str) -> str:

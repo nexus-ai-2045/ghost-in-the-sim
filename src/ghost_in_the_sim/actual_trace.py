@@ -21,6 +21,13 @@ _RAW_KEYS = frozenset({"mode_id", "turn", "actor_id", "action", "evidence_refs",
 _PROVENANCE_KEYS = frozenset({"decision_source", "model_id", "temperature", "actual_ai_participated", "external_model_api_called"})
 
 
+def _trace_hash_from_bytes(raw_bytes: bytes) -> str:
+    """Return a checkout-independent hash for the UTF-8 JSON trace."""
+
+    normalized = raw_bytes.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return f"sha256:{sha256(normalized).hexdigest()}"
+
+
 def load_actual_ai_trace(path: Path, *, seed: int = 42) -> list[DecisionRecord]:
     raw_bytes = path.read_bytes()
     payload: Any = json.loads(raw_bytes.decode("utf-8"))
@@ -32,7 +39,7 @@ def load_actual_ai_trace(path: Path, *, seed: int = 42) -> list[DecisionRecord]:
         raise ValueError("actual AI provenance schema mismatch")
     if not isinstance(decisions, list) or len(decisions) != 9:
         raise ValueError("actual AI trace must contain exactly nine decisions")
-    prompt_hash = f"sha256:{sha256(raw_bytes).hexdigest()}"
+    prompt_hash = _trace_hash_from_bytes(raw_bytes)
     records: list[DecisionRecord] = []
     seen: set[tuple[ReplicaMode, int]] = set()
     for item in decisions:
