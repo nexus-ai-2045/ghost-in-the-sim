@@ -7,4 +7,4 @@
 | simulation-contract | 実行・ログ・再現性契約 | `docs/architecture/simulation-contract.md` | proposed |
 | agent-contract | 主体モデルの契約 | `docs/architecture/agent-contract.md` | proposed |
 | ui-contract | 将来UIの情報設計 | `docs/design/ui-contract.md` | proposed |
-| results-template | 実験結果の記録枠 | `RESULTS.md` | template |
+| results-template | 実験結果の記録枠 | `RESULTS.md` | recorded（seed 42 代表1件。複数seedは未実施） |
