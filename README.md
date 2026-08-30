@@ -192,6 +192,7 @@ GitHub Actionsでも、同一入力の再現性・条件差・イベント契約
 - PR前の再発防止確認: [PRセルフレビュー](docs/pr-self-review.md)（生成物。手編集しない）
 - セキュリティ連絡: [SECURITY.md](SECURITY.md)
 - 公開準備: [PREFLIGHT.md](PREFLIGHT.md) / [PUBLIC_READY.md](PUBLIC_READY.md)
+- 提出候補: 8枚スライドsource `scripts/generate_submission_slides.js`（PPTX/PDFは`artifacts/submission/`へ生成） / [3分デモ台本](docs/demo-script.md) / [提出チェックリスト](docs/submission-checklist.md)
 - リポジトリ運用: [運用ゲート](docs/operations/repository-gates.md)
 
 ## ライセンス
