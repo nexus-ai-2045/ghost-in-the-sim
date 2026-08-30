@@ -61,6 +61,10 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertIn('id="experience-unavailable"', index)
         self.assertIn('src="experience-contract.js"', index)
         self.assertLess(index.index('src="experience-contract.js"'), index.index('src="app.js"'))
+        self.assertIn('src="narrative-contract.js"', index)
+        self.assertLess(index.index('src="narrative-contract.js"'), index.index('src="app.js"'))
+        self.assertIn("NarrativeContract.project(event", script)
+        self.assertIn("決定論的に投影", script)
         self.assertIn("ExperienceContract.validate(payload)", script)
         self.assertIn("experience.available", script)
         self.assertIn("request_pause", script)
@@ -95,7 +99,7 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertIn("AI創発観測", script)
         self.assertIn("proposal_conflict_count", script)
         self.assertIn("unresolved_interaction_count", script)
-        self.assertIn("誤合意はP0では未計測", script)
+        self.assertIn("現在ターンの記録だけを表示", script)
         self.assertIn(".emergence-observation", style)
 
     def test_operation_reads_as_japanese_game_not_dashboard(self) -> None:
@@ -141,6 +145,13 @@ class DemoUiContractTest(unittest.TestCase):
             text=True,
         )
         self.assertIn("experience-contract: PASS", completed.stdout)
+
+    def test_narrative_contract_is_deterministic_and_fail_closed(self) -> None:
+        script = ROOT / "tests/check_narrative_contract.mjs"
+        completed = subprocess.run(
+            ["node", str(script)], cwd=ROOT, check=True, capture_output=True, text=True
+        )
+        self.assertIn("narrative-contract: PASS", completed.stdout)
 
     def test_start_operation_explains_missing_choices_instead_of_being_disabled(self) -> None:
         script = (ROOT / "web/app.js").read_text(encoding="utf-8")

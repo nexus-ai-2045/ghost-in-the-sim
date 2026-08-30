@@ -67,6 +67,20 @@ button { font: 700 .8rem/1.2 inherit; }
 .emergence-agent.applied { border-color: var(--accent); }
 .emergence-agent.rejected { border-color: #d5a653; }
 .emergence-agent.fallback { border-color: #d96c6c; }
+.story-scene { grid-column: 1 / -1; margin-top: .9rem; padding: 1rem; border: 1px solid rgba(103,232,249,.28); border-radius: 14px; background: linear-gradient(145deg, rgba(6,18,31,.94), rgba(15,34,49,.72)); }
+.story-scene-heading { display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap; margin-bottom: .8rem; }
+.story-scene-heading span { color: var(--cyan); font-size: .78rem; font-weight: 800; letter-spacing: .12em; }
+.story-scene-heading strong { font-size: 1.05rem; }
+.story-dialogue { list-style: none; margin: 0; padding: 0; display: grid; gap: .65rem; }
+.story-line { display: grid; grid-template-columns: 9.5rem 1fr; gap: .75rem; align-items: start; padding: .72rem .85rem; border-inline-start: 3px solid var(--line); background: rgba(0,0,0,.24); }
+.story-line-1 { border-color: var(--magenta); }
+.story-line-2 { border-color: var(--cyan); }
+.story-line-3 { border-color: var(--mint); }
+.story-line-pause { border-color: var(--orange); background: rgba(126,75,27,.18); }
+.story-speaker { display: grid; gap: .15rem; }
+.story-speaker small { color: var(--muted); }
+.story-line blockquote { margin: 0; font-size: 1rem; line-height: 1.6; }
+.story-provenance { margin: .75rem 0 0; color: var(--muted); font-size: .76rem; }
 .outcome { display: inline-block; padding: .2rem .55rem; border: 1px solid currentColor; font-size: .75rem; font-weight: 700; letter-spacing: .08em; }
 .outcome.applied { color: var(--accent); }
 .outcome.rejected { color: #e6bc72; }
@@ -175,6 +189,7 @@ footer { padding: 24px 0 40px; border-top: 1px solid var(--line); color: var(--m
   .event-detail { grid-template-columns: 1fr; }
   .result-card { grid-template-columns: 1fr; }
   .operation-console, .operative-detail, .emergence-agents, .emergence-metrics { grid-template-columns: 1fr; }
+  .story-line { grid-template-columns: 1fr; gap: .3rem; }
   .console-rail { border-right: 0; border-bottom: 1px solid var(--line); }
   .operative-outcome { grid-template-columns: 1fr; }
   .operation-result dl { grid-template-columns: 1fr; gap: 2px 0; }
