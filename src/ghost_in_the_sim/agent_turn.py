@@ -96,6 +96,7 @@ class Observation:
 @dataclass(frozen=True)
 class PriorProposal:
     proposal_digest: str
+    run_ref: RunRef
     agent_id: AgentId
     action: ReplicaAction
     confidence: float
@@ -105,6 +106,7 @@ class PriorProposal:
     def to_dict(self) -> dict[str, Any]:
         return {
             "proposal_digest": self.proposal_digest,
+            "run_ref": self.run_ref.to_dict(),
             "agent_id": self.agent_id.value,
             "action": self.action.value,
             "confidence": self.confidence,
@@ -400,8 +402,47 @@ def _parse_request(payload: Mapping[str, Any]) -> AgentTurnRequest:
         raise ProposalValidationError("request_invalid", "allowed_actions is invalid")
     if not isinstance(payload["prior_proposals"], list):
         raise ProposalValidationError("request_invalid", "prior_proposals must be a list")
-    if run_ref.round == 1 and payload["prior_proposals"]:
-        raise ProposalValidationError("request_invalid", "round 1 cannot contain prior proposals")
+    prior_proposals: list[PriorProposal] = []
+    for item in payload["prior_proposals"]:
+        if not isinstance(item, Mapping):
+            raise ProposalValidationError("request_invalid", "prior proposal must be an object")
+        _strict_keys(item, frozenset(PriorProposal.__dataclass_fields__), "request")
+        prior_run_ref = _parse_run_ref(item["run_ref"], request=True)
+        if prior_run_ref != run_ref:
+            raise ProposalValidationError(
+                "request_invalid", "prior proposal must belong to the same run and turn"
+            )
+        try:
+            prior_agent = AgentId(item["agent_id"])
+            prior_action = ReplicaAction(item["action"])
+        except (TypeError, ValueError) as error:
+            raise ProposalValidationError("request_invalid", "prior proposal identity is invalid") from error
+        confidence = item["confidence"]
+        if (
+            isinstance(confidence, bool)
+            or not isinstance(confidence, (int, float))
+            or not isfinite(confidence)
+            or not 0.0 <= confidence <= 1.0
+        ):
+            raise ProposalValidationError("request_invalid", "prior proposal confidence is invalid")
+        if not _is_sha256(item["proposal_digest"]):
+            raise ProposalValidationError("request_invalid", "prior proposal digest must be sha256")
+        if not isinstance(item["dissent_raised"], bool):
+            raise ProposalValidationError("request_invalid", "prior proposal dissent flag is invalid")
+        prior_proposals.append(
+            PriorProposal(
+                proposal_digest=item["proposal_digest"],
+                run_ref=prior_run_ref,
+                agent_id=prior_agent,
+                action=prior_action,
+                confidence=float(confidence),
+                evidence_refs=_string_tuple(item["evidence_refs"], "prior_proposal.evidence_refs"),
+                dissent_raised=item["dissent_raised"],
+            )
+        )
+    prior_identities = {(proposal.agent_id, proposal.proposal_digest) for proposal in prior_proposals}
+    if len(prior_identities) != len(prior_proposals):
+        raise ProposalValidationError("request_invalid", "prior proposals must be unique")
 
     deadline = payload["deadline_ms"]
     if isinstance(deadline, bool) or not isinstance(deadline, int) or not 1 <= deadline <= MAX_DEADLINE_MS:
@@ -414,7 +455,7 @@ def _parse_request(payload: Mapping[str, Any]) -> AgentTurnRequest:
         authority=authority,
         observations=tuple(observations),
         allowed_actions=allowed_actions,
-        prior_proposals=(),
+        prior_proposals=tuple(prior_proposals),
         deadline_ms=deadline,
         idempotency_key=payload["idempotency_key"],
         request_digest=payload["request_digest"],
@@ -557,6 +598,16 @@ def _parse_proposal(payload: Mapping[str, Any], *, request: AgentTurnRequest) ->
     if dissent_payload["raised"]:
         if target_agent is None or not _is_sha256(target_digest):
             raise ProposalValidationError("proposal_invalid", "raised dissent requires a typed target")
+        matching_targets = [
+            prior
+            for prior in request.prior_proposals
+            if prior.agent_id is target_agent and prior.proposal_digest == target_digest
+        ]
+        if len(matching_targets) != 1:
+            raise ProposalValidationError(
+                "proposal_invalid",
+                "dissent target must reference exactly one prior proposal in the same run and turn",
+            )
     elif target_agent is not None or target_digest is not None:
         raise ProposalValidationError("proposal_invalid", "non-raised dissent cannot have a target")
     dissent = Dissent(dissent_payload["raised"], target_agent, target_digest)

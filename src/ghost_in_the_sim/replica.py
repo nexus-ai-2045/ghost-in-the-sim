@@ -25,7 +25,7 @@ from .decision import (
     RuleDecisionEngine,
     safe_fallback,
 )
-from .engine import ActionInfluence, Condition, RunResult, run_experiment
+from .engine import ActionInfluence, Condition, RunResult, WorldState, run_experiment
 from .evidence_contract import project_refutation_checks, project_sign_reversals
 from .operative import MIKAGE_DEFAULT_PLAN, OperativePlan, OperativeState, evaluate_operative
 from .scenario import KAGAMISHIO, ScenarioManifest
@@ -233,6 +233,15 @@ def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
     }
 
 
+def _validate_runtime_scenario(scenario: ScenarioManifest, operative_plan: OperativePlan) -> None:
+    """engineがKAGAMISHIO固定の間は別scenarioを黙って偽装しない。"""
+
+    if scenario != KAGAMISHIO:
+        raise ValueError("engine supports only the canonical scenario")
+    if scenario.scenario_id != operative_plan.scenario_id:
+        raise ValueError("operative plan must reference the selected scenario")
+
+
 def run_replica_scenario(
     *,
     requested_mode: ReplicaMode | str,
@@ -244,6 +253,7 @@ def run_replica_scenario(
 ) -> ReplicaRun:
     if isinstance(turn_limit, bool) or not isinstance(turn_limit, int) or not 1 <= turn_limit <= len(scenario.beats):
         raise ValueError("turn_limit must fit within the selected scenario")
+    _validate_runtime_scenario(scenario, operative_plan)
     for partner_action in operative_plan.partner_actions:
         if not 1 <= partner_action.turn <= len(scenario.beats):
             raise ValueError("partner action must fit within the selected scenario")
@@ -307,8 +317,9 @@ def _agent_requests_for_turn(
     turn: int,
     scenario: ScenarioManifest,
     operative_plan: OperativePlan,
+    confirmed_state: WorldState | None = None,
 ) -> tuple[AgentTurnRequest, ...]:
-    """同じ外生beatから、主体ごとの部分観測を決定論的に分配する。"""
+    """外生beatと前turnで確定したworld stateから部分観測を分配する。"""
 
     beat = scenario.beats[turn - 1]
     common_id = beat.observation_ids[0]
@@ -319,11 +330,22 @@ def _agent_requests_for_turn(
         AgentId.HOSPITAL_REPLICA: (f"{common_id}-hospital-local",),
         AgentId.PORT_REPLICA: (f"{common_id}-port-local",),
     }
+    state_summary = (
+        "初期状態（前turnなし）"
+        if confirmed_state is None
+        else (
+            f"確定状態 continuity={confirmed_state.continuity:.6f}, "
+            f"evidence={confirmed_state.evidence_quality:.6f}, "
+            f"trust={confirmed_state.public_trust:.6f}, "
+            f"dependence={confirmed_state.coordination_dependence:.6f}, "
+            f"disclosure={confirmed_state.disclosure_pressure:.6f}"
+        )
+    )
     summaries = {
-        AgentId.MIKAGE: f"{beat.event_type}: 選択した現場と共通来歴を照合",
-        AgentId.MAKABE: f"{beat.event_type}: 港湾側の物理現場から不可逆性を確認",
-        AgentId.HOSPITAL_REPLICA: f"{beat.event_type}: 病院の治療継続だけを局所観測",
-        AgentId.PORT_REPLICA: f"{beat.event_type}: 港湾の物流継続だけを局所観測",
+        AgentId.MIKAGE: f"{beat.event_type}: 選択した現場と共通来歴を照合; {state_summary}",
+        AgentId.MAKABE: f"{beat.event_type}: 港湾側の物理現場から不可逆性を確認; {state_summary}",
+        AgentId.HOSPITAL_REPLICA: f"{beat.event_type}: 病院の治療継続だけを局所観測; {state_summary}",
+        AgentId.PORT_REPLICA: f"{beat.event_type}: 港湾の物流継続だけを局所観測; {state_summary}",
     }
     run_ref = RunRef(
         scenario_id=scenario.scenario_id,
@@ -332,12 +354,15 @@ def _agent_requests_for_turn(
         turn=turn,
         round=1,
     )
-    authority = Authority(version="poseidon-policy-v4", status=AuthorityStatus.ACTIVE)
+    revoked_agent = _revoked_agent_for_turn(turn=turn, scenario=scenario, operative_plan=operative_plan)
     return tuple(
         AgentTurnRequest.create(
             run_ref=run_ref,
             agent=build_agent_descriptor(agent_id, observation_scope=scopes[agent_id]),
-            authority=authority,
+            authority=Authority(
+                version="poseidon-policy-v4",
+                status=(AuthorityStatus.REVOKED if agent_id is revoked_agent else AuthorityStatus.ACTIVE),
+            ),
             observations=tuple(
                 Observation(
                     observation_id=observation_id,
@@ -349,6 +374,20 @@ def _agent_requests_for_turn(
         )
         for agent_id in AgentId
     )
+
+
+def _revoked_agent_for_turn(
+    *, turn: int, scenario: ScenarioManifest, operative_plan: OperativePlan,
+) -> AgentId | None:
+    """確定済みのauthority convergenceを次turnの権限へ反映する。"""
+
+    if turn <= 1 or scenario.beats[turn - 2].event_type != "authority_convergence_due":
+        return None
+    return {
+        "hospital": AgentId.HOSPITAL_REPLICA,
+        "port": AgentId.PORT_REPLICA,
+        "defer": None,
+    }[operative_plan.revocation_target.value]
 
 
 def _compose_agent_round(round_result: AgentRoundResult) -> AgentRoundResult:
@@ -394,13 +433,13 @@ def run_ensemble_scenario(
         raise ValueError("seed must be an integer")
     if isinstance(turn_limit, bool) or not isinstance(turn_limit, int) or not 1 <= turn_limit <= len(scenario.beats):
         raise ValueError("turn_limit must fit within the selected scenario")
-    if scenario.scenario_id != operative_plan.scenario_id:
-        raise ValueError("operative plan must reference the selected scenario")
+    _validate_runtime_scenario(scenario, operative_plan)
     mode = ReplicaMode(requested_mode)
     provider = proposal_provider or RuleProposalProvider()
     rounds: list[AgentRoundResult] = []
     influences: list[ActionInfluence] = []
     fallback_reasons: list[str] = []
+    confirmed_state: WorldState | None = None
     for turn in range(1, turn_limit + 1):
         round_result = _compose_agent_round(
             schedule_one_round(
@@ -410,6 +449,7 @@ def run_ensemble_scenario(
                     turn=turn,
                     scenario=scenario,
                     operative_plan=operative_plan,
+                    confirmed_state=confirmed_state,
                 ),
                 provider,
             )
@@ -439,6 +479,12 @@ def run_ensemble_scenario(
             )
         if applied is not None:
             influences.append(applied)
+        confirmed_state = run_experiment(
+            condition=_CONDITION_BY_MODE[mode],
+            seed=seed,
+            turn_limit=turn,
+            action_influences=tuple(influences),
+        ).final_state
 
     result = run_experiment(
         condition=_CONDITION_BY_MODE[mode],

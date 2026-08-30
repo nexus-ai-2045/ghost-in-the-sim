@@ -16,6 +16,7 @@ from ghost_in_the_sim.run_bundle import (
     CANONICALIZATION_VERSION,
     SCHEMA_VERSION,
     _canonical_bytes,
+    _digest,
     build_run_bundle,
     build_verified_run_bundle,
     validate_run_bundle,
@@ -49,6 +50,35 @@ def test_bundle_joins_every_surface_by_run_id_and_replays_exactly() -> None:
     assert first_event["partner_action"] == "observe"
     assert first_event["cost_codes"]
     assert first_event["operative_state_before"] != first_event["operative_state_after"]
+
+
+def test_parent_v1_bundle_remains_readable_after_additive_runtime_evolution() -> None:
+    """main@2270558 が生成した初版v1のreader互換構造をgoldenとして固定する。"""
+
+    legacy = copy.deepcopy(_bundle())
+    legacy["run_request"].pop("scenario")
+    legacy["run_request"].pop("operative_plan")
+    for event in legacy["event_stream"]["events"]:
+        for key in (
+            "scenario_beat_id", "operative_action", "partner_action", "cost_codes",
+            "success_confidence", "operative_state_before", "operative_state_after",
+        ):
+            event.pop(key)
+    legacy["replay"].pop("operative_state")
+    legacy["evidence"]["run_request_sha256"] = _digest(legacy["run_request"])
+    legacy["evidence"]["event_stream_sha256"] = _digest(legacy["event_stream"])
+    legacy["evidence"]["replay_sha256"] = _digest(legacy["replay"])
+
+    validate_run_bundle(legacy)
+    verify_run_bundle(legacy)
+
+
+def test_v1_rejects_partial_operative_contracts() -> None:
+    bundle = _bundle()
+    bundle["run_request"].pop("scenario")
+    bundle["evidence"]["run_request_sha256"] = _digest(bundle["run_request"])
+    with pytest.raises(ValueError, match="declare scenario and operative plan together"):
+        validate_run_bundle(bundle)
 
 
 def test_gameplay_plan_changes_pause_and_revocation_projection_without_changing_world_events() -> None:

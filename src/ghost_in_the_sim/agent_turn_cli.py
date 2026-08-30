@@ -106,6 +106,10 @@ def build_request_bundle(*, seed: int, mode: ReplicaMode | str, turn_limit: int)
         raise ValueError("seed must be an integer")
     if isinstance(turn_limit, bool) or not isinstance(turn_limit, int) or not 1 <= turn_limit <= len(KAGAMISHIO.beats):
         raise ValueError("turn_limit must fit within the canonical scenario")
+    if turn_limit != 1:
+        raise ValueError(
+            "request export is stateful and must run one turn at a time; multi-turn export requires an interleaved session"
+        )
     requests = [
         request.to_dict()
         for turn in range(1, turn_limit + 1)
@@ -199,13 +203,35 @@ def verify_recorded_fixture(fixture: Any) -> dict[str, Any]:
     """recorded proposalだけでruntimeを再実行し、replay-match bundleを返す。"""
 
     parsed = _parse_fixture(fixture)
-    provider = RecordedProposalProvider(parsed["proposals"])
+    canonical_requests = build_request_bundle(
+        seed=parsed["seed"], mode=parsed["mode"], turn_limit=parsed["turn_limit"]
+    )
+    if parsed["request_bundle_digest"] != canonical_requests["bundle_digest"]:
+        raise ValueError("recorded fixture request bundle digest mismatch")
+    _, requests = _parse_request_bundle(canonical_requests)
+    proposal_bundle: dict[str, Any] = {
+        "protocol_version": PROTOCOL_VERSION,
+        "kind": PROPOSAL_BUNDLE_KIND,
+        "request_bundle_digest": canonical_requests["bundle_digest"],
+        "proposals": parsed["proposals"],
+    }
+    proposal_bundle["bundle_digest"] = canonical_digest(proposal_bundle)
+    proposals = _parse_proposal_bundle(
+        proposal_bundle, request_bundle=canonical_requests, requests=requests
+    )
+    provider = RecordedProposalProvider([proposal.to_dict() for proposal in proposals])
     run = run_ensemble_scenario(
         requested_mode=parsed["mode"],
         seed=parsed["seed"],
         turn_limit=parsed["turn_limit"],
         proposal_provider=provider,
     )
+    if any(
+        outcome.reason_code == "proposal_missing"
+        for round_result in run.agent_rounds
+        for outcome in round_result.outcomes
+    ):
+        raise ValueError("recorded fixture did not apply every validated proposal")
     return build_verified_run_bundle(run)
 
 

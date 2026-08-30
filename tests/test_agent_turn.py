@@ -12,6 +12,8 @@ from ghost_in_the_sim.agent_turn import (
     Authority,
     AuthorityStatus,
     Observation,
+    PriorProposal,
+    Dissent,
     ProposalValidationError,
     RunRef,
     build_agent_descriptor,
@@ -145,3 +147,87 @@ def test_recorded_provider_rejects_missing_duplicate_stale_and_revoked_records()
     with pytest.raises(ProposalValidationError) as revoked_error:
         AgentProposal.from_dict(proposal, request=revoked)
     assert revoked_error.value.reason_code == "authority_revoked"
+
+
+def _prior(proposal: AgentProposal) -> PriorProposal:
+    return PriorProposal(
+        proposal_digest=proposal.proposal_digest,
+        run_ref=proposal.run_ref,
+        agent_id=proposal.agent_id,
+        action=proposal.action,
+        confidence=proposal.confidence,
+        evidence_refs=proposal.evidence_refs,
+        dissent_raised=proposal.dissent.raised,
+    )
+
+
+def test_dissent_is_bound_to_exact_prior_proposal_in_same_run_and_turn() -> None:
+    target_request = _request(AgentId.MAKABE)
+    target = RuleProposalProvider().propose(target_request)
+    dissent_request = AgentTurnRequest.create(
+        run_ref=target_request.run_ref,
+        agent=build_agent_descriptor(AgentId.MIKAGE, observation_scope=("obs-05", "obs-06")),
+        authority=target_request.authority,
+        observations=target_request.observations,
+        prior_proposals=(_prior(target),),
+    )
+
+    proposal = AgentProposal.create(
+        request=dissent_request,
+        action=target.action,
+        evidence_refs=("obs-05",),
+        confidence=0.9,
+        reservation="真壁の停止提案へ異議を記録する",
+        dissent=Dissent(True, AgentId.MAKABE, target.proposal_digest),
+        cooperation_target=None,
+        expected_consequence="対象を明示した異議が監査可能になる",
+        provenance=RuleProposalProvider().propose(dissent_request).provenance,
+    )
+
+    assert proposal.dissent.target_agent_id is AgentId.MAKABE
+    assert proposal.dissent.target_proposal_digest == target.proposal_digest
+
+
+@pytest.mark.parametrize("mutation", ["unknown", "other_agent"])
+def test_dissent_rejects_unknown_or_wrong_agent_target(mutation: str) -> None:
+    target_request = _request(AgentId.MAKABE)
+    target = RuleProposalProvider().propose(target_request)
+    prior = _prior(target)
+    dissent_request = AgentTurnRequest.create(
+        run_ref=target_request.run_ref,
+        agent=build_agent_descriptor(AgentId.MIKAGE, observation_scope=("obs-05", "obs-06")),
+        authority=target_request.authority,
+        observations=target_request.observations,
+        prior_proposals=(prior,),
+    )
+    digest = target.proposal_digest if mutation != "unknown" else "sha256:" + "0" * 64
+    agent = AgentId.PORT_REPLICA if mutation == "other_agent" else AgentId.MAKABE
+    base = RuleProposalProvider().propose(dissent_request).to_dict()
+    base["dissent"] = {
+        "raised": True,
+        "target_agent_id": agent.value,
+        "target_proposal_digest": digest,
+    }
+    base["proposal_digest"] = canonical_digest(
+        {key: value for key, value in base.items() if key != "proposal_digest"}
+    )
+
+    with pytest.raises(ProposalValidationError, match="dissent target"):
+        AgentProposal.from_dict(base, request=dissent_request)
+
+
+def test_request_rejects_prior_proposal_from_another_turn() -> None:
+    target_request = _request(AgentId.MAKABE)
+    target = RuleProposalProvider().propose(target_request)
+    prior = replace(_prior(target), run_ref=replace(target.run_ref, turn=4))
+
+    with pytest.raises(ProposalValidationError, match="same run and turn"):
+        AgentTurnRequest.create(
+            run_ref=target_request.run_ref,
+            agent=build_agent_descriptor(
+                AgentId.MIKAGE, observation_scope=("obs-05", "obs-06")
+            ),
+            authority=target_request.authority,
+            observations=target_request.observations,
+            prior_proposals=(prior,),
+        )

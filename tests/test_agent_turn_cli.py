@@ -36,11 +36,11 @@ def _proposal_bundle(request_bundle: dict) -> dict:
 
 
 def test_export_is_canonical_complete_and_contains_no_secret_surface(tmp_path: Path) -> None:
-    first = build_request_bundle(seed=42, mode="plural", turn_limit=2)
-    second = build_request_bundle(seed=42, mode="plural", turn_limit=2)
+    first = build_request_bundle(seed=42, mode="plural", turn_limit=1)
+    second = build_request_bundle(seed=42, mode="plural", turn_limit=1)
 
     assert first == second
-    assert len(first["requests"]) == 2 * len(AgentId)
+    assert len(first["requests"]) == len(AgentId)
     assert first["protocol_version"] == "ghost-agent-turn/v1"
     text = json.dumps(first).lower()
     for forbidden in ("prompt", "private_memory", "raw_env", "secret", "filesystem_path"):
@@ -53,16 +53,44 @@ def test_export_is_canonical_complete_and_contains_no_secret_surface(tmp_path: P
 
 
 def test_ingest_binds_every_proposal_to_exactly_one_request_and_verifies_replay() -> None:
-    requests = build_request_bundle(seed=42, mode="plural", turn_limit=2)
+    requests = build_request_bundle(seed=42, mode="plural", turn_limit=1)
     proposals = _proposal_bundle(requests)
 
     fixture = build_recorded_fixture(requests, proposals)
     bundle = verify_recorded_fixture(fixture)
 
-    assert len(fixture["proposals"]) == 8
+    assert len(fixture["proposals"]) == 4
     assert bundle["evidence"]["verification"] == "replay-match"
     assert bundle["run_request"]["seed"] == 42
     assert bundle["replay"]["trajectory_class"] == "recorded-agent-turns"
+
+
+def test_verify_rebuilds_canonical_requests_and_rejects_forged_fixture_metadata() -> None:
+    requests = build_request_bundle(seed=42, mode="plural", turn_limit=1)
+    fixture = build_recorded_fixture(requests, _proposal_bundle(requests))
+    fixture["request_bundle_digest"] = "sha256:" + "0" * 64
+    from ghost_in_the_sim.agent_turn import canonical_digest
+
+    fixture["bundle_digest"] = canonical_digest(
+        {key: value for key, value in fixture.items() if key != "bundle_digest"}
+    )
+
+    with pytest.raises(ValueError, match="request bundle digest"):
+        verify_recorded_fixture(fixture)
+
+
+def test_verify_revalidates_every_fixture_proposal_against_canonical_request() -> None:
+    requests = build_request_bundle(seed=42, mode="plural", turn_limit=1)
+    fixture = build_recorded_fixture(requests, _proposal_bundle(requests))
+    fixture["proposals"].pop()
+    from ghost_in_the_sim.agent_turn import canonical_digest
+
+    fixture["bundle_digest"] = canonical_digest(
+        {key: value for key, value in fixture.items() if key != "bundle_digest"}
+    )
+
+    with pytest.raises(ValueError, match="missing"):
+        verify_recorded_fixture(fixture)
 
 
 @pytest.mark.parametrize(
@@ -96,7 +124,7 @@ def test_ingest_binds_every_proposal_to_exactly_one_request_and_verifies_replay(
 def test_ingest_fails_closed_for_missing_duplicate_cross_run_digest_and_unknown_fields(
     mutate, message: str
 ) -> None:
-    requests = build_request_bundle(seed=42, mode="plural", turn_limit=2)
+    requests = build_request_bundle(seed=42, mode="plural", turn_limit=1)
     proposals = _proposal_bundle(requests)
     mutate(requests, proposals)
     from ghost_in_the_sim.agent_turn import canonical_digest
@@ -132,7 +160,7 @@ def test_cli_export_ingest_verify_round_trip(tmp_path: Path) -> None:
             "--mode",
             "plural",
             "--turn-limit",
-            "2",
+            "1",
             "--output",
             str(requests_path),
         ]
@@ -155,3 +183,8 @@ def test_cli_export_ingest_verify_round_trip(tmp_path: Path) -> None:
     ) == 0
     bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
     assert bundle["evidence"]["verification"] == "replay-match"
+
+
+def test_export_fails_closed_before_emitting_stale_future_turn_requests() -> None:
+    with pytest.raises(ValueError, match="one turn at a time"):
+        build_request_bundle(seed=42, mode="plural", turn_limit=2)

@@ -6,7 +6,9 @@ import pytest
 
 from ghost_in_the_sim.agent_providers import RecordedProposalProvider, RuleProposalProvider
 from ghost_in_the_sim.agent_schedule import OutcomeStatus
-from ghost_in_the_sim.agent_turn import AgentId, PROTOCOL_VERSION
+from ghost_in_the_sim.agent_turn import AgentId, AgentProposal, AuthorityStatus, PROTOCOL_VERSION
+from ghost_in_the_sim.decision import ReplicaAction
+from ghost_in_the_sim.operative import OperationalFocus, PauseResponse, build_gameplay_plan
 from ghost_in_the_sim.replica import run_ensemble_scenario, run_replica_batch
 from ghost_in_the_sim.run_bundle import (
     _digest,
@@ -136,3 +138,76 @@ def test_missing_recorded_agent_gets_scoped_fallback_without_mode_change() -> No
     assert fallback.reason_code == "proposal_missing"
     assert replay.effective_mode.value == "autonomous"
     verify_run_bundle(build_verified_run_bundle(replay))
+
+
+def test_next_turn_requests_observe_the_confirmed_prior_world_state() -> None:
+    class CapturingProvider:
+        def __init__(self, first_action: ReplicaAction) -> None:
+            self.first_action = first_action
+            self.requests = []
+            self.delegate = RuleProposalProvider()
+
+        def propose(self, request):
+            self.requests.append(request)
+            proposal = self.delegate.propose(request)
+            if request.run_ref.turn == 1 and request.agent.agent_id is AgentId.MIKAGE:
+                return AgentProposal.create(
+                    request=request,
+                    action=self.first_action,
+                    evidence_refs=proposal.evidence_refs,
+                    confidence=proposal.confidence,
+                    reservation=proposal.reservation,
+                    dissent=proposal.dissent,
+                    cooperation_target=proposal.cooperation_target,
+                    expected_consequence=proposal.expected_consequence.text,
+                    provenance=proposal.provenance,
+                )
+            return proposal
+
+    protect = CapturingProvider(ReplicaAction.PROTECT_CONTINUITY)
+    abstain = CapturingProvider(ReplicaAction.ABSTAIN)
+    run_ensemble_scenario(requested_mode="centralized", seed=42, turn_limit=2, proposal_provider=protect)
+    run_ensemble_scenario(requested_mode="centralized", seed=42, turn_limit=2, proposal_provider=abstain)
+
+    protect_turn_2 = next(
+        request for request in protect.requests
+        if request.run_ref.turn == 2 and request.agent.agent_id is AgentId.MIKAGE
+    )
+    abstain_turn_2 = next(
+        request for request in abstain.requests
+        if request.run_ref.turn == 2 and request.agent.agent_id is AgentId.MIKAGE
+    )
+    assert protect_turn_2.request_digest != abstain_turn_2.request_digest
+    assert protect_turn_2.observations[0].summary != abstain_turn_2.observations[0].summary
+
+
+def test_revoked_replica_cannot_apply_on_the_following_turn() -> None:
+    class CapturingProvider:
+        def __init__(self) -> None:
+            self.requests = []
+            self.delegate = RuleProposalProvider()
+
+        def propose(self, request):
+            self.requests.append(request)
+            return self.delegate.propose(request)
+
+    plan = build_gameplay_plan(focus=OperationalFocus.HOSPITAL, pause_response=PauseResponse.PROCEED)
+    provider = CapturingProvider()
+    run = run_ensemble_scenario(
+        requested_mode="autonomous", seed=42, turn_limit=12,
+        operative_plan=plan, proposal_provider=provider,
+    )
+
+    port_turn_12 = next(
+        outcome for outcome in run.agent_rounds[11].outcomes
+        if outcome.agent_id is AgentId.PORT_REPLICA
+    )
+    port_request = next(
+        request for request in provider.requests
+        if request.run_ref.turn == 12 and request.agent.agent_id is AgentId.PORT_REPLICA
+    )
+    assert port_request.authority.status is AuthorityStatus.REVOKED
+    assert port_turn_12.reason_code == "authority_revoked"
+    assert port_turn_12.influence is not None
+    assert port_turn_12.influence.action_type == "abstain"
+    assert port_turn_12.proposal is None

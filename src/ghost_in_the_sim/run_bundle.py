@@ -30,6 +30,19 @@ CANONICALIZATION_VERSION = "meta-security-json-c14n/v1"
 _TOP_LEVEL_KEYS = frozenset(
     {"schema_version", "run_id", "run_request", "event_stream", "replay", "evidence"}
 )
+_OPERATIVE_EVENT_KEYS = frozenset(
+    {
+        "scenario_beat_id", "operative_action", "partner_action", "cost_codes",
+        "success_confidence", "operative_state_before", "operative_state_after",
+    }
+)
+
+
+def _is_legacy_v1(bundle: Mapping[str, Any]) -> bool:
+    """v1初版と後方互換な形を、曖昧な部分一致ではなく構造で識別する。"""
+
+    request = bundle.get("run_request")
+    return isinstance(request, Mapping) and "scenario" not in request and "operative_plan" not in request
 
 
 def _normalized_number(value: float) -> str:
@@ -225,6 +238,7 @@ def _agent_requests_by_id(run: EnsembleRun, turn: int) -> dict[AgentId, AgentTur
         turn=turn,
         scenario=run.scenario,
         operative_plan=run.operative_plan,
+        confirmed_state=None if turn == 1 else run.result.events[turn - 2].state_after,
     )
     if round_result.run_ref != requests[0].run_ref:
         raise ValueError("agent round run_ref does not match the ensemble run")
@@ -262,6 +276,7 @@ def _interaction_refs(agent_turns: list[Mapping[str, Any]]) -> list[dict[str, An
                     "to_agent_id": dissent.get("target_agent_id"),
                     "kind": "dissent",
                     "proposal_digest": proposal.get("proposal_digest"),
+                    "target_proposal_digest": dissent.get("target_proposal_digest"),
                 }
             )
     return refs
@@ -509,10 +524,16 @@ def validate_run_bundle(bundle: Mapping[str, Any]) -> None:
         raise ValueError("run request seed must be an integer")
     if isinstance(turn_limit, bool) or not isinstance(turn_limit, int) or turn_limit < 1:
         raise ValueError("run request turn_limit must be a positive integer")
-    scenario = ScenarioManifest.from_dict(request.get("scenario", {}))
-    operative_plan = OperativePlan.from_dict(request.get("operative_plan", {}))
-    if scenario.scenario_id != operative_plan.scenario_id:
-        raise ValueError("operative plan must reference the run scenario")
+    legacy_v1 = _is_legacy_v1(bundle)
+    if legacy_v1:
+        scenario = operative_plan = None
+    else:
+        if "scenario" not in request or "operative_plan" not in request:
+            raise ValueError("expanded v1 request must declare scenario and operative plan together")
+        scenario = ScenarioManifest.from_dict(request["scenario"])
+        operative_plan = OperativePlan.from_dict(request["operative_plan"])
+        if scenario.scenario_id != operative_plan.scenario_id:
+            raise ValueError("operative plan must reference the run scenario")
 
     events = stream.get("events")
     if not isinstance(events, list) or stream.get("ordering") != "turn-ascending/v1" or stream.get("event_count") != len(events):
@@ -523,9 +544,13 @@ def validate_run_bundle(bundle: Mapping[str, Any]) -> None:
     if any(event.get("run_id") != run_id or event.get("seed") != seed for event in events):
         raise ValueError("event stream contains an event from another run")
     for event in events:
-        expected_projection = _operative_event_projection(scenario=scenario, plan=operative_plan, event=event)
-        if any(event.get(key) != value for key, value in expected_projection.items()):
-            raise ValueError("event stream operative projection does not match scenario and plan")
+        if legacy_v1:
+            if _OPERATIVE_EVENT_KEYS.intersection(event):
+                raise ValueError("legacy v1 event cannot partially declare the operative projection")
+        else:
+            expected_projection = _operative_event_projection(scenario=scenario, plan=operative_plan, event=event)
+            if any(event.get(key) != value for key, value in expected_projection.items()):
+                raise ValueError("event stream operative projection does not match scenario and plan")
 
     decisions = replay.get("decisions")
     if not isinstance(decisions, list):
@@ -561,7 +586,10 @@ def validate_run_bundle(bundle: Mapping[str, Any]) -> None:
     if manifest.get("seed") != seed or manifest.get("turn_limit") != turn_limit or manifest.get("event_count") != len(events):
         raise ValueError("replay manifest does not match request or event stream")
     operative_state = replay.get("operative_state")
-    if not isinstance(operative_state, Mapping) or set(operative_state) != {
+    if legacy_v1:
+        if operative_state is not None:
+            raise ValueError("legacy v1 replay cannot partially declare operative state")
+    elif not isinstance(operative_state, Mapping) or set(operative_state) != {
         "body_integrity", "cognitive_integrity", "memory_coherence", "legal_authority",
         "organizational_trust", "public_trust", "replica_divergence", "option_preservation",
     }:
@@ -596,9 +624,14 @@ def verify_run_bundle(bundle: Mapping[str, Any]) -> None:
     """既存runtimeで再実行し、hashだけでなくrun全体の一致を確認する。"""
 
     validate_run_bundle(bundle)
+    if _is_legacy_v1(bundle):
+        # v1初版にはscenario本体がなく、進化後runtimeへ安全に再入力できない。
+        # 旧reader契約はcanonical digest・run_id・順序・decision来歴の検証までを維持する。
+        return
     request = bundle["run_request"]
     replay = bundle["replay"]
     decisions = replay["decisions"]
+    legacy_v1 = False
     scenario = ScenarioManifest.from_dict(request["scenario"])
     operative_plan = OperativePlan.from_dict(request["operative_plan"])
     if replay.get("trajectory_class") == "recorded-agent-turns":
@@ -621,13 +654,14 @@ def verify_run_bundle(bundle: Mapping[str, Any]) -> None:
             if decisions
             else None
         )
-        batch = run_replica_batch(
-            seeds=(request["seed"],),
-            turn_limit=request["turn_limit"],
-            decision_engine=engine,
-            scenario=scenario,
-            operative_plan=operative_plan,
-        )
+        replay_kwargs: dict[str, Any] = {
+            "seeds": (request["seed"],),
+            "turn_limit": request["turn_limit"],
+            "decision_engine": engine,
+        }
+        if not legacy_v1:
+            replay_kwargs.update(scenario=scenario, operative_plan=operative_plan)
+        batch = run_replica_batch(**replay_kwargs)
         replayed = next(run for run in batch.runs if run.requested_mode.value == request["requested_mode"])
     candidate = build_run_bundle(replayed)
     expected = json.loads(json.dumps(bundle))

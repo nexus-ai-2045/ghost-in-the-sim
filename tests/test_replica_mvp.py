@@ -22,6 +22,7 @@ from ghost_in_the_sim.replica import (
     classify_run_failure,
     run_replica_batch,
     run_replica_scenario,
+    run_ensemble_scenario,
 )
 from ghost_in_the_sim.evidence_contract import project_evidence, validate_derived_evidence
 from ghost_in_the_sim.operative import MIKAGE_DEFAULT_PLAN
@@ -47,6 +48,22 @@ def test_run_rejects_scenario_horizon_and_partner_pause_drift() -> None:
     wrong_pause = replace(MIKAGE_DEFAULT_PLAN, partner_actions=(PartnerAction(9, "request_pause", "late"),))
     with pytest.raises(ValueError, match="partner pause beat"):
         run_replica_scenario(requested_mode="plural", seed=42, scenario=KAGAMISHIO, operative_plan=wrong_pause)
+
+
+def test_noncanonical_scenario_is_rejected_before_engine_identity_can_drift() -> None:
+    alternate = replace(KAGAMISHIO, scenario_id="alternate-scenario")
+    alternate_plan = replace(MIKAGE_DEFAULT_PLAN, scenario_id=alternate.scenario_id)
+
+    with pytest.raises(ValueError, match="canonical scenario"):
+        run_replica_scenario(
+            requested_mode="plural", seed=42, turn_limit=1,
+            scenario=alternate, operative_plan=alternate_plan,
+        )
+    with pytest.raises(ValueError, match="canonical scenario"):
+        run_ensemble_scenario(
+            requested_mode="plural", seed=42, turn_limit=1,
+            scenario=alternate, operative_plan=alternate_plan,
+        )
 
 
 def test_rule_engine_is_deterministic_and_maps_all_modes() -> None:

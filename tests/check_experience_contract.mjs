@@ -4,9 +4,14 @@ import vm from "node:vm";
 const source = fs.readFileSync(new URL("../web/experience-contract.js", import.meta.url), "utf8");
 const context = { globalThis: {} };
 vm.runInNewContext(source, context);
-const { validate, validateEnsemble } = context.globalThis.ExperienceContract;
+const { validate, validateEnsemble, canonicalDigest } = context.globalThis.ExperienceContract;
 const generated = JSON.parse(fs.readFileSync(new URL("../web/data/comparison.json", import.meta.url), "utf8"));
 const expectedIds = ["hospital-joint-hold", "port-joint-hold", "hospital-joint-proceed", "hospital-single-proceed"];
+
+if (canonicalDigest({ whole: 1, integral_float: 1.0, decimal: 0.125, negative_zero: -0.0 })
+  !== "sha256:23459925fb9d99b42cf0647902d510364687fd4b4af11409c726a1392314eca0") {
+  throw new Error("browser canonical digest drifted from Python golden vector");
+}
 
 const result = validate(generated);
 if (!result.available) throw new Error(`generated playable artifact rejected: ${result.reason}`);
@@ -50,11 +55,12 @@ ensembleBundle.replay.protocol_version = "ghost-agent-turn/v1";
 ensembleBundle.replay.trajectory_class = "recorded-agent-turns";
 ensembleBundle.replay.agent_turns = agents.map((agent_id, index) => ({
   request: { run_ref: { scenario_id: ensembleBundle.run_request.scenario.scenario_id, environment_seed: 42, condition_id: "plural", turn: 1, round: 1 }, agent: { agent_id }, observations: [{ id: `obs-${index}` }] },
-  proposal: { agent_id, action: "preserve_dissent", dissent: { raised: index === 1 }, cooperation_target: index === 0 ? "makabe_jin" : null },
+  proposal: { agent_id, action: "preserve_dissent", dissent: { raised: index === 1 }, cooperation_target: index === 0 ? "makabe_jin" : null, expected_consequence: { is_projection: true, text: "訂正可能性を保持する見込み" } },
   status: index < 2 ? "APPLIED" : "REJECTED", reason_code: index < 2 ? null : "proposal_not_selected", applied_influence: null,
 }));
 ensembleBundle.replay.interaction_refs = [{ turn: 1, from_agent_id: "mikage_sae", to_agent_id: "makabe_jin", kind: "cooperation" }];
 ensembleBundle.replay.emergence_metrics = { validated_proposal_count: 4, applied_count: 2, rejected_count: 2, fallback_count: 0, proposal_conflict_count: 1, dissent_count: 1, cooperation_count: 1, unresolved_interaction_count: 0 };
+ensembleBundle.evidence.replay_sha256 = canonicalDigest(ensembleBundle.replay);
 ensembleCandidate.ensemble_runs = [ensembleBundle];
 if (!validateEnsemble(ensembleCandidate).available) throw new Error("valid ensemble artifact rejected");
 for (const mutate of [
@@ -65,4 +71,14 @@ for (const mutate of [
 ]) {
   const candidate = structuredClone(ensembleCandidate); mutate(candidate);
   if (validateEnsemble(candidate).available) throw new Error("invalid ensemble artifact accepted");
+}
+
+for (const mutate of [
+  value => { value.ensemble_runs[0].replay.agent_turns[0].proposal.action = "tampered-action"; },
+  value => { value.ensemble_runs[0].replay.agent_turns[0].proposal.expected_consequence.text = "tampered-summary"; },
+  value => { value.ensemble_runs[0].replay.emergence_metrics.proposal_conflict_count += 1; },
+  value => { value.ensemble_runs[0].replay.interaction_refs[0].kind = "tampered-interaction"; },
+]) {
+  const candidate = structuredClone(ensembleCandidate); mutate(candidate);
+  if (validateEnsemble(candidate).available) throw new Error("ensemble mutation accepted without refreshed evidence digest");
 }

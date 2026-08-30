@@ -26,10 +26,12 @@ PowerShellでrepository rootから実行します。
 
 ```powershell
 $env:PYTHONPATH='src'
-python -m ghost_in_the_sim.agent_turn_cli export --seed 42 --mode plural --turn-limit 12 --output artifacts/cloud-handoff/requests.json
+python -m ghost_in_the_sim.agent_turn_cli export --seed 42 --mode plural --turn-limit 1 --output artifacts/cloud-handoff/requests.json
 ```
 
 外部runnerは`requests.json`の各requestに対して、同じ`ghost-agent-turn/v1`の`AgentProposal`を1件だけ作ります。返却ファイルのtop-levelは次のexact schemaです。
+
+現行v1のexportは1 turn単位です。次turnのrequestは前turnで確定した世界状態へ依存するため、未来12 turnを先行生成してはいけません。複数turnのクラウド実行は、各turnのproposalを取り込んで世界状態を確定した後に次requestを発行するinterleaved sessionとして扱います。未実装のsession runnerがない状態で`--turn-limit 2`以上を指定するとfail-closedで停止します。
 
 ```json
 {

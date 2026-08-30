@@ -19,6 +19,106 @@
   });
   const AGENT_IDS = Object.freeze(["mikage_sae", "makabe_jin", "hospital_replica", "port_replica"]);
   const OUTCOME_STATUSES = new Set(["APPLIED", "REJECTED", "FALLBACK"]);
+  const CANONICALIZATION_VERSION = "meta-security-json-c14n/v1";
+
+  function normalizedNumber(value) {
+    if (!Number.isFinite(value)) throw new Error("non-finite number");
+    if (Object.is(value, -0) || value === 0) return "0";
+    const magnitude = Math.abs(value);
+    if (Number.isInteger(value) && !Number.isSafeInteger(value)) throw new Error("unsafe integer");
+    if (magnitude < 1e-6 || magnitude >= 1e21) throw new Error("outside portable decimal range");
+    const source = String(value);
+    if (!/[eE]/.test(source)) return source;
+    const [coefficient, exponentText] = source.toLowerCase().split("e");
+    const exponent = Number(exponentText);
+    const negative = coefficient.startsWith("-");
+    const digits = coefficient.replace("-", "").replace(".", "");
+    const decimalIndex = coefficient.replace("-", "").indexOf(".");
+    const originalPoint = decimalIndex === -1 ? digits.length : decimalIndex;
+    const point = originalPoint + exponent;
+    let expanded;
+    if (point <= 0) expanded = `0.${"0".repeat(-point)}${digits}`;
+    else if (point >= digits.length) expanded = `${digits}${"0".repeat(point - digits.length)}`;
+    else expanded = `${digits.slice(0, point)}.${digits.slice(point)}`;
+    return negative ? `-${expanded}` : expanded;
+  }
+
+  function canonicalJson(value) {
+    if (value === null || typeof value === "boolean" || typeof value === "string") return JSON.stringify(value);
+    if (typeof value === "number") return `{"$number":${JSON.stringify(normalizedNumber(value))}}`;
+    if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+    if (object(value)) {
+      return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(",")}}`;
+    }
+    throw new Error(`unsupported canonical value: ${typeof value}`);
+  }
+
+  function utf8Bytes(text) {
+    const bytes = [];
+    for (const character of text) {
+      const point = character.codePointAt(0);
+      if (point <= 0x7f) bytes.push(point);
+      else if (point <= 0x7ff) bytes.push(0xc0 | (point >> 6), 0x80 | (point & 0x3f));
+      else if (point <= 0xffff) bytes.push(0xe0 | (point >> 12), 0x80 | ((point >> 6) & 0x3f), 0x80 | (point & 0x3f));
+      else bytes.push(0xf0 | (point >> 18), 0x80 | ((point >> 12) & 0x3f), 0x80 | ((point >> 6) & 0x3f), 0x80 | (point & 0x3f));
+    }
+    return bytes;
+  }
+
+  function sha256Hex(text) {
+    const constants = [];
+    const initial = [];
+    let candidate = 2;
+    while (constants.length < 64) {
+      let prime = true;
+      for (let divisor = 2; divisor * divisor <= candidate; divisor += 1) {
+        if (candidate % divisor === 0) { prime = false; break; }
+      }
+      if (prime) {
+        if (initial.length < 8) initial.push((Math.sqrt(candidate) * 0x100000000) | 0);
+        constants.push((Math.cbrt(candidate) * 0x100000000) | 0);
+      }
+      candidate += 1;
+    }
+    const bytes = utf8Bytes(text);
+    const bitLength = bytes.length * 8;
+    bytes.push(0x80);
+    while (bytes.length % 64 !== 56) bytes.push(0);
+    const high = Math.floor(bitLength / 0x100000000);
+    const low = bitLength >>> 0;
+    for (let shift = 24; shift >= 0; shift -= 8) bytes.push((high >>> shift) & 0xff);
+    for (let shift = 24; shift >= 0; shift -= 8) bytes.push((low >>> shift) & 0xff);
+    const hash = initial.slice();
+    const rotate = (value, amount) => (value >>> amount) | (value << (32 - amount));
+    for (let offset = 0; offset < bytes.length; offset += 64) {
+      const words = new Array(64);
+      for (let index = 0; index < 16; index += 1) {
+        const start = offset + index * 4;
+        words[index] = (bytes[start] << 24) | (bytes[start + 1] << 16) | (bytes[start + 2] << 8) | bytes[start + 3];
+      }
+      for (let index = 16; index < 64; index += 1) {
+        const s0 = rotate(words[index - 15], 7) ^ rotate(words[index - 15], 18) ^ (words[index - 15] >>> 3);
+        const s1 = rotate(words[index - 2], 17) ^ rotate(words[index - 2], 19) ^ (words[index - 2] >>> 10);
+        words[index] = (words[index - 16] + s0 + words[index - 7] + s1) | 0;
+      }
+      let [a, b, c, d, e, f, g, h] = hash;
+      for (let index = 0; index < 64; index += 1) {
+        const sum1 = rotate(e, 6) ^ rotate(e, 11) ^ rotate(e, 25);
+        const choice = (e & f) ^ (~e & g);
+        const temp1 = (h + sum1 + choice + constants[index] + words[index]) | 0;
+        const sum0 = rotate(a, 2) ^ rotate(a, 13) ^ rotate(a, 22);
+        const majority = (a & b) ^ (a & c) ^ (b & c);
+        const temp2 = (sum0 + majority) | 0;
+        [a, b, c, d, e, f, g, h] = [(temp1 + temp2) | 0, a, b, c, (d + temp1) | 0, e, f, g];
+      }
+      [a, b, c, d, e, f, g, h].forEach((value, index) => { hash[index] = (hash[index] + value) | 0; });
+    }
+    return hash.map(value => (value >>> 0).toString(16).padStart(8, "0")).join("");
+  }
+
+  function canonicalDigest(value) {
+    return `sha256:${sha256Hex(canonicalJson(value))}`;
+  }
 
   function object(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -38,6 +138,15 @@
     if (typeof runId !== "string" || !runId) return null;
     if (![request, stream, replay, evidence].every(section => object(section) && section.run_id === runId)) return null;
     if (evidence.verification !== "replay-match" || stream.ordering !== "turn-ascending/v1") return null;
+    if (evidence.canonicalization !== CANONICALIZATION_VERSION
+      || evidence.digest_algorithm !== "sha256") return null;
+    try {
+      if (evidence.run_request_sha256 !== canonicalDigest(request)
+        || evidence.event_stream_sha256 !== canonicalDigest(stream)
+        || evidence.replay_sha256 !== canonicalDigest(replay)) return null;
+    } catch (_error) {
+      return null;
+    }
     if (!object(request.scenario) || !Array.isArray(request.scenario.beats) || !object(request.operative_plan) || !object(request.operative_plan.attention)) return null;
     const attentionValues = Object.values(request.operative_plan.attention).map(Number);
     const attentionBudget = attentionValues.reduce((total, value) => total + value, 0);
@@ -168,5 +277,5 @@
     return { present: true, available: true, reason: "", runs };
   }
 
-  root.ExperienceContract = Object.freeze({ validate, validateEnsemble });
+  root.ExperienceContract = Object.freeze({ validate, validateEnsemble, canonicalDigest });
 })(globalThis);
