@@ -15,6 +15,8 @@ cross-runtime digestは `meta-security-json-c14n/v1` を使う。run identityは
 
 初期版ではThree.js、GSAP、Hyperframes、Godotを採用しない。現在の体験はテキスト中心の比較・時系列選択であり、DOM/CSS/標準JavaScriptでアクセシブルに成立しているためである。
 
+鏡潮の初期プレイ体験は、検証済みtrajectoryから介入方針を選び、12ターンを順に再生するDOMベースの作戦ゲームとする。ブラウザは新しい結果を計算せず、Python runtimeが付与した `replay-match` を構造検査して表示する。暗号学的検証とruntime replayの正本は引き続きPython側に置く。
+
 - Three.js: 3D空間または関係網が判断理解を改善すると実測できた場合だけ、該当画面でdynamic importする。WebGL不能時は既存DOM表へ戻す。
 - GSAP: 状態遷移の補間が理解を改善し、`prefers-reduced-motion`のfallbackを維持できる場合だけdynamic importする。現段階ではクリック式replayを維持する。
 - Hyperframes: 発表動画またはVisual QAの開発時toolに限定し、通常runtime bundleへ含めない。

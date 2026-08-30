@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import subprocess
 import unittest
 
 
@@ -50,6 +51,97 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertIn("結果カード不正", script)
         self.assertIn('src="result-card-contract.js"', index)
 
+    def test_verified_experience_is_fail_closed_and_accessible(self) -> None:
+        index = (ROOT / "web/index.html").read_text(encoding="utf-8")
+        script = (ROOT / "web/app.js").read_text(encoding="utf-8")
+        contract = (ROOT / "web/experience-contract.js").read_text(encoding="utf-8")
+        style = (ROOT / "web/styles.css").read_text(encoding="utf-8")
+
+        self.assertIn('id="operation-console"', index)
+        self.assertIn('id="experience-unavailable"', index)
+        self.assertIn('src="experience-contract.js"', index)
+        self.assertLess(index.index('src="experience-contract.js"'), index.index('src="app.js"'))
+        self.assertIn("ExperienceContract.validate(payload)", script)
+        self.assertIn("experience.available", script)
+        self.assertIn("request_pause", script)
+        self.assertIn("attention", script)
+        self.assertIn("cost_codes", script)
+        self.assertIn("ArrowRight", script)
+        self.assertIn("ArrowLeft", script)
+        self.assertIn("Home", script)
+        self.assertIn("End", script)
+        self.assertIn("Escape", script)
+        self.assertIn("min-height: 44px", style)
+        self.assertIn("meta-security-run-bundle/v1", contract)
+        self.assertIn("replay-match", contract)
+        self.assertIn("renderer_mode", contract)
+        self.assertNotIn("Math.random", script)
+        for phrase in ("作戦開始", "前のターン", "次のターン", "最初から再開", "病院を守る", "港湾を守る"):
+            self.assertIn(phrase, index)
+        for phrase in ("状況", "御影の行動", "真壁の応答", "成功見込み", "代償"):
+            self.assertIn(phrase, script)
+        self.assertIn("playableIdForSelection", script)
+        self.assertIn("experience.byId", script)
+        self.assertIn("operative_state_before.cognitive_integrity", script)
+        self.assertNotIn("attention_remaining", script)
+        self.assertIn("producerがreplay-matchと記録", index)
+        self.assertIn("generated artifact contract error", script)
+        self.assertNotIn('render(await response.json(), "generated comparison.json")', script)
+        self.assertIn("ExperienceContract.validateEnsemble(payload)", script)
+        self.assertIn("meta-security-json-c14n/v1", contract)
+        self.assertIn("run_request_sha256", contract)
+        self.assertIn("event_stream_sha256", contract)
+        self.assertIn("replay_sha256", contract)
+        self.assertIn("AI創発観測", script)
+        self.assertIn("proposal_conflict_count", script)
+        self.assertIn("unresolved_interaction_count", script)
+        self.assertIn("誤合意はP0では未計測", script)
+        self.assertIn(".emergence-observation", style)
+
+    def test_operation_reads_as_japanese_game_not_dashboard(self) -> None:
+        index = (ROOT / "web/index.html").read_text(encoding="utf-8")
+        script = (ROOT / "web/app.js").read_text(encoding="utf-8")
+
+        # プレイヤーには研究条件の直積ではなく、存在する4経路だけを段階的に提示する。
+        for phrase in ("病院を守る", "港湾を守る", "真壁と共同確認する", "御影が単一正本で進める"):
+            self.assertIn(phrase, index)
+        self.assertIn("hospital-joint-hold", script)
+        self.assertIn("port-joint-hold", script)
+        self.assertIn("hospital-joint-proceed", script)
+        self.assertIn("hospital-single-proceed", script)
+        # 内部scenario IDをそのまま表示しない。
+        self.assertIn("SCENARIO_COPY", script)
+        self.assertNotIn('textContent = model.scenario_id', script)
+        # 完了と再挑戦の一巡。
+        self.assertIn("作戦完了", script)
+        self.assertIn("別の方針で再挑戦", index)
+        self.assertIn("resetToSelection", script)
+        for phrase in ("守った", "失った", "訂正可能", "責任未確定"):
+            self.assertIn(phrase, script)
+        # 真壁の停止要求はターン進行トラックと詳細の両方で強調される。
+        self.assertIn("pause-banner", script)
+        self.assertIn("legend-pause", index)
+        # 注意配分は数値表だけでなく日本語の説明文を持つ。
+        self.assertIn("renderAttentionBrief", script)
+        self.assertIn("注意配分の内訳", index)
+        # seedと証拠の状態は折り畳んだ監査ビュー側に置く。
+        self.assertLess(index.index('id="audit-view"'), index.index('id="seed-select"'))
+        self.assertLess(index.index('id="audit-view"'), index.index('id="source-status"'))
+        # 最初の画面は事件・御影・真壁・最初の操作へ絞る。
+        self.assertIn("現場収束官", index)
+        self.assertIn("persona-list", index)
+
+    def test_experience_contract_rejects_unverified_or_incomplete_artifacts(self) -> None:
+        script = ROOT / "tests/check_experience_contract.mjs"
+        completed = subprocess.run(
+            ["node", str(script)],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        self.assertIn("experience-contract: PASS", completed.stdout)
+
     def test_fixture_has_three_distinct_conditions_and_required_metrics(self) -> None:
         fixture = json.loads((ROOT / "web/data/sample-comparison.json").read_text(encoding="utf-8"))
         self.assertEqual(fixture["seed"], 2045)
@@ -75,6 +167,10 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertEqual(card["ai_replay_evidence"]["decision_sources"], ["llm_generated_in_codex_session"])
         self.assertEqual(len(payload["ai_evidence_runs"]), 3)
         self.assertEqual(payload["artifact_revision"], card["artifact_revision"])
+        self.assertEqual(
+            [item["trajectory_id"] for item in payload["playable_trajectories"]],
+            ["hospital-joint-hold", "port-joint-hold", "hospital-joint-proceed", "hospital-single-proceed"],
+        )
 
 
 if __name__ == "__main__":

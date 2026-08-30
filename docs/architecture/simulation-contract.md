@@ -29,6 +29,8 @@ flowchart LR
 | `turn_limit` | はい | MVPでは12以下 |
 | `agent_profiles` | はい | 構造化主体プロファイル |
 | `policy` | はい | 許可された抽象行動と状態遷移規則 |
+| `scenario` | はい | 連続turnと観測を持つ型付き事件manifest |
+| `operative_plan` | はい | 御影の現場focus、有限注意配分、真壁の独立停止要求への応答、失効対象 |
 
 ## 行動境界
 
@@ -71,8 +73,8 @@ flowchart LR
 単一runを外部runner、replay viewer、将来のGodot clientへ渡す境界は `meta-security-run-bundle/v1` とする。bundleは既存runtimeの `ReplicaRun` からのみ投影し、次を同じ `run_id` へ拘束する。
 
 - `run_request`: scenario、mode、seed、turn limit、runtime version
-- `event_stream`: `turn-ascending/v1` の連続event列
-- `replay`: decision records、audit、manifest、final state、metrics
+- `event_stream`: `turn-ascending/v1` の連続event列。事件beat、御影action、真壁review、成功確度、代償、8状態の前後を含む
+- `replay`: decision records、audit、manifest、final state、metrics、実働調整官の最終状態
 - `evidence`: 各区画のCanonical JSON SHA-256、失敗分類、replay一致状態
 
 validatorは別runの混入、event欠落・並べ替え、seedの型drift、内容とdigestの不一致を拒否する。さらに既存runtimeでdecision recordsを再生し、生成bundle全体が一致した場合だけ `verification: replay-match` とする。rendererやcloud adapterはbundleを入力としてよいが、runtime状態やevent順序を再計算しない。
@@ -80,6 +82,8 @@ validatorは別runの混入、event欠落・並べ替え、seedの型drift、内
 digestは `meta-security-json-c14n/v1` で計算する。object keyを辞書順にし、JSON数値は `{"$number":"<decimal>"}` へ投影する。整数はJavaScript safe integer範囲、非整数は指数表記を避けられる `1e-6 <= abs(x) < 1e21`（0を除く）に限定する。範囲外は丸めずfail-closedとし、PythonとJavaScriptのgolden vectorで同じbyte列を検査する。
 
 bundle IDは実効結果だけでなく、要求条件とdecision provenanceから導出する。異なるmodeやtraceが同じ行動へ収束しても別runとして保持する。構造検査だけのbundleは `unverified` とし、`replay-match` はruntime replay成功後だけ付与する。
+
+比較正本の3方式×seed `{17,42,99}` は `trajectories` の9runとして維持する。ゲーム体験用は `playable_trajectories` に同一seed 42の最小4経路（病院/港focus、停止の保留/進行、共同/単一正本の代表）だけを格納する。各要素は固有の `operative_plan` を含む完全な `meta-security-run-bundle/v1` であり、run request、event stream、replay、evidenceを同じ `run_id` へ拘束する。
 
 ## 終了条件
 

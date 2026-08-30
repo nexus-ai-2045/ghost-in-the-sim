@@ -38,3 +38,25 @@ def test_readme_quickstart_matches_and_executes_canonical_reproduction_command(t
     payload = json.loads(output.read_text(encoding="utf-8"))
     assert payload["seeds"] == [17, 42, 99]
     assert len(payload["runs"]) == 9
+    assert payload["experience_capability"] == {
+        "ai_emergence_console": True,
+        "operation_console": True,
+        "renderer_mode": "artifact-only",
+        "schema_version": "ghost-in-the-sim-experience/v1",
+    }
+    assert len(payload["trajectories"]) == 9
+    assert {bundle["evidence"]["verification"] for bundle in payload["trajectories"]} == {"replay-match"}
+    assert [item["trajectory_id"] for item in payload["playable_trajectories"]] == [
+        "hospital-joint-hold", "port-joint-hold", "hospital-joint-proceed", "hospital-single-proceed",
+    ]
+    assert {item["bundle"]["run_request"]["seed"] for item in payload["playable_trajectories"]} == {42}
+    assert {item["bundle"]["evidence"]["verification"] for item in payload["playable_trajectories"]} == {"replay-match"}
+    assert len(payload["ensemble_runs"]) == 3
+    assert {item["run_request"]["seed"] for item in payload["ensemble_runs"]} == {42}
+    assert {item["run_request"]["requested_mode"] for item in payload["ensemble_runs"]} == {
+        "centralized", "plural", "autonomous",
+    }
+    assert {item["replay"]["trajectory_class"] for item in payload["ensemble_runs"]} == {
+        "recorded-agent-turns",
+    }
+    assert {item["evidence"]["verification"] for item in payload["ensemble_runs"]} == {"replay-match"}

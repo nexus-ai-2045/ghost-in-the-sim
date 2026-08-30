@@ -6,12 +6,12 @@
 
 | 項目 | 値 |
 |---|---|
-| シナリオ | `poseidon-replica-crisis-01` |
+| シナリオ | `kagamishio-proteus-01` |
 | seed集合 | `{17, 42, 99}` |
 | run数 | `9` |
 | コード版 | `deterministic-core-v2` |
-| engine source revision | `bd00d27880f95782` |
-| artifact revision | `3e0fb8d1f0bc4f2f` |
+| engine source revision | `e3eb6f3f19c40ed1` |
+| artifact revision | `367d8269818e1a31` |
 | result card | `result-card-v1` |
 | 境界 | 合成仮説。現実予測・因果証明・政策推奨ではない |
 
@@ -22,36 +22,36 @@
 | 指標 | centralized | plural | autonomous |
 |---|---:|---:|---:|
 | `continuity` | 1.0 | 1.0 | 1.0 |
-| `evidence_calibration` | 0.497387 | 0.663078 | 0.0 |
+| `evidence_calibration` | 0.483437 | 0.685271 | 0.0 |
 | `correction_turn` | 3.0 | 2.0 | 13.0 |
 | `dissent_reach` | 0.083333 | 1.0 | 0.333333 |
-| `coordination_dependence` | 0.104989 | 0.243156 | 0.282677 |
+| `coordination_dependence` | 0.146391 | 0.248278 | 0.275846 |
 | `over_disclosure` | 8.0 | 0.0 | 0.0 |
-| `public_trust` | 0.372202 | 0.804202 | 0.540202 |
+| `public_trust` | 0.373871 | 0.805871 | 0.541871 |
 
 ### seed 42
 
 | 指標 | centralized | plural | autonomous |
 |---|---:|---:|---:|
 | `continuity` | 1.0 | 1.0 | 1.0 |
-| `evidence_calibration` | 0.473154 | 0.653879 | 0.0 |
+| `evidence_calibration` | 0.468548 | 0.68555 | 0.0 |
 | `correction_turn` | 3.0 | 2.0 | 13.0 |
 | `dissent_reach` | 0.083333 | 1.0 | 0.333333 |
-| `coordination_dependence` | 0.29531 | 0.267399 | 0.292221 |
+| `coordination_dependence` | 0.255878 | 0.250613 | 0.290316 |
 | `over_disclosure` | 8.0 | 0.0 | 0.0 |
-| `public_trust` | 0.355494 | 0.787494 | 0.523494 |
+| `public_trust` | 0.394947 | 0.826947 | 0.562947 |
 
 ### seed 99
 
 | 指標 | centralized | plural | autonomous |
 |---|---:|---:|---:|
 | `continuity` | 1.0 | 1.0 | 1.0 |
-| `evidence_calibration` | 0.465246 | 0.656422 | 0.0 |
+| `evidence_calibration` | 0.455342 | 0.681756 | 0.0 |
 | `correction_turn` | 3.0 | 2.0 | 13.0 |
 | `dissent_reach` | 0.083333 | 1.0 | 0.333333 |
-| `coordination_dependence` | 0.228112 | 0.233021 | 0.257492 |
+| `coordination_dependence` | 0.22203 | 0.279441 | 0.301849 |
 | `over_disclosure` | 8.0 | 0.0 | 0.0 |
-| `public_trust` | 0.354345 | 0.786345 | 0.522345 |
+| `public_trust` | 0.39875 | 0.83075 | 0.56675 |
 
 plural対centralizedでseedにより符号反転した指標: `coordination_dependence`。
 これは優劣の断定ではなく、seed感度の観測である。

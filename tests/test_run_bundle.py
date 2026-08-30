@@ -16,11 +16,13 @@ from ghost_in_the_sim.run_bundle import (
     CANONICALIZATION_VERSION,
     SCHEMA_VERSION,
     _canonical_bytes,
+    _digest,
     build_run_bundle,
     build_verified_run_bundle,
     validate_run_bundle,
     verify_run_bundle,
 )
+from ghost_in_the_sim.operative import OperationalFocus, PauseResponse, build_gameplay_plan
 
 
 def _bundle() -> dict:
@@ -39,6 +41,62 @@ def test_bundle_joins_every_surface_by_run_id_and_replays_exactly() -> None:
     assert {event["run_id"] for event in first["event_stream"]["events"]} == {run_id}
     assert [event["turn"] for event in first["event_stream"]["events"]] == [1, 2, 3, 4]
     verify_run_bundle(first)
+    assert first["run_request"]["scenario"]["scenario_id"] == "kagamishio-proteus-01"
+    assert first["run_request"]["operative_plan"]["partner_actions"][0]["action"] == "request_pause"
+    assert first["replay"]["operative_state"]["option_preservation"] < 1.0
+    first_event = first["event_stream"]["events"][0]
+    assert first_event["scenario_beat_id"] == "proteus-01"
+    assert first_event["operative_action"] == "synchronize_replicas"
+    assert first_event["partner_action"] == "observe"
+    assert first_event["cost_codes"]
+    assert first_event["operative_state_before"] != first_event["operative_state_after"]
+
+
+def test_parent_v1_bundle_remains_readable_after_additive_runtime_evolution() -> None:
+    """main@2270558 が生成した初版v1のreader互換構造をgoldenとして固定する。"""
+
+    legacy = copy.deepcopy(_bundle())
+    legacy["run_request"].pop("scenario")
+    legacy["run_request"].pop("operative_plan")
+    for event in legacy["event_stream"]["events"]:
+        for key in (
+            "scenario_beat_id", "operative_action", "partner_action", "cost_codes",
+            "success_confidence", "operative_state_before", "operative_state_after",
+        ):
+            event.pop(key)
+    legacy["replay"].pop("operative_state")
+    legacy["evidence"]["run_request_sha256"] = _digest(legacy["run_request"])
+    legacy["evidence"]["event_stream_sha256"] = _digest(legacy["event_stream"])
+    legacy["evidence"]["replay_sha256"] = _digest(legacy["replay"])
+
+    validate_run_bundle(legacy)
+    verify_run_bundle(legacy)
+
+
+def test_v1_rejects_partial_operative_contracts() -> None:
+    bundle = _bundle()
+    bundle["run_request"].pop("scenario")
+    bundle["evidence"]["run_request_sha256"] = _digest(bundle["run_request"])
+    with pytest.raises(ValueError, match="declare scenario and operative plan together"):
+        validate_run_bundle(bundle)
+
+
+def test_gameplay_plan_changes_pause_and_revocation_projection_without_changing_world_events() -> None:
+    hold_plan = build_gameplay_plan(focus=OperationalFocus.HOSPITAL, pause_response=PauseResponse.HOLD)
+    proceed_plan = build_gameplay_plan(focus=OperationalFocus.HOSPITAL, pause_response=PauseResponse.PROCEED)
+    hold_run = next(run for run in run_replica_batch(seeds=(42,), operative_plan=hold_plan).runs if run.requested_mode.value == "plural")
+    proceed_run = next(run for run in run_replica_batch(seeds=(42,), operative_plan=proceed_plan).runs if run.requested_mode.value == "plural")
+    hold = build_verified_run_bundle(hold_run)
+    proceed = build_verified_run_bundle(proceed_run)
+    assert [event["action_type"] for event in hold["event_stream"]["events"]] == [
+        event["action_type"] for event in proceed["event_stream"]["events"]
+    ]
+    assert hold["run_id"] != proceed["run_id"]
+    assert hold["event_stream"]["events"][7]["operative_action"] == "hold_for_partner_review"
+    assert proceed["event_stream"]["events"][7]["operative_action"] == "proceed_despite_partner_pause"
+    assert proceed["event_stream"]["events"][10]["operative_action"] == "revoke_port_replica"
+    verify_run_bundle(hold)
+    verify_run_bundle(proceed)
 
 
 @pytest.mark.parametrize(
@@ -49,6 +107,7 @@ def test_bundle_joins_every_surface_by_run_id_and_replays_exactly() -> None:
         (lambda bundle: bundle["replay"]["metrics"].__setitem__("public_trust", 999), "evidence digest"),
         (lambda bundle: bundle["evidence"].__setitem__("failed_run", True), "evidence digest"),
         (lambda bundle: bundle["run_request"].__setitem__("seed", True), "seed must be an integer"),
+        (lambda bundle: bundle["event_stream"]["events"][0].__setitem__("partner_action", "ignore_pause"), "operative projection"),
     ],
 )
 def test_bundle_rejects_cross_run_order_and_content_mutations(mutate, message: str) -> None:

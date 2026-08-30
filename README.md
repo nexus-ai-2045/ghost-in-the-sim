@@ -13,7 +13,7 @@
 | 同じ初期条件で、中央正本・複数承認・自律分身を比べる実験台 | 現実の危機・組織・個人を予測、評価、指示する道具 |
 | 根拠、留保、異議、訂正、依存をログとして残す | 単一の正解や「最強の統治」を決める装置 |
 
-> 現在地: **設定はポセイドン世界と10事件まで正本化済み。動く実装は複製危機の比較MVP。** 構想の広がりと runtime の範囲は混ぜません。実測済みの結果だけを [RESULTS.md](RESULTS.md) に記録します。
+> 現在地: **ポセイドン世界と10事件を正本化し、鏡潮事案では御影・真壁を含む検証済みtrajectoryを操作・replayできます。** 残り9事件やlive providerは未実装です。実測済みの結果だけを [RESULTS.md](RESULTS.md) に記録します。
 
 ### いま動くもの
 
@@ -21,21 +21,21 @@ AI判断は監査traceとして再生し、許可済みactionだけが有界delt
 
 | 層 | 中身 | 状態 |
 |---|---|---|
-| 設定 | 2036年、ポセイドン、御影冴、接界機動班、命名、10事件 | 正本化。人物は runtime 未接続 |
+| 設定 | 2036年、ポセイドン、御影冴、接界機動班、命名、10事件 | 正本化。御影・真壁・鏡潮はrun bundleへ接続 |
 | 実行 | 12ターン決定論コア、正本集中／複数承認／自律分身、seed `{17, 42, 99}`、rule と actual-AI replay | 実装し、9 run を実測 |
-| 観察 | 比較Web UI、機械可読 result card、失敗run・符号反転 | 実装し、[RESULTS.md](RESULTS.md) と同期 |
+| 観察 | 鏡潮作戦端末、比較Web UI、機械可読 result card、失敗run・符号反転 | 実装し、[RESULTS.md](RESULTS.md) と同期 |
 | 引継ぎ | `meta-security-run-bundle/v1`（同一 `run_id` で request / event / replay / evidence） | 実装。renderer は読むだけで runtime を再計算しない |
 
 コードの入口は `src/ghost_in_the_sim/engine.py`、`replica.py`、`run_bundle.py`、`web/index.html` です。
 
 ### まだ動かないもの
 
-- 御影の注意予算、自己監査、複数身体の同期差
-- 真壁の独立観測と `request_pause`
-- 鏡潮を含む10事件を、型付き scenario として最後までプレイする体験
+- 注意配分を画面から変更して新trajectoryを生成する対話runner
+- 御影の身体切替を含む完全なプレイヤー操作
+- 鏡潮以外の9事件を、型付きscenarioとして最後までプレイする体験
 - live モデル接続、Three.js / GSAP / Godot
 
-これらは [ロードマップ](docs/roadmap.md) の Phase 6 以降です。設定があることを実装完了としません。
+これらは [ロードマップ](docs/roadmap.md) の未チェック項目です。設定があることを実装完了としません。
 
 ## 実験の見取り図
 
@@ -102,7 +102,7 @@ flowchart LR
 
 > ほぼ何でもできる。それでも、何をするべきかは決まらない。
 
-いまの runtime が動かすのは、この体験そのものではありません。実装済みの比較主体は次の6つで、`src/ghost_in_the_sim/engine.py` の `ACTOR_PROFILES` を正本とします。
+既存比較主体は次の6つで、`src/ghost_in_the_sim/engine.py` の `ACTOR_PROFILES` を正本とします。これに加え、鏡潮の操作trajectoryでは御影の有限注意・8状態と真壁の独立停止要求を別contractとして記録します。
 
 | actor_id | runtime上のmission |
 |---|---|
@@ -113,7 +113,7 @@ flowchart LR
 | `independent_observer` | 決定前の異議を可視化する |
 | `privacy_steward` | 必要最小限の開示を守る |
 
-御影／真壁の状態機械は未接続です。事件カタログの実装相当は、複製危機MVP（鏡潮の機械的先行）だけです。
+御影／真壁は `operative.py` と検証済みrun bundleへ接続済みです。ブラウザは状態を再計算せず、runtimeが生成した成功確度・代償・状態前後を表示します。事件カタログで実装済みなのは鏡潮だけです。
 
 ## 実験画面
 

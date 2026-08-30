@@ -10,12 +10,14 @@ from pathlib import Path
 from random import Random
 from typing import Any
 
+from .scenario import KAGAMISHIO
+
 
 MODEL_VERSION = "0.2.0"
 CODE_VERSION = "deterministic-core-v2"
 PROMPT_VERSION_OR_HASH = "rule-based:not-applicable"
 POLICY_VERSION = "poseidon-policy-v4"
-SCENARIO_ID = "poseidon-replica-crisis-01"
+SCENARIO_ID = KAGAMISHIO.scenario_id
 POLICY_REFERENCE_IDS = ("policy-centralized", "policy-plural", "policy-autonomous", "policy-overconnected")
 
 

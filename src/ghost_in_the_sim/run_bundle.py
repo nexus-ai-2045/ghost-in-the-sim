@@ -9,8 +9,20 @@ import json
 import math
 from typing import Any, Mapping
 
+from .agent_providers import RecordedProposalProvider
+from .agent_schedule import OutcomeStatus, schedule_one_round
+from .agent_turn import AgentId, AgentProposal, AgentTurnRequest, PROTOCOL_VERSION
 from .decision import DecisionContext, DecisionRecord, DecisionValidationError, RecordedDecisionEngine, safe_fallback
-from .replica import ReplicaRun, classify_run_failure, run_replica_batch
+from .replica import (
+    EnsembleRun,
+    ReplicaRun,
+    _compose_agent_round,
+    classify_run_failure,
+    run_ensemble_scenario,
+    run_replica_batch,
+)
+from .operative import OperativePlan, PauseResponse, RevocationTarget, evaluate_operative
+from .scenario import ScenarioManifest
 
 
 SCHEMA_VERSION = "meta-security-run-bundle/v1"
@@ -18,6 +30,19 @@ CANONICALIZATION_VERSION = "meta-security-json-c14n/v1"
 _TOP_LEVEL_KEYS = frozenset(
     {"schema_version", "run_id", "run_request", "event_stream", "replay", "evidence"}
 )
+_OPERATIVE_EVENT_KEYS = frozenset(
+    {
+        "scenario_beat_id", "operative_action", "partner_action", "cost_codes",
+        "success_confidence", "operative_state_before", "operative_state_after",
+    }
+)
+
+
+def _is_legacy_v1(bundle: Mapping[str, Any]) -> bool:
+    """v1初版と後方互換な形を、曖昧な部分一致ではなく構造で識別する。"""
+
+    request = bundle.get("run_request")
+    return isinstance(request, Mapping) and "scenario" not in request and "operative_plan" not in request
 
 
 def _normalized_number(value: float) -> str:
@@ -97,7 +122,203 @@ def _fallback_reason_code(record: DecisionRecord) -> str | None:
     return reason_code
 
 
-def build_run_bundle(run: ReplicaRun) -> dict[str, Any]:
+def _operative_event_projection(
+    *, scenario: ScenarioManifest, plan: OperativePlan, event: Mapping[str, Any]
+) -> dict[str, Any]:
+    """事件beatと有限注意を、rendererが再計算しない型付きeventへ投影する。"""
+
+    turn = event.get("turn")
+    if isinstance(turn, bool) or not isinstance(turn, int) or not 1 <= turn <= len(scenario.beats):
+        raise ValueError("operative event turn does not match the scenario")
+    beat = scenario.beats[turn - 1]
+    attention_by_event = {
+        "replica_link_lost": ("replica_sync", "synchronize_replicas"),
+        "authority_claim_received": ("route_verification", "verify_authority"),
+        "service_conflict_detected": ("civilian_impact", "protect_continuity"),
+        "evidence_lineage_split": ("self_audit", "audit_evidence"),
+        "local_copy_diverged": ("replica_sync", "synchronize_replicas"),
+        "continuity_risk_rises": ("civilian_impact", "protect_continuity"),
+        "public_explanation_due": ("delegation", "coordinate_explanation"),
+        "authority_revocation_proposed": ("route_verification", "verify_authority"),
+        "partner_pause_requested": ("self_audit", "hold_for_partner_review"),
+        "independent_evidence_arrives": ("route_verification", "integrate_independent_evidence"),
+        "authority_convergence_due": ("delegation", "converge_authority"),
+        "after_action_audit": ("self_audit", "self_audit"),
+    }
+    attention_field, operative_action = attention_by_event[beat.event_type]
+    if beat.event_type == "partner_pause_requested":
+        operative_action = (
+            "hold_for_partner_review"
+            if plan.pause_response is PauseResponse.HOLD
+            else "proceed_despite_partner_pause"
+        )
+    elif beat.event_type == "authority_revocation_proposed":
+        operative_action = (
+            "defer_authority_revocation"
+            if plan.revocation_target is RevocationTarget.DEFER
+            else f"propose_{plan.revocation_target.value}_revocation"
+        )
+    elif beat.event_type == "authority_convergence_due":
+        operative_action = (
+            "await_reconnection"
+            if plan.revocation_target is RevocationTarget.DEFER
+            else f"revoke_{plan.revocation_target.value}_replica"
+        )
+    attention_value = getattr(plan.attention, attention_field)
+    disturbance = event.get("exogenous_disturbance")
+    if isinstance(disturbance, bool) or not isinstance(disturbance, (int, float)) or not math.isfinite(disturbance):
+        raise ValueError("operative event disturbance must be finite")
+    partner = next((item for item in plan.partner_actions if item.turn == turn), None)
+    partner_action = partner.action if partner else "observe"
+    confidence = round(min(1.0, max(0.0, plan.base_capability - float(disturbance) * 0.08 + attention_value / 1000)), 6)
+    costs = [f"attention:{attention_field}"]
+    if partner:
+        if plan.pause_response is PauseResponse.HOLD:
+            costs.extend(("continuity_delay", "option_preservation"))
+        else:
+            costs.extend(("partner_dissent_recorded", "correction_window_reduced"))
+    elif beat.reversibility == "low":
+        costs.append("irreversibility_exposure")
+    if beat.event_type == "authority_convergence_due":
+        costs.append(f"revocation_target:{plan.revocation_target.value}")
+    return {
+        "scenario_beat_id": beat.beat_id,
+        "operative_action": operative_action,
+        "partner_action": partner_action,
+        "success_confidence": confidence,
+        "cost_codes": costs,
+        "operative_state_before": evaluate_operative(plan, completed_turns=turn - 1).to_dict(),
+        "operative_state_after": evaluate_operative(plan, completed_turns=turn).to_dict(),
+    }
+
+
+_AGENT_REPLAY_KEYS = frozenset(
+    {"protocol_version", "trajectory_class", "agent_turns", "interaction_refs", "emergence_metrics"}
+)
+_AGENT_TURN_RECORD_KEYS = frozenset(
+    {"request", "proposal", "status", "reason_code", "applied_influence"}
+)
+
+
+def _agent_turn_records(run: EnsembleRun) -> list[dict[str, Any]]:
+    records = []
+    for round_result in run.agent_rounds:
+        requests = _agent_requests_by_id(run, round_result.run_ref.turn)
+        for outcome in round_result.outcomes:
+            records.append(
+                {
+                    "request": requests[outcome.agent_id].to_dict(),
+                    "proposal": outcome.proposal.to_dict() if outcome.proposal else None,
+                    "status": outcome.status.value,
+                    "reason_code": outcome.reason_code,
+                    "applied_influence": (
+                        {
+                            "turn": outcome.influence.turn,
+                            "action_type": outcome.influence.action_type,
+                            "confidence": outcome.influence.confidence,
+                        }
+                        if outcome.influence
+                        else None
+                    ),
+                }
+            )
+    return records
+
+
+def _agent_requests_by_id(run: EnsembleRun, turn: int) -> dict[AgentId, AgentTurnRequest]:
+    """EnsembleRunのroundに保存されたrequestを順序込みで正本化する。"""
+
+    round_result = run.agent_rounds[turn - 1]
+    # scheduler結果はrequest本体を保持しないため、同じ純粋producerから再構成する。
+    from .replica import _agent_requests_for_turn
+
+    requests = _agent_requests_for_turn(
+        mode=run.requested_mode,
+        seed=run.seed,
+        turn=turn,
+        scenario=run.scenario,
+        operative_plan=run.operative_plan,
+        confirmed_state=None if turn == 1 else run.result.events[turn - 2].state_after,
+    )
+    if round_result.run_ref != requests[0].run_ref:
+        raise ValueError("agent round run_ref does not match the ensemble run")
+    return {request.agent.agent_id: request for request in requests}
+
+
+def _interaction_refs(agent_turns: list[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    refs: list[dict[str, Any]] = []
+    for record in agent_turns:
+        proposal = record.get("proposal")
+        request = record.get("request")
+        if not isinstance(proposal, Mapping) or not isinstance(request, Mapping):
+            continue
+        run_ref = request.get("run_ref")
+        if not isinstance(run_ref, Mapping):
+            continue
+        turn = run_ref.get("turn")
+        cooperation_target = proposal.get("cooperation_target")
+        if cooperation_target is not None:
+            refs.append(
+                {
+                    "turn": turn,
+                    "from_agent_id": proposal.get("agent_id"),
+                    "to_agent_id": cooperation_target,
+                    "kind": "cooperation",
+                    "proposal_digest": proposal.get("proposal_digest"),
+                }
+            )
+        dissent = proposal.get("dissent")
+        if isinstance(dissent, Mapping) and dissent.get("raised") is True:
+            refs.append(
+                {
+                    "turn": turn,
+                    "from_agent_id": proposal.get("agent_id"),
+                    "to_agent_id": dissent.get("target_agent_id"),
+                    "kind": "dissent",
+                    "proposal_digest": proposal.get("proposal_digest"),
+                    "target_proposal_digest": dissent.get("target_proposal_digest"),
+                }
+            )
+    return refs
+
+
+def _emergence_metrics(agent_turns: list[Mapping[str, Any]]) -> dict[str, int]:
+    proposals = [record["proposal"] for record in agent_turns if isinstance(record.get("proposal"), Mapping)]
+    turns: dict[int, set[str]] = {}
+    for proposal in proposals:
+        run_ref = proposal.get("run_ref")
+        if isinstance(run_ref, Mapping) and isinstance(run_ref.get("turn"), int):
+            turns.setdefault(run_ref["turn"], set()).add(str(proposal.get("action")))
+    return {
+        "validated_proposal_count": len(proposals),
+        "applied_count": sum(record.get("status") == OutcomeStatus.APPLIED.value for record in agent_turns),
+        "rejected_count": sum(record.get("status") == OutcomeStatus.REJECTED.value for record in agent_turns),
+        "fallback_count": sum(record.get("status") == OutcomeStatus.FALLBACK.value for record in agent_turns),
+        "proposal_conflict_count": sum(len(actions) > 1 for actions in turns.values()),
+        "dissent_count": sum(
+            isinstance(proposal.get("dissent"), Mapping) and proposal["dissent"].get("raised") is True
+            for proposal in proposals
+        ),
+        "cooperation_count": sum(proposal.get("cooperation_target") is not None for proposal in proposals),
+        "unresolved_interaction_count": sum(
+            record.get("status") == OutcomeStatus.FALLBACK.value for record in agent_turns
+        ),
+    }
+
+
+def _ensemble_identity(agent_turns: list[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        {
+            "request_digest": record["request"]["request_digest"],
+            "proposal_digest": record["proposal"]["proposal_digest"] if record["proposal"] else None,
+            "status": record["status"],
+            "reason_code": record["reason_code"],
+        }
+        for record in agent_turns
+    ]
+
+
+def build_run_bundle(run: ReplicaRun | EnsembleRun) -> dict[str, Any]:
     """ReplicaRunを唯一の正本としてbundleを生成する。"""
 
     request_contract = {
@@ -110,15 +331,28 @@ def build_run_bundle(run: ReplicaRun) -> dict[str, Any]:
         "code_version": run.result.code_version,
         "prompt_version_or_hash": run.result.prompt_version_or_hash,
         "source_revision": run.result.source_revision,
+        "scenario": run.scenario.to_dict(),
+        "operative_plan": run.operative_plan.to_dict(),
     }
     provenance = [decision.to_dict() for decision in run.decisions]
-    run_id = f"run-{sha256(_canonical_bytes({'request': request_contract, 'decisions': provenance})).hexdigest()[:12]}"
+    agent_turns = _agent_turn_records(run) if isinstance(run, EnsembleRun) else None
+    identity = (
+        {"request": request_contract, "agent_turns": _ensemble_identity(agent_turns)}
+        if agent_turns is not None
+        else {"request": request_contract, "decisions": provenance}
+    )
+    run_id = f"run-{sha256(_canonical_bytes(identity)).hexdigest()[:12]}"
     request = {"run_id": run_id, **request_contract}
+    stream_events = []
+    for event in run.result.events:
+        event_payload = {**event.to_dict(), "run_id": run_id}
+        event_payload.update(_operative_event_projection(scenario=run.scenario, plan=run.operative_plan, event=event_payload))
+        stream_events.append(event_payload)
     stream = {
         "run_id": run_id,
         "ordering": "turn-ascending/v1",
         "event_count": len(run.result.events),
-        "events": [{**event.to_dict(), "run_id": run_id} for event in run.result.events],
+        "events": stream_events,
     }
     replay = {
         "run_id": run_id,
@@ -137,7 +371,18 @@ def build_run_bundle(run: ReplicaRun) -> dict[str, Any]:
         "manifest": {**run.result.manifest(), "run_id": run_id},
         "final_state": asdict(run.result.final_state),
         "metrics": dict(run.result.metrics),
+        "operative_state": run.operative_state.to_dict(),
     }
+    if agent_turns is not None:
+        replay.update(
+            {
+                "protocol_version": PROTOCOL_VERSION,
+                "trajectory_class": "recorded-agent-turns",
+                "agent_turns": agent_turns,
+                "interaction_refs": _interaction_refs(agent_turns),
+                "emergence_metrics": _emergence_metrics(agent_turns),
+            }
+        )
     failed, failure_reasons = classify_run_failure(run.result)
     evidence = {
         "run_id": run_id,
@@ -162,7 +407,7 @@ def build_run_bundle(run: ReplicaRun) -> dict[str, Any]:
     return bundle
 
 
-def build_verified_run_bundle(run: ReplicaRun) -> dict[str, Any]:
+def build_verified_run_bundle(run: ReplicaRun | EnsembleRun) -> dict[str, Any]:
     """replay成功と不可分なverified bundleを生成する。"""
 
     bundle = build_run_bundle(run)
@@ -170,6 +415,94 @@ def build_verified_run_bundle(run: ReplicaRun) -> dict[str, Any]:
     bundle["evidence"]["verification"] = "replay-match"
     validate_run_bundle(bundle)
     return bundle
+
+
+def _validate_agent_replay(
+    *, replay: Mapping[str, Any], request: Mapping[str, Any], turn_limit: int
+) -> bool:
+    present = set(replay) & _AGENT_REPLAY_KEYS
+    if not present:
+        return False
+    if present != _AGENT_REPLAY_KEYS:
+        raise ValueError("agent replay additive fields must be present as one complete contract")
+    if replay.get("protocol_version") != PROTOCOL_VERSION:
+        raise ValueError("agent replay protocol version is invalid")
+    if replay.get("trajectory_class") != "recorded-agent-turns":
+        raise ValueError("agent replay trajectory class is invalid")
+    agent_turns = replay.get("agent_turns")
+    if not isinstance(agent_turns, list) or len(agent_turns) != turn_limit * len(AgentId):
+        raise ValueError("agent turns must contain four agents for every turn")
+
+    parsed_by_turn: dict[int, list[tuple[AgentTurnRequest, AgentProposal | None]]] = {}
+    expected_order = [
+        (turn, agent_id)
+        for turn in range(1, turn_limit + 1)
+        for agent_id in AgentId
+    ]
+    observed_order: list[tuple[int, AgentId]] = []
+    for record in agent_turns:
+        if not isinstance(record, Mapping) or set(record) != _AGENT_TURN_RECORD_KEYS:
+            raise ValueError("agent turn record schema does not match")
+        try:
+            turn_request = AgentTurnRequest.from_dict(record["request"])
+        except (TypeError, ValueError) as error:
+            raise ValueError(f"agent turn request is invalid: {error}") from error
+        if (
+            turn_request.run_ref.scenario_id != request.get("scenario_id")
+            or turn_request.run_ref.environment_seed != request.get("seed")
+            or turn_request.run_ref.condition_id != request.get("requested_mode")
+        ):
+            raise ValueError("agent turn request contains a cross-run reference")
+        observed_order.append((turn_request.run_ref.turn, turn_request.agent.agent_id))
+        proposal_payload = record.get("proposal")
+        proposal = None
+        if proposal_payload is not None:
+            try:
+                proposal = AgentProposal.from_dict(proposal_payload, request=turn_request)
+            except (TypeError, ValueError) as error:
+                raise ValueError(f"agent proposal digest or contract is invalid: {error}") from error
+        parsed_by_turn.setdefault(turn_request.run_ref.turn, []).append((turn_request, proposal))
+    if observed_order != expected_order:
+        raise ValueError("agent turns must retain canonical turn and agent order")
+
+    proposal_payloads = [
+        proposal.to_dict()
+        for values in parsed_by_turn.values()
+        for _, proposal in values
+        if proposal is not None
+    ]
+    provider = RecordedProposalProvider(proposal_payloads)
+    rebuilt_records: list[dict[str, Any]] = []
+    for turn in range(1, turn_limit + 1):
+        values = parsed_by_turn[turn]
+        scheduled = _compose_agent_round(schedule_one_round(tuple(item[0] for item in values), provider))
+        for (turn_request, _), outcome in zip(values, scheduled.outcomes, strict=True):
+            rebuilt_records.append(
+                {
+                    "request": turn_request.to_dict(),
+                    "proposal": outcome.proposal.to_dict() if outcome.proposal else None,
+                    "status": outcome.status.value,
+                    "reason_code": outcome.reason_code,
+                    "applied_influence": (
+                        {
+                            "turn": outcome.influence.turn,
+                            "action_type": outcome.influence.action_type,
+                            "confidence": outcome.influence.confidence,
+                        }
+                        if outcome.influence
+                        else None
+                    ),
+                }
+            )
+    if rebuilt_records != agent_turns:
+        raise ValueError("agent turn status or applied influence does not match exact replay")
+    expected_refs = _interaction_refs(agent_turns)
+    if replay.get("interaction_refs") != expected_refs:
+        raise ValueError("agent replay interaction refs are not the canonical projection")
+    expected_metrics = _emergence_metrics(agent_turns)
+    if replay.get("emergence_metrics") != expected_metrics:
+        raise ValueError("agent replay emergence metrics are not the canonical projection")
+    return True
 
 
 def validate_run_bundle(bundle: Mapping[str, Any]) -> None:
@@ -191,6 +524,16 @@ def validate_run_bundle(bundle: Mapping[str, Any]) -> None:
         raise ValueError("run request seed must be an integer")
     if isinstance(turn_limit, bool) or not isinstance(turn_limit, int) or turn_limit < 1:
         raise ValueError("run request turn_limit must be a positive integer")
+    legacy_v1 = _is_legacy_v1(bundle)
+    if legacy_v1:
+        scenario = operative_plan = None
+    else:
+        if "scenario" not in request or "operative_plan" not in request:
+            raise ValueError("expanded v1 request must declare scenario and operative plan together")
+        scenario = ScenarioManifest.from_dict(request["scenario"])
+        operative_plan = OperativePlan.from_dict(request["operative_plan"])
+        if scenario.scenario_id != operative_plan.scenario_id:
+            raise ValueError("operative plan must reference the run scenario")
 
     events = stream.get("events")
     if not isinstance(events, list) or stream.get("ordering") != "turn-ascending/v1" or stream.get("event_count") != len(events):
@@ -200,6 +543,14 @@ def validate_run_bundle(bundle: Mapping[str, Any]) -> None:
         raise ValueError("event stream must contain a reproducible contiguous turn order")
     if any(event.get("run_id") != run_id or event.get("seed") != seed for event in events):
         raise ValueError("event stream contains an event from another run")
+    for event in events:
+        if legacy_v1:
+            if _OPERATIVE_EVENT_KEYS.intersection(event):
+                raise ValueError("legacy v1 event cannot partially declare the operative projection")
+        else:
+            expected_projection = _operative_event_projection(scenario=scenario, plan=operative_plan, event=event)
+            if any(event.get(key) != value for key, value in expected_projection.items()):
+                raise ValueError("event stream operative projection does not match scenario and plan")
 
     decisions = replay.get("decisions")
     if not isinstance(decisions, list):
@@ -234,6 +585,16 @@ def validate_run_bundle(bundle: Mapping[str, Any]) -> None:
         raise ValueError("replay manifest does not match run_id")
     if manifest.get("seed") != seed or manifest.get("turn_limit") != turn_limit or manifest.get("event_count") != len(events):
         raise ValueError("replay manifest does not match request or event stream")
+    operative_state = replay.get("operative_state")
+    if legacy_v1:
+        if operative_state is not None:
+            raise ValueError("legacy v1 replay cannot partially declare operative state")
+    elif not isinstance(operative_state, Mapping) or set(operative_state) != {
+        "body_integrity", "cognitive_integrity", "memory_coherence", "legal_authority",
+        "organizational_trust", "public_trust", "replica_divergence", "option_preservation",
+    }:
+        raise ValueError("replay operative state does not match the typed contract")
+    _validate_agent_replay(replay=replay, request=request, turn_limit=turn_limit)
 
     failure_reasons = []
     if manifest.get("termination_reason") != "turn_limit_reached":
@@ -263,19 +624,45 @@ def verify_run_bundle(bundle: Mapping[str, Any]) -> None:
     """既存runtimeで再実行し、hashだけでなくrun全体の一致を確認する。"""
 
     validate_run_bundle(bundle)
+    if _is_legacy_v1(bundle):
+        # v1初版にはscenario本体がなく、進化後runtimeへ安全に再入力できない。
+        # 旧reader契約はcanonical digest・run_id・順序・decision来歴の検証までを維持する。
+        return
     request = bundle["run_request"]
-    decisions = bundle["replay"]["decisions"]
-    engine = (
-        _BundleReplayEngine(decisions, fallback_reasons=bundle["replay"]["fallback_reason_codes"])
-        if decisions
-        else None
-    )
-    batch = run_replica_batch(
-        seeds=(request["seed"],),
-        turn_limit=request["turn_limit"],
-        decision_engine=engine,
-    )
-    replayed = next(run for run in batch.runs if run.requested_mode.value == request["requested_mode"])
+    replay = bundle["replay"]
+    decisions = replay["decisions"]
+    legacy_v1 = False
+    scenario = ScenarioManifest.from_dict(request["scenario"])
+    operative_plan = OperativePlan.from_dict(request["operative_plan"])
+    if replay.get("trajectory_class") == "recorded-agent-turns":
+        proposal_payloads = [
+            record["proposal"]
+            for record in replay["agent_turns"]
+            if record["proposal"] is not None
+        ]
+        replayed: ReplicaRun | EnsembleRun = run_ensemble_scenario(
+            requested_mode=request["requested_mode"],
+            seed=request["seed"],
+            turn_limit=request["turn_limit"],
+            proposal_provider=RecordedProposalProvider(proposal_payloads),
+            scenario=scenario,
+            operative_plan=operative_plan,
+        )
+    else:
+        engine = (
+            _BundleReplayEngine(decisions, fallback_reasons=replay["fallback_reason_codes"])
+            if decisions
+            else None
+        )
+        replay_kwargs: dict[str, Any] = {
+            "seeds": (request["seed"],),
+            "turn_limit": request["turn_limit"],
+            "decision_engine": engine,
+        }
+        if not legacy_v1:
+            replay_kwargs.update(scenario=scenario, operative_plan=operative_plan)
+        batch = run_replica_batch(**replay_kwargs)
+        replayed = next(run for run in batch.runs if run.requested_mode.value == request["requested_mode"])
     candidate = build_run_bundle(replayed)
     expected = json.loads(json.dumps(bundle))
     expected["evidence"]["verification"] = "unverified"
