@@ -87,6 +87,36 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertIn("generated artifact contract error", script)
         self.assertNotIn('render(await response.json(), "generated comparison.json")', script)
 
+    def test_operation_reads_as_japanese_game_not_dashboard(self) -> None:
+        index = (ROOT / "web/index.html").read_text(encoding="utf-8")
+        script = (ROOT / "web/app.js").read_text(encoding="utf-8")
+
+        # 方針タブは研究用語ではなく日本語の状況語彙。対応はJS内の明示的mappingに限定する。
+        self.assertIn("OBJECTIVE_COPY", script)
+        self.assertIn("OBJECTIVE_COPY[trajectory.conditionId]", script)
+        self.assertIn("本部の正本に一本化して即断する", script)
+        self.assertIn("人とAIの相互承認で慎重に進める", script)
+        self.assertIn("現場の分身に任せて局所対応する", script)
+        # 内部scenario IDをそのまま表示しない。
+        self.assertIn("SCENARIO_COPY", script)
+        self.assertNotIn('textContent = model.scenario_id', script)
+        # 完了と再挑戦の一巡。
+        self.assertIn("作戦完了", script)
+        self.assertIn("別の方針で再挑戦", index)
+        self.assertIn("resetToSelection", script)
+        # 真壁の停止要求はターン進行トラックと詳細の両方で強調される。
+        self.assertIn("pause-banner", script)
+        self.assertIn("legend-pause", index)
+        # 注意配分は数値表だけでなく日本語の説明文を持つ。
+        self.assertIn("renderAttentionBrief", script)
+        self.assertIn("注意配分の内訳", index)
+        # seedと証拠の状態は折り畳んだ監査ビュー側に置く。
+        self.assertLess(index.index('id="audit-view"'), index.index('id="seed-select"'))
+        self.assertLess(index.index('id="audit-view"'), index.index('id="source-status"'))
+        # 最初の画面は事件・御影・真壁・最初の操作へ絞る。
+        self.assertIn("現場収束官", index)
+        self.assertIn("persona-list", index)
+
     def test_experience_contract_rejects_unverified_or_incomplete_artifacts(self) -> None:
         script = ROOT / "tests/check_experience_contract.mjs"
         completed = subprocess.run(

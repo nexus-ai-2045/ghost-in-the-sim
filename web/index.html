@@ -8,19 +8,17 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <a class="skip-link" href="#comparison">比較結果へ移動</a>
+  <a class="skip-link" href="#experience">作戦端末へ移動</a>
   <header class="masthead">
     <div class="mission-ident">
       <p class="product-name">境界局・接界機動班 作戦端末</p>
       <h1>鏡潮<span>KAGAMI-SHIO</span></h1>
       <p class="lead">ポセイドン海洋複合都市圏。分岐した権限と生活基盤のあいだで、御影冴として介入経路を選ぶ。</p>
     </div>
-    <div class="run-meta" aria-label="実験メタデータ">
+    <div class="run-meta" aria-label="作戦の当事者">
       <span>事件 <strong id="scenario">読み込み中</strong></span>
-      <span>再現条件 <strong id="seed">—</strong></span>
-      <label>再現条件を選ぶ <select id="seed-select" aria-label="比較するseedを選択"></select></label>
       <span>実働調整官 <strong>御影 冴</strong></span>
-      <span id="source-status" role="status" aria-live="polite">証拠bundleを照合中</span>
+      <span>現場収束官 <strong>真壁 迅</strong></span>
     </div>
   </header>
 
@@ -33,7 +31,7 @@
     <section id="experience" class="experience-stage" aria-labelledby="experience-title">
       <div class="section-heading">
         <div><p class="section-index">進行中の作戦</p><h2 id="experience-title">3つの介入方針</h2></div>
-        <p>runtimeが検証した軌跡だけを選択可能。この端末は判断・停止・指標を再計算しません。</p>
+        <p>検証済みの介入経路だけを選択できます。この端末は判断・停止・指標を再計算しません。</p>
       </div>
       <aside id="experience-unavailable" class="experience-unavailable" role="status">
         <span class="terminal-code">安全停止</span>
@@ -41,26 +39,36 @@
         <span>検証済みrun bundleとcapabilityが揃うまで、介入操作を開放しません。監査記録は下で閲覧できます。</span>
       </aside>
       <div id="operation-console" class="operation-console" hidden>
-        <div class="console-rail" aria-label="事件briefingと御影の状態">
+        <div class="console-rail" aria-label="事件briefingと介入方針">
           <p class="console-label">1　事件状況</p>
           <h3 id="briefing-title">鏡潮</h3>
           <p id="city-status" class="city-status">ポセイドン都市状況を検証済みartifactから読込</p>
+          <dl class="persona-list">
+            <div><dt>御影 冴</dt><dd>複数の分身と観測網を並列運用する実働調整官。あなたの視点。</dd></div>
+            <div><dt>真壁 迅</dt><dd>物理現場に留まり、不可逆な介入へ独立の停止要求を出す現場収束官。</dd></div>
+          </dl>
           <p class="console-label">2　介入方針を選ぶ</p>
-          <div id="trajectory-tabs" class="trajectory-tabs" role="tablist" aria-label="検証済み軌跡を選択"></div>
-          <dl id="operative-summary" class="operative-summary"></dl>
+          <div id="trajectory-tabs" class="trajectory-tabs" role="tablist" aria-label="介入方針を選択"></div>
+          <p id="attention-brief" class="attention-brief"></p>
+          <details class="attention-detail">
+            <summary>注意配分の内訳</summary>
+            <dl id="operative-summary" class="operative-summary"></dl>
+          </details>
           <button id="start-operation" class="primary-command" type="button">作戦開始</button>
         </div>
         <div class="console-main">
           <p class="console-label console-main-label">3　御影と真壁の判断</p>
           <div id="operation-progress" class="operation-progress" aria-live="polite">介入方針を選び、「作戦開始」を押してください。</div>
           <div id="operative-events" class="operative-events" aria-label="12ターンの進行状況"></div>
+          <p class="track-legend"><span class="legend-swatch legend-pause" aria-hidden="true"></span>真壁の停止要求があったターン　<span class="legend-swatch legend-reached" aria-hidden="true"></span>通過したターン</p>
           <article id="operative-detail" class="operative-detail" aria-live="polite" hidden></article>
+          <article id="operation-result" class="operation-result" aria-live="polite" hidden></article>
           <div id="turn-controls" class="turn-controls" hidden>
             <button id="previous-turn" type="button">前のターン</button>
             <button id="next-turn" type="button">次のターン</button>
             <button id="restart-operation" type="button">最初から再開</button>
+            <button id="change-plan" type="button">別の方針で再挑戦</button>
           </div>
-          <p class="producer-note">Python producerがreplay-matchと記録した軌跡です。ブラウザはrun_id・順序・必須項目の構造だけを照合し、判断結果を再計算しません。</p>
         </div>
       </div>
     </section>
@@ -68,6 +76,12 @@
     <details id="audit-view" class="audit-view">
       <summary><span>監査／反実仮想ビュー</span><small>3方式比較・指標・replay evidence</small></summary>
       <div class="audit-content">
+    <div class="audit-meta" aria-label="再現条件と証拠の状態">
+      <label>再現条件（seed）<select id="seed-select" aria-label="比較するseedを選択"></select></label>
+      <span>選択中 seed <strong id="seed">—</strong></span>
+      <span id="source-status" role="status" aria-live="polite">証拠bundleを照合中</span>
+      <p class="producer-note">Python producerがreplay-matchと記録した軌跡です。ブラウザはrun_id・順序・必須項目の構造だけを照合し、判断結果を再計算しません。</p>
+    </div>
     <section id="comparison" aria-labelledby="comparison-title">
       <div class="section-heading">
         <div><p class="section-index">01 / GOVERNANCE</p><h2 id="comparison-title">3つの統治条件</h2></div>
