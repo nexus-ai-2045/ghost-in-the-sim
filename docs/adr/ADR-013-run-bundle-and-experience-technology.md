@@ -11,6 +11,8 @@
 
 既存の `ReplicaRun` を唯一の実行正本とし、portable出力を `meta-security-run-bundle/v1` とする。`run_request`、`event_stream`、`replay`、`evidence` は同一 `run_id` を持つ。eventはturn昇順とし、各区画のCanonical JSONをSHA-256で検証したうえで既存runtimeによる再実行一致も確認する。
 
+cross-runtime digestは `meta-security-json-c14n/v1` を使う。run identityはrequestとdecision provenanceへ結合し、verified表明はruntime replay成功後にだけ生成する。
+
 初期版ではThree.js、GSAP、Hyperframes、Godotを採用しない。現在の体験はテキスト中心の比較・時系列選択であり、DOM/CSS/標準JavaScriptでアクセシブルに成立しているためである。
 
 - Three.js: 3D空間または関係網が判断理解を改善すると実測できた場合だけ、該当画面でdynamic importする。WebGL不能時は既存DOM表へ戻す。

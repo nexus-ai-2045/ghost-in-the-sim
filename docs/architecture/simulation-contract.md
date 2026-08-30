@@ -77,6 +77,10 @@ flowchart LR
 
 validatorは別runの混入、event欠落・並べ替え、seedの型drift、内容とdigestの不一致を拒否する。さらに既存runtimeでdecision recordsを再生し、生成bundle全体が一致した場合だけ `verification: replay-match` とする。rendererやcloud adapterはbundleを入力としてよいが、runtime状態やevent順序を再計算しない。
 
+digestは `meta-security-json-c14n/v1` で計算する。object keyを辞書順にし、JSON数値は `{"$number":"<decimal>"}` へ投影する。整数はJavaScript safe integer範囲、非整数は指数表記を避けられる `1e-6 <= abs(x) < 1e21`（0を除く）に限定する。範囲外は丸めずfail-closedとし、PythonとJavaScriptのgolden vectorで同じbyte列を検査する。
+
+bundle IDは実効結果だけでなく、要求条件とdecision provenanceから導出する。異なるmodeやtraceが同じ行動へ収束しても別runとして保持する。構造検査だけのbundleは `unverified` とし、`replay-match` はruntime replay成功後だけ付与する。
+
 ## 終了条件
 
 条件比較は共通の分析ホライズン（MVPでは12ターン）まで行う。生活継続・証拠校正・調整依存の境界超過は分析フラグとして記録し、それだけを理由に早期終了しない。

@@ -16,3 +16,4 @@
 | repository-goal | 完了条件・非ゴール・成果物所有 | `docs/product/repository-goal.md` | contracted | repo全体の完了契約 |
 | operative-contract | 卓越した実働者を状態・行動・評価へ写像する目標契約 | `docs/architecture/operative-contract.md` | contracted | 実装写像は一部 |
 | results-template | 実験結果の記録枠 | `RESULTS.md` | measured | seed 17/42/99・符号反転・actual AI replayを実測 |
+| portable-run-bundle | 外部シミュレーターへ渡す再現可能なrun証拠 | `src/ghost_in_the_sim/run_bundle.py` | implemented | `meta-security-run-bundle/v1`、同一run_id、cross-runtime canonical digest、replay検証 |

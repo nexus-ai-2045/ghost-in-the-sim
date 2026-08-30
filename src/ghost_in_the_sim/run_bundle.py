@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from decimal import Decimal
 from hashlib import sha256
 import json
+import math
 from typing import Any, Mapping
 
 from .decision import DecisionContext, DecisionRecord, DecisionValidationError, RecordedDecisionEngine, safe_fallback
@@ -12,13 +14,51 @@ from .replica import ReplicaRun, classify_run_failure, run_replica_batch
 
 
 SCHEMA_VERSION = "meta-security-run-bundle/v1"
+CANONICALIZATION_VERSION = "meta-security-json-c14n/v1"
 _TOP_LEVEL_KEYS = frozenset(
     {"schema_version", "run_id", "run_request", "event_stream", "replay", "evidence"}
 )
 
 
+def _normalized_number(value: float) -> str:
+    """Python/JavaScriptの表記差を排した、限定decimal契約。"""
+
+    if not math.isfinite(value):
+        raise ValueError("canonical JSON does not allow non-finite numbers")
+    magnitude = abs(value)
+    if value.is_integer() and magnitude > 9_007_199_254_740_991:
+        raise ValueError("canonical JSON integer exceeds the JavaScript safe range")
+    if magnitude and (magnitude < 1e-6 or magnitude >= 1e21):
+        raise ValueError("canonical JSON number is outside the portable decimal range")
+    decimal = Decimal(str(value))
+    if decimal == 0:
+        return "0"
+    text = format(decimal, "f")
+    return text.rstrip("0").rstrip(".") if "." in text else text
+
+
+def _canonical_projection(payload: Any) -> Any:
+    """数値をtagged decimalへ投影し、言語固有のfloat表記をhash境界から除く。"""
+
+    if payload is None or isinstance(payload, (bool, str)):
+        return payload
+    if isinstance(payload, int):
+        if abs(payload) > 9_007_199_254_740_991:
+            raise ValueError("canonical JSON integer exceeds the JavaScript safe range")
+        return {"$number": str(payload)}
+    if isinstance(payload, float):
+        return {"$number": _normalized_number(payload)}
+    if isinstance(payload, Mapping):
+        return {str(key): _canonical_projection(value) for key, value in payload.items()}
+    if isinstance(payload, (list, tuple)):
+        return [_canonical_projection(value) for value in payload]
+    raise ValueError(f"unsupported canonical JSON value: {type(payload).__name__}")
+
+
 def _canonical_bytes(payload: Any) -> bytes:
-    return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return json.dumps(
+        _canonical_projection(payload), ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
 
 
 def _digest(payload: Any) -> str:
@@ -60,9 +100,7 @@ def _fallback_reason_code(record: DecisionRecord) -> str | None:
 def build_run_bundle(run: ReplicaRun) -> dict[str, Any]:
     """ReplicaRunを唯一の正本としてbundleを生成する。"""
 
-    run_id = run.result.run_id
-    request = {
-        "run_id": run_id,
+    request_contract = {
         "scenario_id": run.result.scenario_id,
         "requested_mode": run.requested_mode.value,
         "seed": run.seed,
@@ -73,11 +111,14 @@ def build_run_bundle(run: ReplicaRun) -> dict[str, Any]:
         "prompt_version_or_hash": run.result.prompt_version_or_hash,
         "source_revision": run.result.source_revision,
     }
+    provenance = [decision.to_dict() for decision in run.decisions]
+    run_id = f"run-{sha256(_canonical_bytes({'request': request_contract, 'decisions': provenance})).hexdigest()[:12]}"
+    request = {"run_id": run_id, **request_contract}
     stream = {
         "run_id": run_id,
         "ordering": "turn-ascending/v1",
         "event_count": len(run.result.events),
-        "events": [event.to_dict() for event in run.result.events],
+        "events": [{**event.to_dict(), "run_id": run_id} for event in run.result.events],
     }
     replay = {
         "run_id": run_id,
@@ -87,13 +128,13 @@ def build_run_bundle(run: ReplicaRun) -> dict[str, Any]:
             "fallback_applied": run.audit.fallback_applied,
             "reason_code": run.audit.reason_code,
         },
-        "decisions": [decision.to_dict() for decision in run.decisions],
+        "decisions": provenance,
         "fallback_reason_codes": {
             decision.decision_id: reason_code
             for decision in run.decisions
             if (reason_code := _fallback_reason_code(decision)) is not None
         },
-        "manifest": run.result.manifest(),
+        "manifest": {**run.result.manifest(), "run_id": run_id},
         "final_state": asdict(run.result.final_state),
         "metrics": dict(run.result.metrics),
     }
@@ -101,10 +142,11 @@ def build_run_bundle(run: ReplicaRun) -> dict[str, Any]:
     evidence = {
         "run_id": run_id,
         "digest_algorithm": "sha256",
+        "canonicalization": CANONICALIZATION_VERSION,
         "run_request_sha256": _digest(request),
         "event_stream_sha256": _digest(stream),
         "replay_sha256": _digest(replay),
-        "verification": "replay-match",
+        "verification": "unverified",
         "failed_run": failed,
         "failure_reasons": list(failure_reasons),
     }
@@ -116,6 +158,16 @@ def build_run_bundle(run: ReplicaRun) -> dict[str, Any]:
         "replay": replay,
         "evidence": evidence,
     }
+    validate_run_bundle(bundle)
+    return bundle
+
+
+def build_verified_run_bundle(run: ReplicaRun) -> dict[str, Any]:
+    """replay成功と不可分なverified bundleを生成する。"""
+
+    bundle = build_run_bundle(run)
+    verify_run_bundle(bundle)
+    bundle["evidence"]["verification"] = "replay-match"
     validate_run_bundle(bundle)
     return bundle
 
@@ -189,13 +241,17 @@ def validate_run_bundle(bundle: Mapping[str, Any]) -> None:
     if len(events) != turn_limit:
         failure_reasons.append(f"incomplete_turns:{len(events)}/{turn_limit}")
 
+    verification = evidence.get("verification")
+    if verification not in {"unverified", "replay-match"}:
+        raise ValueError("bundle verification state is invalid")
     expected_evidence = {
         "run_id": run_id,
         "digest_algorithm": "sha256",
+        "canonicalization": CANONICALIZATION_VERSION,
         "run_request_sha256": _digest(request),
         "event_stream_sha256": _digest(stream),
         "replay_sha256": _digest(replay),
-        "verification": "replay-match",
+        "verification": verification,
         "failed_run": bool(failure_reasons),
         "failure_reasons": failure_reasons,
     }
@@ -220,5 +276,8 @@ def verify_run_bundle(bundle: Mapping[str, Any]) -> None:
         decision_engine=engine,
     )
     replayed = next(run for run in batch.runs if run.requested_mode.value == request["requested_mode"])
-    if build_run_bundle(replayed) != bundle:
+    candidate = build_run_bundle(replayed)
+    expected = json.loads(json.dumps(bundle))
+    expected["evidence"]["verification"] = "unverified"
+    if candidate != expected:
         raise ValueError("run bundle does not match deterministic replay")
