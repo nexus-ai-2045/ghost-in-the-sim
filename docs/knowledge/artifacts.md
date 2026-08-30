@@ -18,3 +18,4 @@
 | results-template | 実験結果の記録枠 | `RESULTS.md` | measured | seed 17/42/99・符号反転・actual AI replayを実測 |
 | portable-run-bundle | 外部シミュレーターへ渡す再現可能なrun証拠 | `src/ghost_in_the_sim/run_bundle.py` | implemented | `meta-security-run-bundle/v1`、同一run_id、cross-runtime canonical digest、replay検証 |
 | agent-turn-session | 外部AIと一手ずつ状態を確定するprovider非依存session | `src/ghost_in_the_sim/agent_session.py` | implemented | 未来requestを先行生成せず、各turnをstrict ingest後に進行し、最終的にportable-run-bundleを出力 |
+| submission-demo-script | 追跡済みUI・結果・外部AI境界を3分で説明する発表台本 | `docs/demo-script.md` | implemented | runtimeの実測範囲だけを説明し、提出・公開は人間レビューを維持 |
