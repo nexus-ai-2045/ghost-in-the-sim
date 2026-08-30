@@ -11,7 +11,7 @@
 | run数 | `9` |
 | コード版 | `deterministic-core-v2` |
 | engine source revision | `e3eb6f3f19c40ed1` |
-| artifact revision | `04c9fcac8df536b3` |
+| artifact revision | `2fbe77ef461fa647` |
 | result card | `result-card-v1` |
 | 境界 | 合成仮説。現実予測・因果証明・政策推奨ではない |
 

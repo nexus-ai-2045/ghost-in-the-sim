@@ -8,11 +8,12 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .decision import RecordedDecisionEngine
+from .decision import RecordedDecisionEngine, ReplicaMode
 from .actual_trace import load_actual_ai_trace
 from .replica import DEFAULT_SEEDS, build_result_card, run_replica_batch
 from .evidence_contract import project_evidence, validate_derived_evidence
 from .run_bundle import build_verified_run_bundle
+from .operative import OperationalFocus, PauseResponse, build_gameplay_plan
 
 
 ARTIFACT_INPUTS = (
@@ -27,6 +28,25 @@ ARTIFACT_INPUTS = (
     "src/ghost_in_the_sim/run_bundle.py",
     "scripts/render_results.py",
 )
+
+
+def build_playable_trajectories() -> list[dict[str, Any]]:
+    """全直積を避け、同じseedで因果差を示すP0の4経路だけを生成する。"""
+
+    specifications = (
+        ("hospital-joint-hold", OperationalFocus.HOSPITAL, ReplicaMode.PLURAL, PauseResponse.HOLD),
+        ("port-joint-hold", OperationalFocus.PORT, ReplicaMode.PLURAL, PauseResponse.HOLD),
+        ("hospital-joint-proceed", OperationalFocus.HOSPITAL, ReplicaMode.PLURAL, PauseResponse.PROCEED),
+        ("hospital-single-proceed", OperationalFocus.HOSPITAL, ReplicaMode.CENTRALIZED, PauseResponse.PROCEED),
+    )
+    trajectories = []
+    for trajectory_id, focus, mode, pause_response in specifications:
+        run = run_replica_batch(
+            seeds=(42,), operative_plan=build_gameplay_plan(focus=focus, pause_response=pause_response)
+        )
+        selected = next(item for item in run.runs if item.requested_mode is mode)
+        trajectories.append({"trajectory_id": trajectory_id, "bundle": build_verified_run_bundle(selected)})
+    return trajectories
 
 
 def _artifact_revision_from_inputs(inputs: dict[str, bytes]) -> str:
@@ -103,6 +123,7 @@ def main() -> int:
         "operation_console": True,
     }
     payload["trajectories"] = [build_verified_run_bundle(run) for run in batch.runs]
+    payload["playable_trajectories"] = build_playable_trajectories()
     payload["result_card"] = build_result_card(batch)
     root = Path(__file__).resolve().parents[2]
     payload["artifact_revision"] = artifact_revision(

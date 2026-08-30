@@ -9,7 +9,8 @@
 | 三つの統治方式、6つの型付き行動、AI判断replay、有界delta | implemented |
 | 実働調整官の8状態 | implemented / bundle replayで実測 |
 | 100点の注意配分、分身同期、自己監査配分 | implemented / 型・合計をfail-closed検証 |
-| 真壁の独立 `request_pause`、成功確度＋代償 | implemented / event projectionで実測 |
+| 病院・港・分割の現場focus | implemented / 型付きplanから100点注意配分へ決定論的に投影 |
+| 真壁の独立 `request_pause` と保留・進行、成功確度＋代償 | implemented / event projectionで実測 |
 | 身体切替の操作、追加集約指標 | proposed / not measured |
 
 この文書は目標契約を所有するが、`implemented` と明示した範囲だけを現行MVPの挙動として主張する。
@@ -58,6 +59,10 @@
 - 自己監査
 
 注意配分は「弱体化ゲージ」ではなく、MPC的な有限ホライズン最適化の入力とする。次ターンの観測更新を見越して可逆行動を優先できる。
+
+P0のプレイヤー入力は6項目の数値を直接操作せず、`hospital`、`port`、`split` の型付きfocusを選ぶ。runtimeはfocusを合計100の固定注意配分へ写像する。病院focusは生活影響と身体操作、港focusは経路検証と分身同期を厚くし、分割は既存比較の既定配分を維持する。
+
+turn 8の真壁の `request_pause` 自体は全経路で保存し、御影の応答を `hold` または `proceed` として別に記録する。保留は訂正可能性を残す代わりに継続遅延を負い、進行は異議記録と訂正窓縮小を負う。事件種別だけから行動を固定しない。
 
 ## 許可行動
 
@@ -125,3 +130,4 @@
 4. 分身同期と自己監査は型付きplan/eventとして記録する。身体切替のプレイヤー操作は未実装と明示する。
 5. 既存3方式、6行動、seed再現性、fail-closed fallbackを回帰させない。
 6. UIは実装済み状態と将来状態を混同せず、未実装の能力を操作可能に見せない。
+7. 既存3方式×3seedの9runを変更せず、同じseed 42のプレイ可能経路はP0で4本だけ事前生成する。全直積を生成しない。

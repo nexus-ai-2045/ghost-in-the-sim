@@ -21,6 +21,7 @@ from ghost_in_the_sim.run_bundle import (
     validate_run_bundle,
     verify_run_bundle,
 )
+from ghost_in_the_sim.operative import OperationalFocus, PauseResponse, build_gameplay_plan
 
 
 def _bundle() -> dict:
@@ -48,6 +49,24 @@ def test_bundle_joins_every_surface_by_run_id_and_replays_exactly() -> None:
     assert first_event["partner_action"] == "observe"
     assert first_event["cost_codes"]
     assert first_event["operative_state_before"] != first_event["operative_state_after"]
+
+
+def test_gameplay_plan_changes_pause_and_revocation_projection_without_changing_world_events() -> None:
+    hold_plan = build_gameplay_plan(focus=OperationalFocus.HOSPITAL, pause_response=PauseResponse.HOLD)
+    proceed_plan = build_gameplay_plan(focus=OperationalFocus.HOSPITAL, pause_response=PauseResponse.PROCEED)
+    hold_run = next(run for run in run_replica_batch(seeds=(42,), operative_plan=hold_plan).runs if run.requested_mode.value == "plural")
+    proceed_run = next(run for run in run_replica_batch(seeds=(42,), operative_plan=proceed_plan).runs if run.requested_mode.value == "plural")
+    hold = build_verified_run_bundle(hold_run)
+    proceed = build_verified_run_bundle(proceed_run)
+    assert [event["action_type"] for event in hold["event_stream"]["events"]] == [
+        event["action_type"] for event in proceed["event_stream"]["events"]
+    ]
+    assert hold["run_id"] != proceed["run_id"]
+    assert hold["event_stream"]["events"][7]["operative_action"] == "hold_for_partner_review"
+    assert proceed["event_stream"]["events"][7]["operative_action"] == "proceed_despite_partner_pause"
+    assert proceed["event_stream"]["events"][10]["operative_action"] == "revoke_port_replica"
+    verify_run_bundle(hold)
+    verify_run_bundle(proceed)
 
 
 @pytest.mark.parametrize(

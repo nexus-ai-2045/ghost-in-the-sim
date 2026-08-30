@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from enum import Enum
 from typing import Any, Mapping
 
 from .scenario import KAGAMISHIO
@@ -39,6 +40,23 @@ class PartnerAction:
             raise ValueError("partner action must be a typed request_pause within the scenario")
 
 
+class OperationalFocus(str, Enum):
+    HOSPITAL = "hospital"
+    PORT = "port"
+    SPLIT = "split"
+
+
+class PauseResponse(str, Enum):
+    HOLD = "hold"
+    PROCEED = "proceed"
+
+
+class RevocationTarget(str, Enum):
+    HOSPITAL = "hospital"
+    PORT = "port"
+    DEFER = "defer"
+
+
 @dataclass(frozen=True)
 class OperativePlan:
     scenario_id: str
@@ -47,6 +65,9 @@ class OperativePlan:
     base_capability: float
     attention: AttentionAllocation
     partner_actions: tuple[PartnerAction, ...]
+    focus: OperationalFocus = OperationalFocus.SPLIT
+    pause_response: PauseResponse = PauseResponse.HOLD
+    revocation_target: RevocationTarget = RevocationTarget.DEFER
 
     def __post_init__(self) -> None:
         if not self.scenario_id or not self.operative_id or not self.partner_id:
@@ -56,17 +77,28 @@ class OperativePlan:
         turns = [action.turn for action in self.partner_actions]
         if turns != sorted(set(turns)):
             raise ValueError("partner actions must use unique ascending turns")
+        if not isinstance(self.focus, OperationalFocus):
+            raise ValueError("operative focus must be typed")
+        if not isinstance(self.pause_response, PauseResponse):
+            raise ValueError("pause response must be typed")
+        if not isinstance(self.revocation_target, RevocationTarget):
+            raise ValueError("revocation target must be typed")
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "scenario_id": self.scenario_id, "operative_id": self.operative_id, "partner_id": self.partner_id,
             "base_capability": self.base_capability, "attention": self.attention.to_dict(),
             "partner_actions": [asdict(action) for action in self.partner_actions],
+            "focus": self.focus.value, "pause_response": self.pause_response.value,
+            "revocation_target": self.revocation_target.value,
         }
 
     @classmethod
     def from_dict(cls, payload: Mapping[str, Any]) -> "OperativePlan":
-        if set(payload) != {"scenario_id", "operative_id", "partner_id", "base_capability", "attention", "partner_actions"}:
+        if set(payload) != {
+            "scenario_id", "operative_id", "partner_id", "base_capability", "attention", "partner_actions",
+            "focus", "pause_response", "revocation_target",
+        }:
             raise ValueError("operative plan schema does not match")
         attention = payload["attention"]
         actions = payload["partner_actions"]
@@ -75,6 +107,8 @@ class OperativePlan:
         return cls(
             payload["scenario_id"], payload["operative_id"], payload["partner_id"], payload["base_capability"],
             AttentionAllocation(**attention), tuple(PartnerAction(**item) for item in actions),
+            OperationalFocus(payload["focus"]), PauseResponse(payload["pause_response"]),
+            RevocationTarget(payload["revocation_target"]),
         )
 
 
@@ -100,7 +134,10 @@ def evaluate_operative(plan: OperativePlan, *, completed_turns: int) -> Operativ
         raise ValueError("completed turns must be between 0 and 12")
     progress = completed_turns / 12
     attention = plan.attention
-    pause_seen = any(action.turn <= completed_turns for action in plan.partner_actions)
+    pause_seen = (
+        plan.pause_response is PauseResponse.HOLD
+        and any(action.turn <= completed_turns for action in plan.partner_actions)
+    )
     clamp = lambda value: round(min(1.0, max(0.0, value)), 6)
     return OperativeState(
         body_integrity=clamp(plan.base_capability - progress * max(0, 18 - attention.body_control) / 500),
@@ -119,3 +156,35 @@ MIKAGE_DEFAULT_PLAN = OperativePlan(
     AttentionAllocation(18, 18, 18, 16, 14, 16),
     (PartnerAction(8, "request_pause", "irreversible_authority_revocation"),),
 )
+
+
+MIKAGE_HOSPITAL_ATTENTION = AttentionAllocation(22, 16, 26, 12, 10, 14)
+MIKAGE_PORT_ATTENTION = AttentionAllocation(14, 24, 12, 28, 10, 12)
+
+
+def build_gameplay_plan(
+    *, focus: OperationalFocus, pause_response: PauseResponse,
+) -> OperativePlan:
+    """P0の現場選択を有限注意と既定の失効対象へ決定論的に写像する。"""
+
+    attention_by_focus = {
+        OperationalFocus.HOSPITAL: MIKAGE_HOSPITAL_ATTENTION,
+        OperationalFocus.PORT: MIKAGE_PORT_ATTENTION,
+        OperationalFocus.SPLIT: MIKAGE_DEFAULT_PLAN.attention,
+    }
+    target_by_focus = {
+        OperationalFocus.HOSPITAL: RevocationTarget.PORT,
+        OperationalFocus.PORT: RevocationTarget.HOSPITAL,
+        OperationalFocus.SPLIT: RevocationTarget.DEFER,
+    }
+    return OperativePlan(
+        scenario_id=KAGAMISHIO.scenario_id,
+        operative_id="mikage-sae",
+        partner_id="makabe-jin",
+        base_capability=0.96,
+        attention=attention_by_focus[focus],
+        partner_actions=(PartnerAction(8, "request_pause", "irreversible_authority_revocation"),),
+        focus=focus,
+        pause_response=pause_response,
+        revocation_target=target_by_focus[focus],
+    )

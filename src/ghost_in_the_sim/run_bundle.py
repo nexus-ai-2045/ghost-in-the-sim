@@ -11,7 +11,7 @@ from typing import Any, Mapping
 
 from .decision import DecisionContext, DecisionRecord, DecisionValidationError, RecordedDecisionEngine, safe_fallback
 from .replica import ReplicaRun, classify_run_failure, run_replica_batch
-from .operative import OperativePlan, evaluate_operative
+from .operative import OperativePlan, PauseResponse, RevocationTarget, evaluate_operative
 from .scenario import ScenarioManifest
 
 
@@ -123,6 +123,24 @@ def _operative_event_projection(
         "after_action_audit": ("self_audit", "self_audit"),
     }
     attention_field, operative_action = attention_by_event[beat.event_type]
+    if beat.event_type == "partner_pause_requested":
+        operative_action = (
+            "hold_for_partner_review"
+            if plan.pause_response is PauseResponse.HOLD
+            else "proceed_despite_partner_pause"
+        )
+    elif beat.event_type == "authority_revocation_proposed":
+        operative_action = (
+            "defer_authority_revocation"
+            if plan.revocation_target is RevocationTarget.DEFER
+            else f"propose_{plan.revocation_target.value}_revocation"
+        )
+    elif beat.event_type == "authority_convergence_due":
+        operative_action = (
+            "await_reconnection"
+            if plan.revocation_target is RevocationTarget.DEFER
+            else f"revoke_{plan.revocation_target.value}_replica"
+        )
     attention_value = getattr(plan.attention, attention_field)
     disturbance = event.get("exogenous_disturbance")
     if isinstance(disturbance, bool) or not isinstance(disturbance, (int, float)) or not math.isfinite(disturbance):
@@ -132,9 +150,14 @@ def _operative_event_projection(
     confidence = round(min(1.0, max(0.0, plan.base_capability - float(disturbance) * 0.08 + attention_value / 1000)), 6)
     costs = [f"attention:{attention_field}"]
     if partner:
-        costs.extend(("continuity_delay", "option_preservation"))
+        if plan.pause_response is PauseResponse.HOLD:
+            costs.extend(("continuity_delay", "option_preservation"))
+        else:
+            costs.extend(("partner_dissent_recorded", "correction_window_reduced"))
     elif beat.reversibility == "low":
         costs.append("irreversibility_exposure")
+    if beat.event_type == "authority_convergence_due":
+        costs.append(f"revocation_target:{plan.revocation_target.value}")
     return {
         "scenario_beat_id": beat.beat_id,
         "operative_action": operative_action,

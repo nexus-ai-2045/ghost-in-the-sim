@@ -45,3 +45,8 @@ def test_readme_quickstart_matches_and_executes_canonical_reproduction_command(t
     }
     assert len(payload["trajectories"]) == 9
     assert {bundle["evidence"]["verification"] for bundle in payload["trajectories"]} == {"replay-match"}
+    assert [item["trajectory_id"] for item in payload["playable_trajectories"]] == [
+        "hospital-joint-hold", "port-joint-hold", "hospital-joint-proceed", "hospital-single-proceed",
+    ]
+    assert {item["bundle"]["run_request"]["seed"] for item in payload["playable_trajectories"]} == {42}
+    assert {item["bundle"]["evidence"]["verification"] for item in payload["playable_trajectories"]} == {"replay-match"}
