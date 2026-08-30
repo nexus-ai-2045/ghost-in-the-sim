@@ -35,6 +35,9 @@ const ACTION_COPY = {
   audit_evidence: "証拠と自己判断を再監査する",
   coordinate_explanation: "市民への説明経路を調整する",
   hold_for_partner_review: "真壁の停止要求を受け、不可逆操作を保留する",
+  defer_authority_revocation: "権限失効を保留し、独立証拠を待つ",
+  propose_port_revocation: "港湾分身の権限失効案を検討する",
+  revoke_port_replica: "港湾分身を切り離し、異議と根拠を保存する",
   integrate_independent_evidence: "独立証拠を判断へ統合する",
   converge_authority: "分岐した権限を収束させる",
   self_audit: "作戦判断を自己監査する",
@@ -63,7 +66,7 @@ const OBJECTIVE_COPY = {
 };
 // 内部scenario IDをプレイヤーへ露出しないための表示名mapping。
 const SCENARIO_COPY = { "kagamishio-proteus-01": "鏡潮事案", "replica-crisis-demo-01": "複製危機（デモ）" };
-const AGENT_COPY = { mikage_sae: "御影冴", makabe_jin: "真壁仁", hospital_replica: "病院複製AI", port_replica: "港湾複製AI" };
+const AGENT_COPY = { mikage_sae: "御影 冴", makabe_jin: "真壁 迅", hospital_replica: "病院複製AI", port_replica: "港湾複製AI" };
 const OUTCOME_COPY = { APPLIED: "採用", REJECTED: "不採用", FALLBACK: "安全代替" };
 let model;
 let activeCondition = 0;
@@ -75,6 +78,7 @@ let selectedFocus = null;
 let selectedMode = null;
 let pauseDecisionPending = false;
 let activePlayableId = null;
+let sourcePayload = null;
 
 function escapeText(value) {
   return String(value ?? "—").replace(/[&<>"']/g, character => ({
@@ -131,7 +135,21 @@ function renderOperativeEvent(event, beat) {
   const detail = document.querySelector("#operative-detail");
   detail.hidden = false;
   const pause = event.partner_action === "request_pause";
+  const narrative = NarrativeContract.project(event, EVENT_COPY[beat?.event_type]);
+  if (!narrative.available) {
+    detail.innerHTML = `<p class="warning">物語化に必要な証拠が欠落または不整合のため、このターンの表示を安全停止しました。</p>`;
+    return;
+  }
+  const dialogue = `<section class="story-scene" aria-label="第${escapeText(event.turn)}ターンの会話">
+    <div class="story-scene-heading"><span>第${escapeText(event.turn)}ターン・${escapeText(narrative.act)}</span><strong>${escapeText(narrative.scene)}</strong></div>
+    <ol class="story-dialogue">${narrative.dialogue.map((line, index) => `<li class="story-line story-line-${index + 1}${line.role === "停止要求" ? " story-line-pause" : ""}">
+      <div class="story-speaker"><strong>${escapeText(line.speaker)}</strong><small>${escapeText(line.role)}</small></div>
+      <blockquote>「${escapeText(line.text)}」</blockquote>
+    </li>`).join("")}</ol>
+    <p class="story-provenance">run bundleの観測・行動・異議から決定論的に投影。自由文を追加生成していません。</p>
+  </section>`;
   detail.innerHTML = `<div><span class="turn">第 ${escapeText(event.turn)} ターン</span><h3>${escapeText(EVENT_COPY[beat?.event_type] ?? "状況が変化した")}</h3>${pause ? '<p class="pause-banner">真壁の停止要求</p>' : ""}</div>
+    ${dialogue}
     <div class="operative-outcome"><p><strong>状況</strong><br>${escapeText(EVENT_COPY[beat?.event_type] ?? "検証済み状況を確認")}</p>
     <p><strong>御影の行動</strong><br>${escapeText(ACTION_COPY[event.operative_action] ?? "状況を精査する")}</p>
     <p><strong>真壁の応答</strong><br><span class="${pause ? "pause-request" : ""}">${escapeText(PARTNER_COPY[event.partner_action] ?? "独立監視を継続")}</span></p>
@@ -223,6 +241,7 @@ function renderOperationConsole() {
       if (activeTurn === lastIndex) renderOperationResult(trajectory); else result.hidden = true;
     }
   }
+  renderEmergenceObservation(trajectory, operationStarted ? activeTurn + 1 : null);
   const start = document.querySelector("#start-operation");
   start.hidden = operationStarted;
   const pauseChoice = document.querySelector("#pause-choice");
@@ -385,23 +404,19 @@ function renderResultCard() {
     <article><h3>反証チェック</h3><ul>${checks.map(check => `<li><strong>${escapeText(check.check_id)}</strong>: ${escapeText(check.status)}${check.evidence ? `<br><small>${formatEvidence(check.evidence)}</small>` : ""}</li>`).join("") || "<li>未評価</li>"}</ul></article>
     <article><h3>限界</h3><ul>${limitations.map(item => `<li>${escapeText(item)}</li>`).join("") || "<li>未記録</li>"}</ul></article>`;
 }
-function renderEmergenceObservation(payload) {
+function renderEmergenceObservation(run, requestedTurn = null) {
   document.querySelector("#ai-emergence-observation")?.remove();
-  const ensemble = ExperienceContract.validateEnsemble(payload);
-  if (!ensemble.present) return;
+  if (!Number.isInteger(requestedTurn)) return;
+  if (!run?.agentTurns?.length) return;
   const section = document.createElement("section");
   section.id = "ai-emergence-observation";
   section.className = "emergence-observation";
   section.setAttribute("aria-labelledby", "ai-emergence-title");
   document.querySelector("#operation-console").insertAdjacentElement("afterend", section);
-  if (!ensemble.available) {
-    section.innerHTML = `<div class="section-label">AI EMERGENCE / FAIL CLOSED</div><h2 id="ai-emergence-title">AI創発観測</h2><p class="warning">AI創発bundleを検証できないため表示を停止しました。${escapeText(ensemble.reason)}</p>`;
-    return;
-  }
-  const run = ensemble.runs[0];
   const metrics = run.emergenceMetrics;
   const turns = [...new Set(run.agentTurns.map(record => record.request.run_ref.turn))];
-  const latestTurn = turns[turns.length - 1];
+  const latestTurn = turns.includes(requestedTurn) ? requestedTurn : turns.filter(turn => turn <= requestedTurn).at(-1);
+  if (!Number.isInteger(latestTurn)) return;
   const records = run.agentTurns.filter(record => record.request.run_ref.turn === latestTurn);
   section.innerHTML = `<div class="section-label">RECORDED MULTI-AGENT INTERACTION</div>
     <div class="emergence-heading"><div><h2 id="ai-emergence-title">AI創発観測</h2><p>4主体が別々の観測と目的から提案した、記録済みの相互作用です。画面はbundle値を表示するだけで再計算しません。</p></div><span class="turn">第 ${escapeText(latestTurn)} ターン</span></div>
@@ -418,16 +433,11 @@ function renderEmergenceObservation(payload) {
         ${record.status === "FALLBACK" ? `<p><strong>安全代替理由</strong><br>${escapeText(record.reason_code)}</p>` : ""}
       </article>`;
     }).join("")}</div>
-    <dl class="emergence-metrics" aria-label="AI創発指標">
-      <div><dt>提案対立</dt><dd>${escapeText(metrics.proposal_conflict_count)}</dd></div>
-      <div><dt>異議</dt><dd>${escapeText(metrics.dissent_count)}</dd></div>
-      <div><dt>協力</dt><dd>${escapeText(metrics.cooperation_count)}</dd></div>
-      <div><dt>未解決相互作用</dt><dd>${escapeText(metrics.unresolved_interaction_count)}</dd></div>
-    </dl>
-    <p class="metric-note">誤合意はP0では未計測です。対立・異議・未解決相互作用を、bundleに記録された範囲だけ表示します。</p>
-    <details><summary>記録済み相互作用と全結果を見る</summary><p>run_id: ${escapeText(run.runId)} / APPLIED ${escapeText(metrics.applied_count)} / REJECTED ${escapeText(metrics.rejected_count)} / FALLBACK ${escapeText(metrics.fallback_count)} / interaction refs ${escapeText(run.interactionRefs.length)}</p></details>`;
+    <p class="metric-note">現在ターンの検証済み記録を個別表示。集計指標はproducerがbundleへ記録したrun全体値だけを監査詳細に表示します。</p>
+    <details><summary>記録済み相互作用とrun全体を見る</summary><p>run_id: ${escapeText(run.runId)} / APPLIED ${escapeText(metrics.applied_count)} / REJECTED ${escapeText(metrics.rejected_count)} / FALLBACK ${escapeText(metrics.fallback_count)} / 提案対立 ${escapeText(metrics.proposal_conflict_count)} / 協力 ${escapeText(metrics.cooperation_count)} / 未解決 ${escapeText(metrics.unresolved_interaction_count)} / interaction refs ${escapeText(run.interactionRefs.length)}</p></details>`;
 }
 function render(payload, sourceLabel) {
+  sourcePayload = payload;
   model = normalize(payload);
   if (!model.conditions.length) throw new Error("比較条件がありません");
   const scenarioId = model.scenario_id ?? model.conditions[0]?.manifest?.scenario_id;
@@ -436,7 +446,6 @@ function render(payload, sourceLabel) {
   document.querySelector("#source-status").textContent = sourceLabel;
   experience = ExperienceContract.validate(payload);
   renderOperationConsole();
-  renderEmergenceObservation(payload);
   renderSeedSelector(); renderConditions(); renderMetrics(); renderTabs(); renderTimeline(); renderResultCard();
 }
 
