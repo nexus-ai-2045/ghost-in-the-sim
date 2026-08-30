@@ -59,6 +59,22 @@ button { font: 700 .8rem/1.2 inherit; }
 .experience-unavailable strong { color: var(--ink); }
 .terminal-code { color: var(--orange); font: 700 .7rem ui-monospace, monospace; letter-spacing: .14em; }
 .operation-console { display: grid; grid-template-columns: minmax(280px, .42fr) 1fr; border-block: 1px solid var(--line); background: linear-gradient(100deg, rgba(7,19,16,.98), rgba(7,19,16,.62)); }
+.emergence-observation { margin: 1.5rem 0; padding: clamp(1rem, 3vw, 2rem); border: 1px solid var(--line); background: linear-gradient(135deg, rgba(4,25,21,.98), rgba(13,35,31,.76)); }
+.emergence-heading, .agent-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.emergence-heading h2, .agent-heading h3 { margin-top: 0; }
+.emergence-agents { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin-block: 1rem; }
+.emergence-agent { padding: 1rem; border-inline-start: 3px solid var(--line); background: rgba(0,0,0,.2); }
+.emergence-agent.applied { border-color: var(--accent); }
+.emergence-agent.rejected { border-color: #d5a653; }
+.emergence-agent.fallback { border-color: #d96c6c; }
+.outcome { display: inline-block; padding: .2rem .55rem; border: 1px solid currentColor; font-size: .75rem; font-weight: 700; letter-spacing: .08em; }
+.outcome.applied { color: var(--accent); }
+.outcome.rejected { color: #e6bc72; }
+.outcome.fallback, .dissent { color: #ef8f8f; }
+.emergence-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; }
+.emergence-metrics div { padding: .75rem; border: 1px solid var(--line); }
+.emergence-metrics dt { font-size: .8rem; color: var(--muted); }
+.emergence-metrics dd { margin: .2rem 0 0; font-size: 1.5rem; }
 .operation-console[hidden], .experience-unavailable[hidden], .operative-detail[hidden] { display: none; }
 .console-rail { padding: 26px; border-right: 1px solid var(--line); }
 .console-rail h3 { margin: 4px 0 2px; font: 500 2rem/1.1 "Arial Narrow", sans-serif; }
@@ -158,7 +174,7 @@ footer { padding: 24px 0 40px; border-top: 1px solid var(--line); color: var(--m
   .condition p { min-height: 0; }
   .event-detail { grid-template-columns: 1fr; }
   .result-card { grid-template-columns: 1fr; }
-  .operation-console, .operative-detail { grid-template-columns: 1fr; }
+  .operation-console, .operative-detail, .emergence-agents, .emergence-metrics { grid-template-columns: 1fr; }
   .console-rail { border-right: 0; border-bottom: 1px solid var(--line); }
   .operative-outcome { grid-template-columns: 1fr; }
   .operation-result dl { grid-template-columns: 1fr; gap: 2px 0; }

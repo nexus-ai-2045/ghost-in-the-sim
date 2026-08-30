@@ -17,6 +17,8 @@
     "hospital-joint-proceed": ["hospital", "plural", "proceed"],
     "hospital-single-proceed": ["hospital", "centralized", "proceed"],
   });
+  const AGENT_IDS = Object.freeze(["mikage_sae", "makabe_jin", "hospital_replica", "port_replica"]);
+  const OUTCOME_STATUSES = new Set(["APPLIED", "REJECTED", "FALLBACK"]);
 
   function object(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -110,5 +112,61 @@
     return { available: true, reason: "", trajectories: PLAYABLE_IDS.map(id => byId[id]), byId };
   }
 
-  root.ExperienceContract = Object.freeze({ validate });
+  function validateEnsemble(payload) {
+    if (!object(payload) || !("ensemble_runs" in payload)) {
+      return { present: false, available: false, reason: "", runs: [] };
+    }
+    if (!Array.isArray(payload.ensemble_runs) || payload.ensemble_runs.length === 0) {
+      return { present: true, available: false, reason: "AI創発runが空または配列ではありません", runs: [] };
+    }
+    const runs = [];
+    const runIds = new Set();
+    for (const bundle of payload.ensemble_runs) {
+      const base = validateBundle(bundle);
+      const replay = bundle?.replay;
+      if (!base || !object(replay)
+        || replay.protocol_version !== "ghost-agent-turn/v1"
+        || replay.trajectory_class !== "recorded-agent-turns") {
+        return { present: true, available: false, reason: "AI創発bundleの基礎契約を検証できません", runs: [] };
+      }
+      if (runIds.has(base.runId)) return { present: true, available: false, reason: "AI創発run_idが重複しています", runs: [] };
+      runIds.add(base.runId);
+      if (!Array.isArray(replay.agent_turns) || replay.agent_turns.length === 0
+        || !Array.isArray(replay.interaction_refs) || !object(replay.emergence_metrics)) {
+        return { present: true, available: false, reason: "AI創発のturn・interaction・指標が不足しています", runs: [] };
+      }
+      const seen = new Set();
+      for (const record of replay.agent_turns) {
+        const request = record?.request;
+        const runRef = request?.run_ref;
+        const agentId = request?.agent?.agent_id;
+        if (!object(record) || !object(request) || !object(runRef)
+          || runRef.environment_seed !== base.seed || runRef.scenario_id !== base.scenarioId
+          || !Number.isInteger(runRef.turn) || runRef.turn < 1 || runRef.round !== 1
+          || !AGENT_IDS.includes(agentId) || !OUTCOME_STATUSES.has(record.status)) {
+          return { present: true, available: false, reason: "AI主体のrequestまたは結果状態が不正です", runs: [] };
+        }
+        const key = `${runRef.turn}:${agentId}`;
+        if (seen.has(key)) return { present: true, available: false, reason: "同一turnのAI主体が重複しています", runs: [] };
+        seen.add(key);
+        if (record.status === "FALLBACK" && (typeof record.reason_code !== "string" || !record.reason_code)) {
+          return { present: true, available: false, reason: "FALLBACKの理由がありません", runs: [] };
+        }
+        if (record.status !== "FALLBACK" && (!object(record.proposal) || record.proposal.agent_id !== agentId)) {
+          return { present: true, available: false, reason: "AI提案と主体を照合できません", runs: [] };
+        }
+      }
+      const metrics = replay.emergence_metrics;
+      const requiredMetrics = ["validated_proposal_count", "applied_count", "rejected_count", "fallback_count", "proposal_conflict_count", "dissent_count", "cooperation_count", "unresolved_interaction_count"];
+      if (requiredMetrics.some(key => !Number.isInteger(metrics[key]) || metrics[key] < 0)
+        || ("false_consensus_count" in metrics && (!Number.isInteger(metrics.false_consensus_count) || metrics.false_consensus_count < 0))
+        || metrics.applied_count + metrics.rejected_count + metrics.fallback_count !== replay.agent_turns.length) {
+        return { present: true, available: false, reason: "AI創発指標を検証できません", runs: [] };
+      }
+      runs.push({ ...base, agentTurns: replay.agent_turns, interactionRefs: replay.interaction_refs, emergenceMetrics: metrics });
+    }
+    return { present: true, available: true, reason: "", runs };
+  }
+
+  root.ExperienceContract = Object.freeze({ validate, validateEnsemble });
 })(globalThis);

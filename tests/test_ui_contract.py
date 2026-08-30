@@ -87,6 +87,12 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertIn("producerがreplay-matchと記録", index)
         self.assertIn("generated artifact contract error", script)
         self.assertNotIn('render(await response.json(), "generated comparison.json")', script)
+        self.assertIn("ExperienceContract.validateEnsemble(payload)", script)
+        self.assertIn("AI創発観測", script)
+        self.assertIn("proposal_conflict_count", script)
+        self.assertIn("unresolved_interaction_count", script)
+        self.assertIn("誤合意はP0では未計測", script)
+        self.assertIn(".emergence-observation", style)
 
     def test_operation_reads_as_japanese_game_not_dashboard(self) -> None:
         index = (ROOT / "web/index.html").read_text(encoding="utf-8")

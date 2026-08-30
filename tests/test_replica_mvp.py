@@ -158,7 +158,7 @@ def test_actual_ai_trace_replays_nine_decisions_without_claiming_live_api() -> N
 
 
 def test_tracked_comparison_is_exactly_reproducible_from_current_engine() -> None:
-    from ghost_in_the_sim.batch_cli import artifact_revision, build_playable_trajectories
+    from ghost_in_the_sim.batch_cli import artifact_revision, build_ensemble_runs, build_playable_trajectories
 
     root = Path(__file__).resolve().parents[1]
     batch = run_replica_batch(seeds=DEFAULT_SEEDS, turn_limit=12)
@@ -187,9 +187,11 @@ def test_tracked_comparison_is_exactly_reproducible_from_current_engine() -> Non
             "schema_version": "ghost-in-the-sim-experience/v1",
             "renderer_mode": "artifact-only",
             "operation_console": True,
+            "ai_emergence_console": True,
         },
         "trajectories": [build_verified_run_bundle(run) for run in batch.runs],
         "playable_trajectories": build_playable_trajectories(),
+        "ensemble_runs": build_ensemble_runs(),
         "result_card": card,
     }
     expected["evidence_summary"] = project_evidence(expected)

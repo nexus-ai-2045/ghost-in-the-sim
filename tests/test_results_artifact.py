@@ -39,6 +39,7 @@ def test_readme_quickstart_matches_and_executes_canonical_reproduction_command(t
     assert payload["seeds"] == [17, 42, 99]
     assert len(payload["runs"]) == 9
     assert payload["experience_capability"] == {
+        "ai_emergence_console": True,
         "operation_console": True,
         "renderer_mode": "artifact-only",
         "schema_version": "ghost-in-the-sim-experience/v1",
@@ -50,3 +51,12 @@ def test_readme_quickstart_matches_and_executes_canonical_reproduction_command(t
     ]
     assert {item["bundle"]["run_request"]["seed"] for item in payload["playable_trajectories"]} == {42}
     assert {item["bundle"]["evidence"]["verification"] for item in payload["playable_trajectories"]} == {"replay-match"}
+    assert len(payload["ensemble_runs"]) == 3
+    assert {item["run_request"]["seed"] for item in payload["ensemble_runs"]} == {42}
+    assert {item["run_request"]["requested_mode"] for item in payload["ensemble_runs"]} == {
+        "centralized", "plural", "autonomous",
+    }
+    assert {item["replay"]["trajectory_class"] for item in payload["ensemble_runs"]} == {
+        "recorded-agent-turns",
+    }
+    assert {item["evidence"]["verification"] for item in payload["ensemble_runs"]} == {"replay-match"}

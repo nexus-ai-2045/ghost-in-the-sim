@@ -4,7 +4,7 @@ import vm from "node:vm";
 const source = fs.readFileSync(new URL("../web/experience-contract.js", import.meta.url), "utf8");
 const context = { globalThis: {} };
 vm.runInNewContext(source, context);
-const { validate } = context.globalThis.ExperienceContract;
+const { validate, validateEnsemble } = context.globalThis.ExperienceContract;
 const generated = JSON.parse(fs.readFileSync(new URL("../web/data/comparison.json", import.meta.url), "utf8"));
 const expectedIds = ["hospital-joint-hold", "port-joint-hold", "hospital-joint-proceed", "hospital-single-proceed"];
 
@@ -13,6 +13,10 @@ if (!result.available) throw new Error(`generated playable artifact rejected: ${
 if (result.trajectories.map(item => item.trajectoryId).join(",") !== expectedIds.join(",")) throw new Error("playable trajectory allowlist drifted");
 if (result.trajectories.some(item => item.seed !== 42 || item.events.length !== 12 || item.attentionBudget !== 100)) throw new Error("playable trajectory contract drifted");
 if (new Set(result.trajectories.map(item => item.runId)).size !== 4) throw new Error("playable run_id is not unique");
+const generatedEnsemble = validateEnsemble(generated);
+if (generatedEnsemble.present && !generatedEnsemble.available) {
+  throw new Error(`generated ensemble artifact rejected: ${generatedEnsemble.reason}`);
+}
 
 for (const mutate of [
   value => { value.playable_trajectories[0].trajectory_id = "invented-route"; },
@@ -34,3 +38,31 @@ for (const mutate of [
 }
 
 console.log("experience-contract: PASS");
+
+const legacyCandidate = structuredClone(generated);
+delete legacyCandidate.ensemble_runs;
+if (legacyCandidate.experience_capability) delete legacyCandidate.experience_capability.ai_emergence_console;
+if (validateEnsemble(legacyCandidate).present) throw new Error("legacy artifact must not invent ensemble runs");
+const ensembleCandidate = structuredClone(generated);
+const ensembleBundle = structuredClone(generated.playable_trajectories[0].bundle);
+const agents = ["mikage_sae", "makabe_jin", "hospital_replica", "port_replica"];
+ensembleBundle.replay.protocol_version = "ghost-agent-turn/v1";
+ensembleBundle.replay.trajectory_class = "recorded-agent-turns";
+ensembleBundle.replay.agent_turns = agents.map((agent_id, index) => ({
+  request: { run_ref: { scenario_id: ensembleBundle.run_request.scenario.scenario_id, environment_seed: 42, condition_id: "plural", turn: 1, round: 1 }, agent: { agent_id }, observations: [{ id: `obs-${index}` }] },
+  proposal: { agent_id, action: "preserve_dissent", dissent: { raised: index === 1 }, cooperation_target: index === 0 ? "makabe_jin" : null },
+  status: index < 2 ? "APPLIED" : "REJECTED", reason_code: index < 2 ? null : "proposal_not_selected", applied_influence: null,
+}));
+ensembleBundle.replay.interaction_refs = [{ turn: 1, from_agent_id: "mikage_sae", to_agent_id: "makabe_jin", kind: "cooperation" }];
+ensembleBundle.replay.emergence_metrics = { validated_proposal_count: 4, applied_count: 2, rejected_count: 2, fallback_count: 0, proposal_conflict_count: 1, dissent_count: 1, cooperation_count: 1, unresolved_interaction_count: 0 };
+ensembleCandidate.ensemble_runs = [ensembleBundle];
+if (!validateEnsemble(ensembleCandidate).available) throw new Error("valid ensemble artifact rejected");
+for (const mutate of [
+  value => { value.ensemble_runs[0].replay.protocol_version = "invented/v1"; },
+  value => { value.ensemble_runs[0].replay.agent_turns[1].request.agent.agent_id = "mikage_sae"; },
+  value => { value.ensemble_runs[0].replay.agent_turns[0].status = "UNKNOWN"; },
+  value => { value.ensemble_runs[0].replay.emergence_metrics.applied_count = 999; },
+]) {
+  const candidate = structuredClone(ensembleCandidate); mutate(candidate);
+  if (validateEnsemble(candidate).available) throw new Error("invalid ensemble artifact accepted");
+}

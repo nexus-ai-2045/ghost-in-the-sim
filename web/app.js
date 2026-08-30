@@ -63,6 +63,8 @@ const OBJECTIVE_COPY = {
 };
 // 内部scenario IDをプレイヤーへ露出しないための表示名mapping。
 const SCENARIO_COPY = { "kagamishio-proteus-01": "鏡潮事案", "replica-crisis-demo-01": "複製危機（デモ）" };
+const AGENT_COPY = { mikage_sae: "御影冴", makabe_jin: "真壁仁", hospital_replica: "病院複製AI", port_replica: "港湾複製AI" };
+const OUTCOME_COPY = { APPLIED: "採用", REJECTED: "不採用", FALLBACK: "安全代替" };
 let model;
 let activeCondition = 0;
 let experience;
@@ -368,6 +370,48 @@ function renderResultCard() {
     <article><h3>反証チェック</h3><ul>${checks.map(check => `<li><strong>${escapeText(check.check_id)}</strong>: ${escapeText(check.status)}${check.evidence ? `<br><small>${formatEvidence(check.evidence)}</small>` : ""}</li>`).join("") || "<li>未評価</li>"}</ul></article>
     <article><h3>限界</h3><ul>${limitations.map(item => `<li>${escapeText(item)}</li>`).join("") || "<li>未記録</li>"}</ul></article>`;
 }
+function renderEmergenceObservation(payload) {
+  document.querySelector("#ai-emergence-observation")?.remove();
+  const ensemble = ExperienceContract.validateEnsemble(payload);
+  if (!ensemble.present) return;
+  const section = document.createElement("section");
+  section.id = "ai-emergence-observation";
+  section.className = "emergence-observation";
+  section.setAttribute("aria-labelledby", "ai-emergence-title");
+  document.querySelector("#operation-console").insertAdjacentElement("afterend", section);
+  if (!ensemble.available) {
+    section.innerHTML = `<div class="section-label">AI EMERGENCE / FAIL CLOSED</div><h2 id="ai-emergence-title">AI創発観測</h2><p class="warning">AI創発bundleを検証できないため表示を停止しました。${escapeText(ensemble.reason)}</p>`;
+    return;
+  }
+  const run = ensemble.runs[0];
+  const metrics = run.emergenceMetrics;
+  const turns = [...new Set(run.agentTurns.map(record => record.request.run_ref.turn))];
+  const latestTurn = turns[turns.length - 1];
+  const records = run.agentTurns.filter(record => record.request.run_ref.turn === latestTurn);
+  section.innerHTML = `<div class="section-label">RECORDED MULTI-AGENT INTERACTION</div>
+    <div class="emergence-heading"><div><h2 id="ai-emergence-title">AI創発観測</h2><p>4主体が別々の観測と目的から提案した、記録済みの相互作用です。画面はbundle値を表示するだけで再計算しません。</p></div><span class="turn">第 ${escapeText(latestTurn)} ターン</span></div>
+    <div class="emergence-agents">${records.map(record => {
+      const agentId = record.request.agent.agent_id;
+      const observations = Array.isArray(record.request.observations) ? record.request.observations : [];
+      const proposal = record.proposal;
+      const dissent = proposal?.dissent?.raised === true;
+      return `<article class="emergence-agent ${escapeText(record.status.toLowerCase())}">
+        <div class="agent-heading"><h3>${escapeText(AGENT_COPY[agentId] ?? agentId)}</h3><span class="outcome ${escapeText(record.status.toLowerCase())}">${escapeText(OUTCOME_COPY[record.status] ?? record.status)}</span></div>
+        <p><strong>観測</strong><br>${observations.map(item => escapeText(item.summary ?? item.id)).join(" / ") || "記録なし"}</p>
+        <p><strong>提案</strong><br>${proposal ? escapeText(ACTION_COPY[proposal.action] ?? proposal.action) : "提案なし"}</p>
+        ${dissent ? `<p class="dissent"><strong>異議</strong><br>${escapeText(AGENT_COPY[proposal.dissent.target_agent_id] ?? proposal.dissent.target_agent_id ?? "対象未記録")}への異議を記録</p>` : ""}
+        ${record.status === "FALLBACK" ? `<p><strong>安全代替理由</strong><br>${escapeText(record.reason_code)}</p>` : ""}
+      </article>`;
+    }).join("")}</div>
+    <dl class="emergence-metrics" aria-label="AI創発指標">
+      <div><dt>提案対立</dt><dd>${escapeText(metrics.proposal_conflict_count)}</dd></div>
+      <div><dt>異議</dt><dd>${escapeText(metrics.dissent_count)}</dd></div>
+      <div><dt>協力</dt><dd>${escapeText(metrics.cooperation_count)}</dd></div>
+      <div><dt>未解決相互作用</dt><dd>${escapeText(metrics.unresolved_interaction_count)}</dd></div>
+    </dl>
+    <p class="metric-note">誤合意はP0では未計測です。対立・異議・未解決相互作用を、bundleに記録された範囲だけ表示します。</p>
+    <details><summary>記録済み相互作用と全結果を見る</summary><p>run_id: ${escapeText(run.runId)} / APPLIED ${escapeText(metrics.applied_count)} / REJECTED ${escapeText(metrics.rejected_count)} / FALLBACK ${escapeText(metrics.fallback_count)} / interaction refs ${escapeText(run.interactionRefs.length)}</p></details>`;
+}
 function render(payload, sourceLabel) {
   model = normalize(payload);
   if (!model.conditions.length) throw new Error("比較条件がありません");
@@ -377,6 +421,7 @@ function render(payload, sourceLabel) {
   document.querySelector("#source-status").textContent = sourceLabel;
   experience = ExperienceContract.validate(payload);
   renderOperationConsole();
+  renderEmergenceObservation(payload);
   renderSeedSelector(); renderConditions(); renderMetrics(); renderTabs(); renderTimeline(); renderResultCard();
 }
 
