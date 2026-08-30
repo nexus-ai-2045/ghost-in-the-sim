@@ -132,6 +132,15 @@ py -3.13 scripts/serve_demo.py
 
 `--actual-ai-trace` はAI判断を比較条件そのものへ混ぜる実験用オプションで、正本comparison.jsonの生成には使いません。traceが覆わないseedを要求するとCLIはfallbackへ黙って落とさずエラーで停止します。いずれの経路も外部モデルAPIをライブ呼び出す機能ではありません。actionの影響は固定・有界で、自由文をコードや命令として実行しません。
 
+外部runnerや別rendererへ1回の実行を渡す場合は、同じruntimeからportable bundleを生成します。
+
+```powershell
+$env:PYTHONPATH = "src"
+py -3.13 -m ghost_in_the_sim.run_bundle_cli --mode plural --seed 42 --turn-limit 12 --output artifacts/run-bundle-seed42.json
+```
+
+出力schemaは `meta-security-run-bundle/v1` です。`run_request`、`event_stream`、`replay`、`evidence`を同一`run_id`で結び、event順序、区画digest、既存runtimeでのreplay一致を検証します。体験技術の採否と撤退境界は [ADR-013](docs/adr/ADR-013-run-bundle-and-experience-technology.md) を参照してください。
+
 GitHub Actionsでも、同一入力の再現性・条件差・イベント契約・公開境界を回帰検査する。CI成功は、現実予測の妥当性や公開承認を意味しない。
 
 - 貢献方法: [CONTRIBUTING.md](CONTRIBUTING.md)

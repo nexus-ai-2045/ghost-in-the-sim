@@ -112,6 +112,8 @@ REQUIRED = (
     "docs/adr/ADR-010-elite-operative-perspective.md",
     "docs/adr/ADR-011-named-homage-boundary.md",
     "docs/adr/ADR-012-canon-runtime-expansion.md",
+    "docs/adr/ADR-013-run-bundle-and-experience-technology.md",
+    "tests/check_run_bundle_canonicalization.mjs",
     "docs/world/setting-bible.md",
     "docs/world/characters.md",
     "docs/world/naming-taxonomy.md",
@@ -222,6 +224,11 @@ def main() -> int:
     adr_011 = (root / "docs/adr/ADR-011-named-homage-boundary.md").read_text(encoding="utf-8")
     decisions = (root / "docs/knowledge/decisions.md").read_text(encoding="utf-8")
     characters = (root / "docs/world/characters.md").read_text(encoding="utf-8")
+    if decisions.count("| ADR-013 | portable run bundleを外部シミュレーター引継ぎ境界にする | accepted |") != 1:
+        raise SystemExit("design-contract: FAIL\nADR-013が設計判断台帳へexactly-once登録されていません")
+    artifacts = (root / "docs/knowledge/artifacts.md").read_text(encoding="utf-8")
+    if artifacts.count("| portable-run-bundle |") != 1:
+        raise SystemExit("design-contract: FAIL\nportable run bundleが成果物台帳へexactly-once登録されていません")
     setting_terms = {
         "ほぼ何でもできる。それでも、何をするべきかは決まらない。": setting,
         "境界事象調整局": setting,

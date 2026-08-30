@@ -14,3 +14,4 @@
 | ADR-010 | 卓越した実働者の視点を中心体験にする | partially superseded | 主人公の卓越性は維持し、旧組織名はADR-011のCanonicalへ置換 |
 | ADR-011 | ポセイドン／御影冴と名称オマージュ境界を採用する | accepted | 2026-08-29の人間決定。第三者表現の複製は不許可 |
 | ADR-012 | 設定・契約・実装・実測・公開を別状態にする | accepted | 豊かな設定と再現可能コアを両立するため |
+| ADR-013 | portable run bundleを外部シミュレーター引継ぎ境界にする | accepted | runtime正本を維持し、request・event・replay・evidenceを同一run_idで結ぶため |
