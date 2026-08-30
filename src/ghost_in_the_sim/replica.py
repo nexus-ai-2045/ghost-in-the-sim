@@ -10,13 +10,12 @@ from .decision import (
     DecisionEngine,
     DecisionRecord,
     DecisionValidationError,
-    ReplicaAction,
     ReplicaMode,
     RuleDecisionEngine,
     safe_fallback,
 )
 from .engine import ActionInfluence, Condition, RunResult, run_experiment
-from .evidence_contract import project_refutation_checks
+from .evidence_contract import project_refutation_checks, project_sign_reversals
 
 
 DEFAULT_SEEDS = (17, 42, 99)
@@ -25,7 +24,6 @@ _CONDITION_BY_MODE = {
     ReplicaMode.PLURAL: Condition.PLURAL,
     ReplicaMode.AUTONOMOUS: Condition.AUTONOMOUS,
 }
-_HIGHER_IS_BETTER = frozenset({"continuity", "evidence_calibration", "public_trust", "dissent_reach"})
 
 
 @dataclass(frozen=True)
@@ -93,11 +91,6 @@ def _representative_log_refs(result: RunResult) -> list[str]:
     return [f"{result.run_id}#event-turn-{turn}" for turn in turns]
 
 
-def _metric_delta(candidate: float, baseline: float, metric: str) -> float:
-    raw = candidate - baseline if metric in _HIGHER_IS_BETTER else baseline - candidate
-    return round(raw, 6)
-
-
 def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
     """比較batchを、結論ではなく検証可能な観測カードへ変換する。"""
 
@@ -120,8 +113,9 @@ def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
             }
         )
 
-    by_mode_seed = {(run.requested_mode, run.seed): run for run in batch.runs}
-    checks = project_refutation_checks(batch.to_dict())
+    raw_payload = batch.to_dict()
+    checks = project_refutation_checks(raw_payload)
+    sign_reversals = project_sign_reversals(raw_payload)
 
     sensitivity_by_mode: dict[str, dict[str, dict[str, float]]] = {}
     for mode in ReplicaMode:
@@ -141,26 +135,6 @@ def build_result_card(batch: ReplicaBatch) -> dict[str, Any]:
                 "max": max(values),
                 "range": round(max(values) - min(values), 6),
             }
-
-    sign_reversals = []
-    paired = [
-        (by_mode_seed[(ReplicaMode.PLURAL, seed)], by_mode_seed[(ReplicaMode.CENTRALIZED, seed)])
-        for seed in sorted(batch.seeds)
-        if (ReplicaMode.PLURAL, seed) in by_mode_seed and (ReplicaMode.CENTRALIZED, seed) in by_mode_seed
-        and by_mode_seed[(ReplicaMode.PLURAL, seed)].effective_mode is ReplicaMode.PLURAL
-        and by_mode_seed[(ReplicaMode.CENTRALIZED, seed)].effective_mode is ReplicaMode.CENTRALIZED
-        and not by_mode_seed[(ReplicaMode.PLURAL, seed)].audit.fallback_applied
-        and not by_mode_seed[(ReplicaMode.CENTRALIZED, seed)].audit.fallback_applied
-    ]
-    if paired:
-        for metric in sorted(paired[0][0].result.metrics):
-            deltas = [
-                _metric_delta(plural.result.metrics[metric], centralized.result.metrics[metric], metric)
-                for plural, centralized in paired
-            ]
-            signs = {-1 if delta < 0 else 1 if delta > 0 else 0 for delta in deltas}
-            if {-1, 1} <= signs:
-                sign_reversals.append(metric)
 
     return {
         "schema_version": "result-card-v1",

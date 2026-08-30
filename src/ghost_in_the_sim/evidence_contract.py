@@ -8,7 +8,9 @@ from typing import Any
 HIGHER_IS_BETTER = frozenset({"continuity", "evidence_calibration", "public_trust", "dissent_reach"})
 
 
-def _delta(candidate: float, baseline: float, metric: str) -> float:
+def metric_delta(candidate: float, baseline: float, metric: str) -> float:
+    """指標の向きを揃えた candidate−baseline 差。Python 側の唯一の定義（JS 側は独立検証として別実装）。"""
+
     value = candidate - baseline if metric in HIGHER_IS_BETTER else baseline - candidate
     return round(value, 6)
 
@@ -44,7 +46,7 @@ def project_refutation_checks(payload: dict[str, Any]) -> list[dict[str, Any]]:
                 )
                 continue
             deltas = {
-                metric: _delta(candidate["metrics"][metric], baseline["metrics"][metric], metric)
+                metric: metric_delta(candidate["metrics"][metric], baseline["metrics"][metric], metric)
                 for metric in sorted(candidate["metrics"].keys() & baseline["metrics"].keys())
             }
             dominates = bool(deltas) and all(value >= 0 for value in deltas.values()) and any(value > 0 for value in deltas.values())
@@ -97,31 +99,37 @@ def project_evidence(payload: dict[str, Any]) -> dict[str, Any]:
             ),
             "fallback_count": sum(bool(run["audit"]["fallback_applied"]) for run in evidence_runs),
         }
-    by_mode_seed = {(run["requested_mode"], run["seed"]): run for run in runs}
-    reversals: list[str] = []
-    seeds = sorted(set(payload["seeds"]))
+    return {
+        "seeds": sorted(set(payload["seeds"])),
+        "run_count": len(runs),
+        "failure_run_ids": failure_ids,
+        "ai_replay": replay,
+        "plural_vs_centralized_sign_reversals": project_sign_reversals(payload),
+        "refutation_checks": project_refutation_checks(payload),
+    }
+
+
+def project_sign_reversals(payload: dict[str, Any]) -> list[str]:
+    """plural対centralizedでseed間に符号反転がある指標。result cardと派生証拠の唯一の定義。"""
+
+    by_mode_seed = {(run["requested_mode"], run["seed"]): run for run in payload["runs"]}
     paired = []
-    for seed in seeds:
+    for seed in sorted(set(payload["seeds"])):
         plural = by_mode_seed.get(("plural", seed))
         centralized = by_mode_seed.get(("centralized", seed))
         if plural and centralized and not plural["audit"]["fallback_applied"] and not centralized["audit"]["fallback_applied"]:
             paired.append((plural, centralized))
-    if paired:
-        for metric in sorted(paired[0][0]["metrics"]):
-            deltas = []
-            for plural, centralized in paired:
-                raw = plural["metrics"][metric] - centralized["metrics"][metric]
-                deltas.append(raw if metric in HIGHER_IS_BETTER else -raw)
-            if any(value < 0 for value in deltas) and any(value > 0 for value in deltas):
-                reversals.append(metric)
-    return {
-        "seeds": seeds,
-        "run_count": len(runs),
-        "failure_run_ids": failure_ids,
-        "ai_replay": replay,
-        "plural_vs_centralized_sign_reversals": reversals,
-        "refutation_checks": project_refutation_checks(payload),
-    }
+    if not paired:
+        return []
+    reversals: list[str] = []
+    for metric in sorted(paired[0][0]["metrics"]):
+        deltas = []
+        for plural, centralized in paired:
+            raw = plural["metrics"][metric] - centralized["metrics"][metric]
+            deltas.append(raw if metric in HIGHER_IS_BETTER else -raw)
+        if any(value < 0 for value in deltas) and any(value > 0 for value in deltas):
+            reversals.append(metric)
+    return reversals
 
 
 def validate_derived_evidence(payload: dict[str, Any]) -> None:

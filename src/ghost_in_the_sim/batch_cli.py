@@ -73,15 +73,22 @@ def main() -> int:
         parser.error("--actual-ai-evidence-trace requires the deterministic rule comparison provider")
     if args.seeds and len(set(args.seeds)) != len(args.seeds):
         parser.error("--seed values must be unique")
-    decision_engine = (
-        RecordedDecisionEngine(record.to_dict() for record in load_actual_ai_trace(args.actual_ai_trace))
-        if args.actual_ai_trace
-        else _load_fixture(args.decision_fixture)
-        if args.decision_fixture
-        else None
-    )
+    run_seeds = tuple(args.seeds) if args.seeds else DEFAULT_SEEDS
+    decision_engine = None
+    if args.actual_ai_trace:
+        trace_records = load_actual_ai_trace(args.actual_ai_trace)
+        trace_seeds = sorted({record.seed for record in trace_records})
+        uncovered = sorted(set(run_seeds) - set(trace_seeds))
+        if uncovered:
+            parser.error(
+                f"--actual-ai-trace covers seeds {trace_seeds} but the batch requests uncovered seeds {uncovered}; "
+                "pass matching --seed values instead of letting every uncovered run fall back"
+            )
+        decision_engine = RecordedDecisionEngine(record.to_dict() for record in trace_records)
+    elif args.decision_fixture:
+        decision_engine = _load_fixture(args.decision_fixture)
     batch = run_replica_batch(
-        seeds=tuple(args.seeds) if args.seeds else DEFAULT_SEEDS,
+        seeds=run_seeds,
         turn_limit=args.turn_limit,
         decision_engine=decision_engine,
     )
