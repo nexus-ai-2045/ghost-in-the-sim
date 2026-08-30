@@ -477,6 +477,21 @@ def _validate_agent_replay(
         values = parsed_by_turn[turn]
         scheduled = _compose_agent_round(schedule_one_round(tuple(item[0] for item in values), provider))
         for (turn_request, _), outcome in zip(values, scheduled.outcomes, strict=True):
+            if turn_request.authority.status == "revoked":
+                rebuilt_records.append(
+                    {
+                        "request": turn_request.to_dict(),
+                        "proposal": None,
+                        "status": OutcomeStatus.FALLBACK.value,
+                        "reason_code": "authority_revoked",
+                        "applied_influence": {
+                            "turn": turn_request.run_ref.turn,
+                            "action_type": "abstain",
+                            "confidence": 1.0,
+                        },
+                    }
+                )
+                continue
             rebuilt_records.append(
                 {
                     "request": turn_request.to_dict(),

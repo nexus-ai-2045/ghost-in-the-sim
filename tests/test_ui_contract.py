@@ -192,6 +192,18 @@ class DemoUiContractTest(unittest.TestCase):
             ["hospital-joint-hold", "port-joint-hold", "hospital-joint-proceed", "hospital-single-proceed"],
         )
 
+    def test_every_playable_action_has_player_facing_copy(self) -> None:
+        payload = json.loads((ROOT / "web/data/comparison.json").read_text(encoding="utf-8"))
+        script = (ROOT / "web/app.js").read_text(encoding="utf-8")
+        action_copy = script.split("const ACTION_COPY = {", 1)[1].split("};", 1)[0]
+        actions = {
+            event["operative_action"]
+            for trajectory in payload["playable_trajectories"]
+            for event in trajectory["bundle"]["event_stream"]["events"]
+        }
+        missing = sorted(action for action in actions if f"{action}:" not in action_copy)
+        self.assertEqual(missing, [], f"player-facing ACTION_COPY is missing: {missing}")
+
 
 if __name__ == "__main__":
     unittest.main()
