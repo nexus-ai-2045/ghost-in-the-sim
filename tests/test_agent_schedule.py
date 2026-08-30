@@ -98,4 +98,3 @@ def test_scheduler_is_deterministic_for_same_requests_and_provider() -> None:
 def test_scheduler_rejects_unbounded_or_mixed_rounds(requests) -> None:
     with pytest.raises(ValueError):
         schedule_one_round(requests(_requests()), RuleProposalProvider())
-

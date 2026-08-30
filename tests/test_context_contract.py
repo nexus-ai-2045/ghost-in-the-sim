@@ -70,4 +70,3 @@ def test_context_handoff_reuses_canonical_reproduction_command() -> None:
     expected = _canonical_batch_command(readme)
     assert _canonical_batch_command(results) == expected
     assert _canonical_batch_command(context) == expected
-

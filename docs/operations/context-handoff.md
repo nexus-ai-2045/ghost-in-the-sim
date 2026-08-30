@@ -79,4 +79,3 @@ py -3.13 scripts/serve_demo.py
 - 採用した根因修正と、棄却した未信頼review指摘
 - Git／remote状態、実施した外部操作
 - unknown、人間判断、残務と次のowner
-
