@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -188,3 +189,59 @@ def test_cli_export_ingest_verify_round_trip(tmp_path: Path) -> None:
 def test_export_fails_closed_before_emitting_stale_future_turn_requests() -> None:
     with pytest.raises(ValueError, match="one turn at a time"):
         build_request_bundle(seed=42, mode="plural", turn_limit=2)
+
+
+def test_cli_session_init_and_advance_to_verified_bundle(tmp_path: Path) -> None:
+    session_path = tmp_path / "session.json"
+    proposals_path = tmp_path / "proposals.json"
+
+    assert main(
+        [
+            "session-init",
+            "--seed",
+            "42",
+            "--mode",
+            "plural",
+            "--turn-limit",
+            "2",
+            "--output",
+            str(session_path),
+        ]
+    ) == 0
+    for _ in range(2):
+        session = json.loads(session_path.read_text(encoding="utf-8"))
+        write_canonical_json(proposals_path, _proposal_bundle(session["current_request_bundle"]))
+        assert main(
+            [
+                "session-advance",
+                "--session",
+                str(session_path),
+                "--proposals",
+                str(proposals_path),
+                "--output",
+                str(session_path),
+            ]
+        ) == 0
+
+    completed = json.loads(session_path.read_text(encoding="utf-8"))
+    assert completed["status"] == "completed"
+    assert completed["run_bundle"]["evidence"]["verification"] == "replay-match"
+
+
+def test_canonical_write_keeps_previous_session_when_atomic_replace_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    session_path = tmp_path / "session.json"
+    previous = '{"status":"previous"}\n'
+    session_path.write_text(previous, encoding="utf-8", newline="\n")
+
+    def fail_replace(source: str | os.PathLike[str], target: str | os.PathLike[str]) -> None:
+        raise OSError("simulated replace interruption")
+
+    monkeypatch.setattr("ghost_in_the_sim.agent_turn_cli.os.replace", fail_replace)
+
+    with pytest.raises(OSError, match="replace interruption"):
+        write_canonical_json(session_path, {"status": "next"})
+
+    assert session_path.read_text(encoding="utf-8") == previous
+    assert list(tmp_path.iterdir()) == [session_path]

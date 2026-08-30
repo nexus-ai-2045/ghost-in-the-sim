@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
+import tempfile
 from typing import Any, Mapping, Sequence
 
 from .agent_providers import RecordedProposalProvider
@@ -241,7 +243,19 @@ def write_canonical_json(path: Path | None, payload: Any) -> str:
     text = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
     if path is not None:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8", newline="\n")
+        file_descriptor, temporary_name = tempfile.mkstemp(
+            dir=path.parent, prefix=f".{path.name}.", suffix=".tmp"
+        )
+        temporary_path = Path(temporary_name)
+        try:
+            with os.fdopen(file_descriptor, "w", encoding="utf-8", newline="\n") as handle:
+                handle.write(text)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temporary_path, path)
+        except BaseException:
+            temporary_path.unlink(missing_ok=True)
+            raise
     return text
 
 
@@ -273,6 +287,17 @@ def _parser() -> argparse.ArgumentParser:
     verify = commands.add_parser("verify", help="recorded fixtureをexact replay")
     verify.add_argument("--fixture", type=Path, required=True)
     verify.add_argument("--output", type=Path, required=True)
+    session_init = commands.add_parser("session-init", help="逐次sessionとturn 1 requestを初期化")
+    session_init.add_argument("--seed", type=int, required=True)
+    session_init.add_argument("--mode", choices=[mode.value for mode in ReplicaMode], required=True)
+    session_init.add_argument("--turn-limit", type=int, required=True)
+    session_init.add_argument("--output", type=Path, required=True)
+    session_advance = commands.add_parser(
+        "session-advance", help="現在turnのproposalを確定し、次requestまたはrun bundleを出力"
+    )
+    session_advance.add_argument("--session", type=Path, required=True)
+    session_advance.add_argument("--proposals", type=Path, required=True)
+    session_advance.add_argument("--output", type=Path, required=True)
     return parser
 
 
@@ -282,8 +307,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         result = build_request_bundle(seed=args.seed, mode=args.mode, turn_limit=args.turn_limit)
     elif args.command == "ingest":
         result = build_recorded_fixture(_read_json(args.requests), _read_json(args.proposals))
-    else:
+    elif args.command == "verify":
         result = verify_recorded_fixture(_read_json(args.fixture))
+    elif args.command == "session-init":
+        from .agent_session import create_session
+
+        result = create_session(seed=args.seed, mode=args.mode, turn_limit=args.turn_limit)
+    else:
+        from .agent_session import advance_session
+
+        result = advance_session(_read_json(args.session), _read_json(args.proposals))
     write_canonical_json(args.output, result)
     return 0
 
