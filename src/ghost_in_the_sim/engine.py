@@ -227,6 +227,18 @@ def _initial_state(rng: Random) -> WorldState:
     )
 
 
+def _planned_action(condition: Condition, turn: int) -> str:
+    """条件とターンから行動を決める唯一の決定表。_policy と _simulate_events の両方がここを参照する。"""
+
+    if condition is Condition.CENTRALIZED:
+        return "issue_correction" if turn == 4 else "coordinate_response"
+    if condition is Condition.PLURAL:
+        return "issue_correction" if turn == 2 else "request_cross_check"
+    if condition is Condition.AUTONOMOUS:
+        return "request_peer_sync" if turn in {3, 6, 9, 12} else "coordinate_local_response"
+    return "issue_correction" if turn == 6 else "broadcast_status"
+
+
 def _policy(
     condition: Condition,
     turn: int,
@@ -241,22 +253,16 @@ def _policy(
     """
 
     policy_ref = f"policy-{condition.value}"
+    action = _planned_action(condition, turn)
     if condition is Condition.CENTRALIZED:
-        action = "issue_correction" if turn == 4 else "coordinate_response"
         refs = (policy_ref, *resolved_observation_ids) if action == "issue_correction" and resolved_observation_ids else (policy_ref, observation_id)
         return (action, profile.reservation, "medium", refs, TRANSITION_PARAMETERS[condition.value], True, action == "issue_correction")
     if condition is Condition.PLURAL:
-        action = "issue_correction" if turn == 2 else "request_cross_check"
-        if action in {"issue_correction", "request_cross_check"} and resolved_observation_ids:
-            refs = (policy_ref, *resolved_observation_ids)
-        else:
-            refs = (policy_ref, observation_id)
+        refs = (policy_ref, *resolved_observation_ids) if resolved_observation_ids else (policy_ref, observation_id)
         return (action, profile.reservation, "high", refs, TRANSITION_PARAMETERS[condition.value], True, True)
     if condition is Condition.AUTONOMOUS:
-        action = "request_peer_sync" if turn in {3, 6, 9, 12} else "coordinate_local_response"
         refs = (policy_ref, *resolved_observation_ids) if resolved_observation_ids else (policy_ref, observation_id)
         return (action, profile.reservation, "high", refs, TRANSITION_PARAMETERS[condition.value], True, action == "request_peer_sync")
-    action = "issue_correction" if turn == 6 else "broadcast_status"
     refs = (policy_ref, *resolved_observation_ids) if action == "issue_correction" and resolved_observation_ids else (policy_ref, observation_id)
     return (
         action,
@@ -514,23 +520,7 @@ def _simulate_events(
             confidence = 0.0
             next_state = _advance(state, deltas, disturbance)
         else:
-            pending_action = (
-                "issue_correction"
-                if (condition is Condition.CENTRALIZED and turn == 4)
-                or (condition is Condition.PLURAL and turn == 2)
-                or (condition is Condition.OVERCONNECTED and turn == 6)
-                else (
-                    "request_cross_check"
-                    if condition is Condition.PLURAL
-                    else "request_peer_sync"
-                    if condition is Condition.AUTONOMOUS and turn in {3, 6, 9, 12}
-                    else "coordinate_local_response"
-                    if condition is Condition.AUTONOMOUS
-                    else "coordinate_response"
-                    if condition is Condition.CENTRALIZED
-                    else "broadcast_status"
-                )
-            )
+            pending_action = _planned_action(condition, turn)
             resolved = (
                 _targets_for_verification(events, pending_action)
                 if pending_action in VERIFICATION_ACTIONS or pending_action == "request_peer_sync"

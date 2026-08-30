@@ -443,3 +443,63 @@ def test_duplicate_seeds_are_rejected_by_batch_and_cli(tmp_path: Path, monkeypat
     )
     with pytest.raises(SystemExit, match="2"):
         batch_cli.main()
+
+
+def test_batch_cli_rejects_seeds_not_covered_by_actual_ai_trace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """traceが覆わないseedを黙ってfallbackへ落とさず、CLI境界で停止する。"""
+
+    from ghost_in_the_sim import batch_cli
+
+    fixture = Path(__file__).resolve().parents[1] / "fixtures" / "actual-ai-trace-seed42.json"
+    monkeypatch.setattr(
+        "sys.argv",
+        ["batch_cli", "--output", str(tmp_path / "comparison.json"), "--actual-ai-trace", str(fixture)],
+    )
+    with pytest.raises(SystemExit, match="2"):
+        batch_cli.main()
+
+    monkeypatch.setattr(
+        "sys.argv",
+        ["batch_cli", "--output", str(tmp_path / "comparison.json"), "--seed", "42", "--actual-ai-trace", str(fixture)],
+    )
+    assert batch_cli.main() == 0
+
+
+def test_simulated_actions_follow_the_single_planned_action_table() -> None:
+    """イベントのaction_typeは_planned_actionの決定表と1ターンも乖離しない。"""
+
+    from ghost_in_the_sim.engine import Condition, _planned_action, run_experiment
+
+    for condition in Condition:
+        result = run_experiment(condition=condition, seed=42, turn_limit=12)
+        assert [event.action_type for event in result.events] == [
+            _planned_action(condition, turn) for turn in range(1, 13)
+        ]
+
+
+def test_actual_ai_trace_rejects_invalid_values_at_load_time() -> None:
+    """confidence・evidence_refs等の不正はfallbackへ化ける前に読込時点で失敗する。"""
+
+    fixture = Path(__file__).resolve().parents[1] / "fixtures" / "actual-ai-trace-seed42.json"
+    payload = json.loads(fixture.read_text(encoding="utf-8"))
+
+    def _write(tmp_payload: dict, path: Path) -> Path:
+        path.write_text(json.dumps(tmp_payload, ensure_ascii=False), encoding="utf-8")
+        return path
+
+    import copy
+    import tempfile
+
+    cases = (
+        ("confidence", 1.5, "confidence"),
+        ("confidence", "high", "confidence"),
+        ("evidence_refs", "obs-01", "evidence_refs"),
+        ("evidence_refs", [], "evidence_refs"),
+        ("rationale", "", "non-empty strings"),
+    )
+    with tempfile.TemporaryDirectory() as tmp:
+        for field, bad_value, message in cases:
+            broken = copy.deepcopy(payload)
+            broken["decisions"][0][field] = bad_value
+            with pytest.raises(ValueError, match=message):
+                load_actual_ai_trace(_write(broken, Path(tmp) / "broken.json"))

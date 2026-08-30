@@ -53,6 +53,14 @@ def load_actual_ai_trace(path: Path, *, seed: int = 42) -> list[DecisionRecord]:
         turn = item["turn"]
         if isinstance(turn, bool) or not isinstance(turn, int) or turn not in {1, 2, 3}:
             raise ValueError("actual AI turn must be 1, 2, or 3")
+        confidence = item["confidence"]
+        if isinstance(confidence, bool) or not isinstance(confidence, (int, float)) or not 0.0 <= confidence <= 1.0:
+            raise ValueError("actual AI confidence must be a number between zero and one")
+        evidence_refs = item["evidence_refs"]
+        if not isinstance(evidence_refs, list) or not evidence_refs or any(not isinstance(ref, str) or not ref for ref in evidence_refs):
+            raise ValueError("actual AI evidence_refs must be a non-empty string list")
+        if any(not isinstance(item[key], str) or not item[key] for key in ("actor_id", "rationale", "reservation")):
+            raise ValueError("actual AI actor_id, rationale, and reservation must be non-empty strings")
         if (mode, turn) in seen:
             raise ValueError("actual AI mode/turn pair is duplicated")
         seen.add((mode, turn))
