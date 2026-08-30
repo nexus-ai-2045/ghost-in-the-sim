@@ -66,6 +66,21 @@ flowchart LR
 - 比較は同じseed集合と同じ外生事象列で行い、一方だけ都合よく初期条件を変えないこと。外生事象用と条件固有判断用の乱数ストリームを分離すること。
 - 結果は集約値だけでなく、代表ログと失敗runを含めて保存すること。
 
+## portable run bundle
+
+単一runを外部runner、replay viewer、将来のGodot clientへ渡す境界は `meta-security-run-bundle/v1` とする。bundleは既存runtimeの `ReplicaRun` からのみ投影し、次を同じ `run_id` へ拘束する。
+
+- `run_request`: scenario、mode、seed、turn limit、runtime version
+- `event_stream`: `turn-ascending/v1` の連続event列
+- `replay`: decision records、audit、manifest、final state、metrics
+- `evidence`: 各区画のCanonical JSON SHA-256、失敗分類、replay一致状態
+
+validatorは別runの混入、event欠落・並べ替え、seedの型drift、内容とdigestの不一致を拒否する。さらに既存runtimeでdecision recordsを再生し、生成bundle全体が一致した場合だけ `verification: replay-match` とする。rendererやcloud adapterはbundleを入力としてよいが、runtime状態やevent順序を再計算しない。
+
+digestは `meta-security-json-c14n/v1` で計算する。object keyを辞書順にし、JSON数値は `{"$number":"<decimal>"}` へ投影する。整数はJavaScript safe integer範囲、非整数は指数表記を避けられる `1e-6 <= abs(x) < 1e21`（0を除く）に限定する。範囲外は丸めずfail-closedとし、PythonとJavaScriptのgolden vectorで同じbyte列を検査する。
+
+bundle IDは実効結果だけでなく、要求条件とdecision provenanceから導出する。異なるmodeやtraceが同じ行動へ収束しても別runとして保持する。構造検査だけのbundleは `unverified` とし、`replay-match` はruntime replay成功後だけ付与する。
+
 ## 終了条件
 
 条件比較は共通の分析ホライズン（MVPでは12ターン）まで行う。生活継続・証拠校正・調整依存の境界超過は分析フラグとして記録し、それだけを理由に早期終了しない。
