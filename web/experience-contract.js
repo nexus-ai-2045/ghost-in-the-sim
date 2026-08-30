@@ -5,6 +5,18 @@
     "turn", "scenario_beat_id", "operative_action", "partner_action",
     "success_confidence", "cost_codes", "operative_state_before", "operative_state_after"
   ];
+  const PLAYABLE_IDS = Object.freeze([
+    "hospital-joint-hold",
+    "port-joint-hold",
+    "hospital-joint-proceed",
+    "hospital-single-proceed",
+  ]);
+  const PLAYABLE_EXPECTATIONS = Object.freeze({
+    "hospital-joint-hold": ["hospital", "plural", "hold"],
+    "port-joint-hold": ["port", "plural", "hold"],
+    "hospital-joint-proceed": ["hospital", "plural", "proceed"],
+    "hospital-single-proceed": ["hospital", "centralized", "proceed"],
+  });
 
   function object(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -61,14 +73,41 @@
       || capability.operation_console !== true) {
       return unavailable("検証済みの操作体験capabilityがありません");
     }
-    if (!Array.isArray(payload.trajectories) || !payload.trajectories.length) {
-      return unavailable("検証済みtrajectoryがありません");
+    if (!Array.isArray(payload.playable_trajectories)) {
+      return unavailable("プレイ用trajectoryがありません");
     }
-    const trajectories = payload.trajectories.map(validateBundle);
-    if (trajectories.some(item => item === null)) {
-      return unavailable("trajectoryのrun_id・replay・event順序を検証できません");
+    const entries = payload.playable_trajectories;
+    if (entries.length !== PLAYABLE_IDS.length) return unavailable("プレイ用trajectoryの件数が不正です");
+    const ids = entries.map(entry => entry?.trajectory_id);
+    if (new Set(ids).size !== PLAYABLE_IDS.length || PLAYABLE_IDS.some(id => !ids.includes(id))) {
+      return unavailable("プレイ用trajectory IDを検証できません");
     }
-    return { available: true, reason: "", trajectories, trajectory: trajectories[0] };
+    const byId = {};
+    const runIds = new Set();
+    for (const entry of entries) {
+      const trajectory = validateBundle(entry?.bundle);
+      if (!trajectory) return unavailable("プレイ用bundleのrun_id・replay・event順序を検証できません");
+      if (trajectory.seed !== 42 || runIds.has(trajectory.runId)) return unavailable("プレイ用runのseedまたはrun_idが不正です");
+      runIds.add(trajectory.runId);
+      const plan = entry.bundle.run_request.operative_plan;
+      const [focus, mode, response] = PLAYABLE_EXPECTATIONS[entry.trajectory_id];
+      if (plan.focus !== focus || trajectory.conditionId !== mode || plan.pause_response !== response) {
+        return unavailable("プレイ用trajectoryの選択契約が不正です");
+      }
+      trajectory.trajectoryId = entry.trajectory_id;
+      trajectory.focus = focus;
+      trajectory.pauseResponse = response;
+      trajectory.mode = mode;
+      byId[entry.trajectory_id] = trajectory;
+    }
+    const comparablePrefix = trajectory => JSON.stringify(trajectory.events.slice(0, 7).map(event => {
+      const { run_id: _runId, ...comparable } = event;
+      return comparable;
+    }));
+    const holdPrefix = comparablePrefix(byId["hospital-joint-hold"]);
+    const proceedPrefix = comparablePrefix(byId["hospital-joint-proceed"]);
+    if (holdPrefix !== proceedPrefix) return unavailable("真壁判断前の履歴が一致しないため、安全に分岐できません");
+    return { available: true, reason: "", trajectories: PLAYABLE_IDS.map(id => byId[id]), byId };
   }
 
   root.ExperienceContract = Object.freeze({ validate });

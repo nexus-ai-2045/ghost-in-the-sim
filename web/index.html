@@ -30,8 +30,8 @@
 
     <section id="experience" class="experience-stage" aria-labelledby="experience-title">
       <div class="section-heading">
-        <div><p class="section-index">進行中の作戦</p><h2 id="experience-title">3つの介入方針</h2></div>
-        <p>検証済みの介入経路だけを選択できます。この端末は判断・停止・指標を再計算しません。</p>
+        <div><p class="section-index">進行中の作戦</p><h2 id="experience-title">鏡潮事案に介入する</h2></div>
+        <p>病院と港湾、どちらを先に守るか。検証済みの選択肢だけで作戦を進めます。</p>
       </div>
       <aside id="experience-unavailable" class="experience-unavailable" role="status">
         <span class="terminal-code">安全停止</span>
@@ -47,8 +47,15 @@
             <div><dt>御影 冴</dt><dd>複数の分身と観測網を並列運用する実働調整官。あなたの視点。</dd></div>
             <div><dt>真壁 迅</dt><dd>物理現場に留まり、不可逆な介入へ独立の停止要求を出す現場収束官。</dd></div>
           </dl>
-          <p class="console-label">2　介入方針を選ぶ</p>
-          <div id="trajectory-tabs" class="trajectory-tabs" role="tablist" aria-label="介入方針を選択"></div>
+          <fieldset id="destination-choice" class="decision-field"><legend>最初の判断　どちらを先に検証する？</legend>
+            <button type="button" data-focus="hospital"><strong>病院を守る</strong><small>生命維持系を優先し、港湾側の権限を止める準備をする</small></button>
+            <button type="button" data-focus="port"><strong>港湾を守る</strong><small>物流と避難路を優先し、病院側の権限を止める準備をする</small></button>
+          </fieldset>
+          <fieldset id="authorization-choice" class="decision-field" hidden><legend>次の判断　病院経路をどう確認する？</legend>
+            <button type="button" data-mode="plural"><strong>真壁と共同確認する</strong><small>停止要求と異議を残し、訂正可能性を確保する</small></button>
+            <button type="button" data-mode="centralized"><strong>御影が単一正本で進める</strong><small>即応性を優先し、最終判断を御影へ集中する</small></button>
+          </fieldset>
+          <p id="selected-route" class="selected-route" aria-live="polite">まだ経路を選んでいません。</p>
           <p id="attention-brief" class="attention-brief"></p>
           <details class="attention-detail">
             <summary>注意配分の内訳</summary>
@@ -62,6 +69,10 @@
           <div id="operative-events" class="operative-events" aria-label="12ターンの進行状況"></div>
           <p class="track-legend"><span class="legend-swatch legend-pause" aria-hidden="true"></span>真壁の停止要求があったターン　<span class="legend-swatch legend-reached" aria-hidden="true"></span>通過したターン</p>
           <article id="operative-detail" class="operative-detail" aria-live="polite" hidden></article>
+          <fieldset id="pause-choice" class="pause-choice" hidden><legend>真壁「待て。この失効は戻せない」</legend>
+            <button type="button" data-pause="hold"><strong>保留する</strong><small>停止要求を受け入れ、訂正可能性を残す</small></button>
+            <button type="button" data-pause="proceed"><strong>進行する</strong><small>異議を記録し、御影の判断で続行する</small></button>
+          </fieldset>
           <article id="operation-result" class="operation-result" aria-live="polite" hidden></article>
           <div id="turn-controls" class="turn-controls" hidden>
             <button id="previous-turn" type="button">前のターン</button>

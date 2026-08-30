@@ -76,11 +76,12 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertIn("replay-match", contract)
         self.assertIn("renderer_mode", contract)
         self.assertNotIn("Math.random", script)
-        for phrase in ("作戦開始", "前のターン", "次のターン", "最初から再開", "3つの介入方針"):
+        for phrase in ("作戦開始", "前のターン", "次のターン", "最初から再開", "病院を守る", "港湾を守る"):
             self.assertIn(phrase, index)
         for phrase in ("状況", "御影の行動", "真壁の応答", "成功見込み", "代償"):
             self.assertIn(phrase, script)
-        self.assertIn("filterTrajectoriesForSeed", script)
+        self.assertIn("playableIdForSelection", script)
+        self.assertIn("experience.byId", script)
         self.assertIn("operative_state_before.cognitive_integrity", script)
         self.assertNotIn("attention_remaining", script)
         self.assertIn("producerがreplay-matchと記録", index)
@@ -91,12 +92,13 @@ class DemoUiContractTest(unittest.TestCase):
         index = (ROOT / "web/index.html").read_text(encoding="utf-8")
         script = (ROOT / "web/app.js").read_text(encoding="utf-8")
 
-        # 方針タブは研究用語ではなく日本語の状況語彙。対応はJS内の明示的mappingに限定する。
-        self.assertIn("OBJECTIVE_COPY", script)
-        self.assertIn("OBJECTIVE_COPY[trajectory.conditionId]", script)
-        self.assertIn("本部の正本に一本化して即断する", script)
-        self.assertIn("人とAIの相互承認で慎重に進める", script)
-        self.assertIn("現場の分身に任せて局所対応する", script)
+        # プレイヤーには研究条件の直積ではなく、存在する4経路だけを段階的に提示する。
+        for phrase in ("病院を守る", "港湾を守る", "真壁と共同確認する", "御影が単一正本で進める"):
+            self.assertIn(phrase, index)
+        self.assertIn("hospital-joint-hold", script)
+        self.assertIn("port-joint-hold", script)
+        self.assertIn("hospital-joint-proceed", script)
+        self.assertIn("hospital-single-proceed", script)
         # 内部scenario IDをそのまま表示しない。
         self.assertIn("SCENARIO_COPY", script)
         self.assertNotIn('textContent = model.scenario_id', script)
@@ -104,6 +106,8 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertIn("作戦完了", script)
         self.assertIn("別の方針で再挑戦", index)
         self.assertIn("resetToSelection", script)
+        for phrase in ("守った", "失った", "訂正可能", "責任未確定"):
+            self.assertIn(phrase, script)
         # 真壁の停止要求はターン進行トラックと詳細の両方で強調される。
         self.assertIn("pause-banner", script)
         self.assertIn("legend-pause", index)
@@ -153,6 +157,10 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertEqual(card["ai_replay_evidence"]["decision_sources"], ["llm_generated_in_codex_session"])
         self.assertEqual(len(payload["ai_evidence_runs"]), 3)
         self.assertEqual(payload["artifact_revision"], card["artifact_revision"])
+        self.assertEqual(
+            [item["trajectory_id"] for item in payload["playable_trajectories"]],
+            ["hospital-joint-hold", "port-joint-hold", "hospital-joint-proceed", "hospital-single-proceed"],
+        )
 
 
 if __name__ == "__main__":

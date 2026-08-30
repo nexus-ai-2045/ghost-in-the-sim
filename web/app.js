@@ -69,6 +69,10 @@ let experience;
 let activeTrajectory = 0;
 let operationStarted = false;
 let activeTurn = 0;
+let selectedFocus = null;
+let selectedMode = null;
+let pauseDecisionPending = false;
+let activePlayableId = null;
 
 function escapeText(value) {
   return String(value ?? "—").replace(/[&<>"']/g, character => ({
@@ -134,8 +138,28 @@ function renderOperativeEvent(event, beat) {
     <p><strong>御影の認知健全性</strong><br>${Math.round(Number(event.operative_state_before.cognitive_integrity) * 100)} → ${Math.round(Number(event.operative_state_after.cognitive_integrity) * 100)}</p></div>`;
 }
 
-function filterTrajectoriesForSeed() {
-  return experience.trajectories.filter(trajectory => Number(trajectory.seed) === Number(model.seed));
+function playableIdForSelection(pauseResponse = "hold") {
+  if (selectedFocus === "port") return "port-joint-hold";
+  if (selectedFocus !== "hospital" || !selectedMode) return null;
+  if (selectedMode === "centralized") return "hospital-single-proceed";
+  return pauseResponse === "proceed" ? "hospital-joint-proceed" : "hospital-joint-hold";
+}
+
+function activePlayable() { return activePlayableId ? experience.byId[activePlayableId] : null; }
+
+function selectFocus(focus) {
+  selectedFocus = focus;
+  selectedMode = focus === "port" ? "plural" : null;
+  activePlayableId = playableIdForSelection();
+  operationStarted = false; activeTurn = 0; pauseDecisionPending = false;
+  renderOperationConsole();
+}
+
+function selectMode(mode) {
+  selectedMode = mode;
+  activePlayableId = playableIdForSelection();
+  operationStarted = false; activeTurn = 0; pauseDecisionPending = false;
+  renderOperationConsole();
 }
 
 function renderOperationConsole() {
@@ -149,47 +173,75 @@ function renderOperationConsole() {
   }
   unavailable.hidden = true;
   consolePanel.hidden = false;
-  const trajectories = filterTrajectoriesForSeed();
-  if (!trajectories.length) {
-    unavailable.hidden = false;
-    unavailable.querySelector("span:last-child").textContent = "選択した再現条件に対応する検証済み軌跡がありません。";
-    consolePanel.hidden = true;
-    return;
-  }
-  if (activeTrajectory >= trajectories.length) activeTrajectory = 0;
-  const tabs = document.querySelector("#trajectory-tabs");
-  tabs.innerHTML = trajectories.map((trajectory, index) => { const copy = OBJECTIVE_COPY[trajectory.conditionId] ?? { label: "検証済みの介入経路", aim: "runtimeが検証した経路を表示" }; return `<button type="button" role="tab" aria-selected="${index === activeTrajectory}" data-index="${index}"><strong>${escapeText(copy.label)}</strong><small>${escapeText(copy.aim)}</small></button>`; }).join("");
-  const activate = index => { activeTrajectory = index; operationStarted = false; activeTurn = 0; renderOperationConsole(); document.querySelectorAll('#trajectory-tabs [role="tab"]')[index]?.focus(); };
-  tabs.querySelectorAll("button").forEach(button => button.addEventListener("click", () => activate(Number(button.dataset.index))));
-  bindRovingTabs(tabs, activate);
-  const trajectory = trajectories[activeTrajectory] ?? trajectories[0];
+  document.querySelectorAll("#destination-choice button").forEach(button => {
+    button.setAttribute("aria-pressed", String(button.dataset.focus === selectedFocus));
+    button.onclick = () => selectFocus(button.dataset.focus);
+  });
+  const authorization = document.querySelector("#authorization-choice");
+  authorization.hidden = selectedFocus !== "hospital";
+  authorization.querySelectorAll("button").forEach(button => {
+    button.setAttribute("aria-pressed", String(button.dataset.mode === selectedMode));
+    button.onclick = () => selectMode(button.dataset.mode);
+  });
+  activePlayableId = activePlayableId ?? playableIdForSelection();
+  const trajectory = activePlayable();
+  const routeText = !selectedFocus ? "まだ経路を選んでいません。"
+    : selectedFocus === "port" ? "港湾を優先し、真壁との共同確認で進みます。"
+    : !selectedMode ? "病院を優先します。確認方法を選んでください。"
+    : selectedMode === "plural" ? "病院を優先し、真壁との共同確認で進みます。"
+    : "病院を優先し、御影の単一正本で進みます。";
+  document.querySelector("#selected-route").textContent = routeText;
   document.querySelector("#briefing-title").textContent = "鏡潮：分岐権限危機";
   document.querySelector("#city-status").textContent = "ポセイドン都市圏で、複製された危機対応AIの通信・記憶・権限が分岐。生活基盤を止めずに正本と異議を収束させる。";
-  renderAttentionBrief(trajectory);
+  document.querySelector("#attention-brief").hidden = !trajectory;
+  document.querySelector(".attention-detail").hidden = !trajectory;
+  if (trajectory) renderAttentionBrief(trajectory);
   const events = document.querySelector("#operative-events");
-  events.innerHTML = trajectory.events.map((event, index) => {
+  events.innerHTML = trajectory ? trajectory.events.map((event, index) => {
     const pause = event.partner_action === "request_pause";
     const classes = ["turn-marker", operationStarted && index <= activeTurn ? "reached" : "", pause ? "pause" : "", operationStarted && index === activeTurn ? "current" : ""].filter(Boolean).join(" ");
     return `<span class="${classes}" aria-label="第${event.turn}ターン${pause ? " 真壁の停止要求" : ""}${operationStarted && index === activeTurn ? " 現在" : ""}">${event.turn}</span>`;
-  }).join("");
+  }).join("") : "";
   const detail = document.querySelector("#operative-detail");
   const result = document.querySelector("#operation-result");
   const controls = document.querySelector("#turn-controls");
   const progress = document.querySelector("#operation-progress");
-  const lastIndex = trajectory.events.length - 1;
+  const lastIndex = trajectory ? trajectory.events.length - 1 : 0;
   if (!operationStarted) {
     detail.hidden = true; controls.hidden = true; result.hidden = true;
     progress.textContent = "介入方針を選び、「作戦開始」を押してください。";
   } else {
     controls.hidden = false;
     progress.textContent = `第 ${activeTurn + 1} / ${trajectory.events.length} ターン`;
-    renderOperativeEvent(trajectory.events[activeTurn], trajectory.beats[activeTurn]);
-    if (activeTurn === lastIndex) renderOperationResult(trajectory); else result.hidden = true;
+    if (pauseDecisionPending) {
+      detail.hidden = true; result.hidden = true; controls.hidden = true;
+      progress.textContent = "第8ターン　真壁の停止要求に応答してください。";
+    } else {
+      renderOperativeEvent(trajectory.events[activeTurn], trajectory.beats[activeTurn]);
+      if (activeTurn === lastIndex) renderOperationResult(trajectory); else result.hidden = true;
+    }
   }
-  document.querySelector("#start-operation").hidden = operationStarted;
-  document.querySelector("#start-operation").onclick = () => { operationStarted = true; activeTurn = 0; renderOperationConsole(); document.querySelector("#next-turn")?.focus(); };
+  const start = document.querySelector("#start-operation");
+  start.hidden = operationStarted;
+  start.disabled = !trajectory;
+  const pauseChoice = document.querySelector("#pause-choice");
+  pauseChoice.hidden = !pauseDecisionPending;
+  pauseChoice.querySelectorAll("button").forEach(button => button.onclick = () => {
+    activePlayableId = playableIdForSelection(button.dataset.pause);
+    pauseDecisionPending = false;
+    activeTurn = 7;
+    renderOperationConsole();
+    document.querySelector("#next-turn")?.focus();
+  });
+  start.onclick = () => { operationStarted = true; activeTurn = 0; renderOperationConsole(); document.querySelector("#next-turn")?.focus(); };
   document.querySelector("#previous-turn").onclick = () => { activeTurn = Math.max(0, activeTurn - 1); renderOperationConsole(); document.querySelector("#previous-turn")?.focus(); };
-  document.querySelector("#next-turn").onclick = () => { activeTurn = Math.min(lastIndex, activeTurn + 1); renderOperationConsole(); document.querySelector("#next-turn")?.focus(); };
+  document.querySelector("#next-turn").onclick = () => {
+    if (selectedFocus === "hospital" && selectedMode === "plural" && activeTurn === 6) {
+      pauseDecisionPending = true;
+    } else activeTurn = Math.min(lastIndex, activeTurn + 1);
+    renderOperationConsole();
+    (pauseDecisionPending ? document.querySelector("#pause-choice button") : document.querySelector("#next-turn"))?.focus();
+  };
   document.querySelector("#restart-operation").onclick = () => { activeTurn = 0; operationStarted = true; renderOperationConsole(); document.querySelector("#next-turn")?.focus(); };
   document.querySelector("#change-plan").onclick = resetToSelection;
   document.querySelector("#previous-turn").disabled = activeTurn === 0;
@@ -199,8 +251,12 @@ function renderOperationConsole() {
 function resetToSelection() {
   operationStarted = false;
   activeTurn = 0;
+  selectedFocus = null;
+  selectedMode = null;
+  activePlayableId = null;
+  pauseDecisionPending = false;
   renderOperationConsole();
-  document.querySelector('#trajectory-tabs [aria-selected="true"]')?.focus();
+  document.querySelector('#destination-choice button')?.focus();
 }
 
 function renderAttentionBrief(trajectory) {
@@ -221,14 +277,18 @@ function renderOperationResult(trajectory) {
   const pauseTurns = trajectory.events.filter(event => event.partner_action === "request_pause").map(event => event.turn);
   const costCodes = [...new Set(trajectory.events.flatMap(event => event.cost_codes))];
   result.hidden = false;
+  const hospitalRoute = trajectory.focus === "hospital";
+  const held = trajectory.pauseResponse === "hold";
+  const joint = trajectory.mode === "plural";
   result.innerHTML = `<h3>作戦完了</h3>
-    <p>「${escapeText(OBJECTIVE_COPY[trajectory.conditionId]?.label ?? "選択した方針")}」の経路を最後まで確認しました。</p>
-    <dl>
-      <dt>最終の認知健全性</dt><dd>${Math.round(Number(last.operative_state_after.cognitive_integrity) * 100)} / 100</dd>
-      <dt>最終の選択肢保存</dt><dd>${Math.round(Number(last.operative_state_after.option_preservation) * 100)} / 100</dd>
-      <dt>真壁の停止要求</dt><dd>${pauseTurns.length ? `第${pauseTurns.map(escapeText).join("・")}ターン` : "なし"}</dd>
-      <dt>現れた代償</dt><dd>${costCodes.map(code => escapeText(COST_COPY[code] ?? "未分類の負荷")).join(" / ") || "記録なし"}</dd>
+    <p>選択した介入経路の結果です。勝敗ではなく、守ったものと残った責任を確認してください。</p>
+    <dl class="outcome-grid">
+      <dt>守った</dt><dd>${hospitalRoute ? "病院の生命維持系と患者搬送" : "港湾物流と避難経路"}</dd>
+      <dt>失った</dt><dd>${hospitalRoute ? "港湾複製の独立権限" : "病院複製の独立権限"}</dd>
+      <dt>訂正可能</dt><dd>${held ? "真壁の停止要求を受け、再検証の窓を保持" : "異議は保存したが、訂正可能な時間は縮小"}</dd>
+      <dt>責任未確定</dt><dd>${joint ? "御影・真壁・承認系の責任配分" : "単一正本を選んだ御影の監督責任"}</dd>
     </dl>
+    <details><summary>作戦記録の数値を見る</summary><p>認知健全性 ${Math.round(Number(last.operative_state_after.cognitive_integrity) * 100)} / 100、選択肢保存 ${Math.round(Number(last.operative_state_after.option_preservation) * 100)} / 100、停止要求 ${pauseTurns.length ? `第${pauseTurns.map(escapeText).join("・")}ターン` : "なし"}。</p><p>${costCodes.map(code => escapeText(COST_COPY[code] ?? "未分類の負荷")).join(" / ") || "記録なし"}</p></details>
     <p>指標の比較・反証・限界は下の監査／反実仮想ビューにあります。「別の方針で再挑戦」で、同じ危機の別の経路と代償を見比べられます。</p>`;
 }
 
