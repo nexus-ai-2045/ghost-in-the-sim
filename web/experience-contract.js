@@ -163,6 +163,23 @@
       const confidence = Number(event.success_confidence);
       if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) return null;
     }
+    const agentTurns = Array.isArray(replay.agent_turns) ? replay.agent_turns : [];
+    const interactionRefs = Array.isArray(replay.interaction_refs) ? replay.interaction_refs : [];
+    const emergenceMetrics = object(replay.emergence_metrics) ? replay.emergence_metrics : null;
+    if (agentTurns.length) {
+      const seen = new Set();
+      for (const record of agentTurns) {
+        const runRef = record?.request?.run_ref;
+        const agentId = record?.request?.agent?.agent_id;
+        const key = `${runRef?.turn}:${agentId}`;
+        if (!object(record) || !object(runRef) || runRef.environment_seed !== request.seed
+          || runRef.scenario_id !== request.scenario.scenario_id || !Number.isInteger(runRef.turn)
+          || runRef.turn < 1 || runRef.round !== 1 || !AGENT_IDS.includes(agentId)
+          || !OUTCOME_STATUSES.has(record.status) || seen.has(key)) return null;
+        seen.add(key);
+      }
+      if (!emergenceMetrics) return null;
+    }
     return {
       runId,
       seed: request.seed,
@@ -171,7 +188,7 @@
       attentionBudget,
       attention: request.operative_plan.attention,
       beats: request.scenario.beats,
-      events,
+      events, agentTurns, interactionRefs, emergenceMetrics,
     };
   }
 

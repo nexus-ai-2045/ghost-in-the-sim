@@ -91,7 +91,8 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertIn("producerがreplay-matchと記録", index)
         self.assertIn("generated artifact contract error", script)
         self.assertNotIn('render(await response.json(), "generated comparison.json")', script)
-        self.assertIn("ExperienceContract.validateEnsemble(payload)", script)
+        self.assertIn("renderEmergenceObservation(trajectory", script)
+        self.assertNotIn("appliedThisTurn", script)
         self.assertIn("meta-security-json-c14n/v1", contract)
         self.assertIn("run_request_sha256", contract)
         self.assertIn("event_stream_sha256", contract)
@@ -99,7 +100,8 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertIn("AI創発観測", script)
         self.assertIn("proposal_conflict_count", script)
         self.assertIn("unresolved_interaction_count", script)
-        self.assertIn("現在ターンの記録だけを表示", script)
+        self.assertIn("現在ターンの検証済み記録を個別表示", script)
+        self.assertEqual(script.count("ExperienceContract.validate(payload)"), 1)
         self.assertIn(".emergence-observation", style)
 
     def test_operation_reads_as_japanese_game_not_dashboard(self) -> None:

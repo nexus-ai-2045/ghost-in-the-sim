@@ -43,7 +43,7 @@
     const dissentLine = pause
       ? { speaker: "真壁 迅", role: "停止要求", text: `待て。この失効は戻せない。${reservation}`, evidenceRefs: refs(event.rationale_refs) }
       : event.dissent_delivered
-        ? { speaker: "真壁 迅", role: "到達した異議", text: reservation, evidenceRefs: refs(event.rationale_refs) }
+        ? { speaker: SPEAKERS[actor], role: "到達した留保", text: reservation, evidenceRefs: refs(event.rationale_refs) }
         : event.dissent_raised
           ? { speaker: "異議チャネル", role: "未到達", text: `${reservation}――異議はまだ御影へ到達していない。`, evidenceRefs: refs(event.rationale_refs) }
           : { speaker: "監査ログ", role: "異議なし", text: "このターンに記録された異議はない。", evidenceRefs: [] };

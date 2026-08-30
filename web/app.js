@@ -241,7 +241,7 @@ function renderOperationConsole() {
       if (activeTurn === lastIndex) renderOperationResult(trajectory); else result.hidden = true;
     }
   }
-  if (sourcePayload) renderEmergenceObservation(sourcePayload, operationStarted ? activeTurn + 1 : null);
+  renderEmergenceObservation(trajectory, operationStarted ? activeTurn + 1 : null);
   const start = document.querySelector("#start-operation");
   start.hidden = operationStarted;
   const pauseChoice = document.querySelector("#pause-choice");
@@ -404,30 +404,20 @@ function renderResultCard() {
     <article><h3>反証チェック</h3><ul>${checks.map(check => `<li><strong>${escapeText(check.check_id)}</strong>: ${escapeText(check.status)}${check.evidence ? `<br><small>${formatEvidence(check.evidence)}</small>` : ""}</li>`).join("") || "<li>未評価</li>"}</ul></article>
     <article><h3>限界</h3><ul>${limitations.map(item => `<li>${escapeText(item)}</li>`).join("") || "<li>未記録</li>"}</ul></article>`;
 }
-function renderEmergenceObservation(payload, requestedTurn = null) {
+function renderEmergenceObservation(run, requestedTurn = null) {
   document.querySelector("#ai-emergence-observation")?.remove();
   if (!Number.isInteger(requestedTurn)) return;
-  const ensemble = ExperienceContract.validateEnsemble(payload);
-  if (!ensemble.present) return;
+  if (!run?.agentTurns?.length) return;
   const section = document.createElement("section");
   section.id = "ai-emergence-observation";
   section.className = "emergence-observation";
   section.setAttribute("aria-labelledby", "ai-emergence-title");
   document.querySelector("#operation-console").insertAdjacentElement("afterend", section);
-  if (!ensemble.available) {
-    section.innerHTML = `<div class="section-label">AI EMERGENCE / FAIL CLOSED</div><h2 id="ai-emergence-title">AI創発観測</h2><p class="warning">AI創発bundleを検証できないため表示を停止しました。${escapeText(ensemble.reason)}</p>`;
-    return;
-  }
-  const run = ensemble.runs.find(item => item.conditionId === selectedMode) ?? ensemble.runs[0];
   const metrics = run.emergenceMetrics;
   const turns = [...new Set(run.agentTurns.map(record => record.request.run_ref.turn))];
   const latestTurn = turns.includes(requestedTurn) ? requestedTurn : turns.filter(turn => turn <= requestedTurn).at(-1);
   if (!Number.isInteger(latestTurn)) return;
   const records = run.agentTurns.filter(record => record.request.run_ref.turn === latestTurn);
-  const appliedThisTurn = records.filter(record => record.status === "APPLIED").length;
-  const rejectedThisTurn = records.filter(record => record.status === "REJECTED").length;
-  const fallbackThisTurn = records.filter(record => record.status === "FALLBACK").length;
-  const dissentThisTurn = records.filter(record => record.proposal?.dissent?.raised === true).length;
   section.innerHTML = `<div class="section-label">RECORDED MULTI-AGENT INTERACTION</div>
     <div class="emergence-heading"><div><h2 id="ai-emergence-title">AI創発観測</h2><p>4主体が別々の観測と目的から提案した、記録済みの相互作用です。画面はbundle値を表示するだけで再計算しません。</p></div><span class="turn">第 ${escapeText(latestTurn)} ターン</span></div>
     <div class="emergence-agents">${records.map(record => {
@@ -443,13 +433,7 @@ function renderEmergenceObservation(payload, requestedTurn = null) {
         ${record.status === "FALLBACK" ? `<p><strong>安全代替理由</strong><br>${escapeText(record.reason_code)}</p>` : ""}
       </article>`;
     }).join("")}</div>
-    <dl class="emergence-metrics" aria-label="第${escapeText(latestTurn)}ターンのAI創発指標">
-      <div><dt>このターンの採用</dt><dd>${escapeText(appliedThisTurn)}</dd></div>
-      <div><dt>このターンの不採用</dt><dd>${escapeText(rejectedThisTurn)}</dd></div>
-      <div><dt>このターンの異議</dt><dd>${escapeText(dissentThisTurn)}</dd></div>
-      <div><dt>安全代替</dt><dd>${escapeText(fallbackThisTurn)}</dd></div>
-    </dl>
-    <p class="metric-note">現在ターンの記録だけを表示。run全体の対立・協力・未解決相互作用は監査詳細に保持します。</p>
+    <p class="metric-note">現在ターンの検証済み記録を個別表示。集計指標はproducerがbundleへ記録したrun全体値だけを監査詳細に表示します。</p>
     <details><summary>記録済み相互作用とrun全体を見る</summary><p>run_id: ${escapeText(run.runId)} / APPLIED ${escapeText(metrics.applied_count)} / REJECTED ${escapeText(metrics.rejected_count)} / FALLBACK ${escapeText(metrics.fallback_count)} / 提案対立 ${escapeText(metrics.proposal_conflict_count)} / 協力 ${escapeText(metrics.cooperation_count)} / 未解決 ${escapeText(metrics.unresolved_interaction_count)} / interaction refs ${escapeText(run.interactionRefs.length)}</p></details>`;
 }
 function render(payload, sourceLabel) {
