@@ -6,13 +6,13 @@
 
 | 公式提出物 | 公式要件 | このrepoの候補 | 状態 |
 |---|---|---|---|
-| GitHubリポジトリ | public、ソース、環境構築から実行までのREADME、実行スクリプト、生ログ、解析用データ | `nexus-ai-2045/ghost-in-the-sim`、`README.md`、`src/`、`scripts/`、`fixtures/actual-ai-trace-seed42.json`、`web/data/comparison.json`、`RESULTS.md` | ローカル候補検証済み。candidate branchのpush・PR・mergeは人間確認待ち |
+| GitHubリポジトリ | public、ソース、環境構築から実行までのREADME、実行スクリプト、生ログ、解析用データ | `nexus-ai-2045/ghost-in-the-sim`、`README.md`、`src/`、`scripts/`、`fixtures/actual-ai-trace-seed42.json`、`web/data/comparison.json`、`RESULTS.md` | `v0.1.2` release済み。tagと`main`は`c00183fbd8d79a5df018283b0dcde53ac73790cd`で一致 |
 | 説明スライド | 10枚以下 | `artifacts/submission/submission-slides.pptx` / `.pdf`（8枚、Git非追跡）、正本sourceは`scripts/generate_submission_slides.js` | 構造検証・全ページ目視済み。名称・説明の人間レビュー待ち |
-| デモ動画 | シミュレーターの動作画面、YouTube限定公開 | `artifacts/submission/ghost-in-the-sim-demo.mp4`（18.44秒、1280×720、Git非追跡）、正本台本は`docs/demo-script.md` | ローカル録画・全経路フレーム目視済み。YouTubeアップロード・URL取得は未実施 |
+| デモ動画 | シミュレーターの動作画面、YouTube限定公開 | `artifacts/submission/ghost-in-the-sim-demo-v0.1.2.mp4`（57.24秒、1280×720、H.264、Git非追跡）、正本台本は`docs/demo-script.md` | 会話、4主体の創発観測、第8ターンの停止要求、12ターン完走を目視済み。YouTubeアップロード・URL取得は未実施 |
 
 ## 機械確認済み
 
-- `152 passed / 1 skipped`
+- 提出版`v0.1.2`: `154 passed / 1 skipped`。提出後SSOT整合candidate: `155 passed / 1 skipped`
 - public、design、IP、experience contractがPASS
 - repo-preflight、consistency gate、ai-ratchet-gateがPASS
 - desktopとmobile相当で開始、12ターン、第8ターン停止要求、結果まで完走
@@ -40,8 +40,7 @@ node scripts/record_submission_demo.js http://127.0.0.1:8045/ artifacts/submissi
 2. ファイル名を公式指定の半角英数字 `参加者番号_氏名_タイトル_種別` へ変更する。
 3. ローカルデモを録画し、YouTubeへ限定公開でアップロードする。
 4. README、画面、スライド、動画、commit履歴、第三者権利境界を目視する。
-5. candidate branchのPRを同一HEADのCI・レビュー後にmergeする。
-6. GitHub、スライド、YouTube URLを提出フォームへ入力する。
+5. `v0.1.2`のGitHub URL、スライド、YouTube URLを提出フォームへ入力する。
 
 ## 断定しないこと
 

@@ -4,14 +4,16 @@
 
 `public_visibility_confirmed` — 機械確認済みの公開状態記録。公開承認・merge承認・release承認ではない。
 
-## live read-back（2026-08-29）
+## 提出済みベースライン（2026-08-30）
 
 | 項目 | 値 |
 |---|---|
 | repository | `nexus-ai-2045/ghost-in-the-sim` |
 | visibility | `PUBLIC`（変更しない。この文書は状態の正本化のみ） |
 | default branch | `main` |
-| 基準commit（実装開始時点） | `9df64cdcb3e322586d0416ad6df37ad068fb3b3e` |
+| submitted release | `v0.1.2` |
+| submitted commit | `c00183fbd8d79a5df018283b0dcde53ac73790cd` |
+| `main` / tag整合 | 同一commitを確認済み |
 
 ## 今回の公開対象
 
@@ -37,7 +39,7 @@
 
 - 片山氏コンセプトペーパーの公開URL、正式な版番号、引用条件
 - 人間による表示・履歴レビュー
-- merge / release / 告知の明示承認（このファイルだけでは承認されない）
+- 次回のpush / PR作成 / merge / release / 告知の明示承認（このファイルだけでは承認されない）
 - リポジトリ名・package名・配色・HUD・キービジュアル・宣伝文を束で見た商標および総合的類似性レビュー
 - 画像・動画・音声を追加する場合のcreator、license、source、hashを含むprovenance確認
 
@@ -46,3 +48,9 @@
 - 都市名「ポセイドン」と御影冴を中心とする設定を採用する。
 - 境界を「名称オマージュを明示する非公式の二次創作的プロジェクト」とする。
 - この決定は設定とPR作業の承認であり、応募、release、告知、画像・音声追加の承認ではない。
+
+## 提出後の境界（2026-08-30）
+
+- `v0.1.2`は提出済みベースラインとして保全する。
+- 提出後の継続開発は新しい差分として扱い、public repoへのpush、PR作成、merge、release、告知は対象と検証証拠を示して人間レビューへ戻す。
+- 応募フォーム編集URL、非公開URL、参加者情報はrepoへ保存しない。

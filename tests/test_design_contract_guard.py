@@ -1,6 +1,13 @@
+from pathlib import Path
+
 import pytest
 
-from tests.check_design_contract import _section, _table_rows, _validate_artifact_registry
+from tests.check_design_contract import (
+    _section,
+    _table_rows,
+    _validate_artifact_registry,
+    _validate_post_submission_sync,
+)
 
 
 def test_canonical_section_and_table_are_exactly_one() -> None:
@@ -19,3 +26,33 @@ def test_artifact_registry_rejects_unknown_or_compound_lifecycle_state() -> None
         invalid = prefix + f"| demo | viewer | `web/index.html` | {invalid_state} | local |\n"
         with pytest.raises(ValueError, match="exactly one ADR-012 state"):
             _validate_artifact_registry(invalid)
+
+
+def test_post_submission_sync_rejects_case_regression_and_surface_drift() -> None:
+    root = Path(__file__).resolve().parents[1]
+    documents = [
+        (root / relative).read_text(encoding="utf-8")
+        for relative in (
+            "docs/world/cases.md",
+            "docs/roadmap.md",
+            "docs/knowledge/open-questions.md",
+            "docs/knowledge/artifacts.md",
+            "PUBLIC_READY.md",
+            "docs/submission-checklist.md",
+        )
+    ]
+    _validate_post_submission_sync(*documents)
+
+    mutations = (
+        (0, "| measured |", "| implemented |"),
+        (1, "状態: `measured`", "状態: `implemented`"),
+        (2, "| Escapeの復帰先 |", "| Escapeの戻り先 |"),
+        (3, "鏡潮事案はmeasured、残り9事件はconcept", "全10事件はconcept"),
+        (4, "`v0.1.2`", "`v0.1.1`"),
+        (5, "`v0.1.2` release済み", "candidate branch検証済み"),
+    )
+    for index, before, after in mutations:
+        candidate = documents.copy()
+        candidate[index] = candidate[index].replace(before, after, 1)
+        with pytest.raises(ValueError):
+            _validate_post_submission_sync(*candidate)

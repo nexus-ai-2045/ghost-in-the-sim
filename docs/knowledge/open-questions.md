@@ -6,6 +6,8 @@
 | live LLM adapterとaction別deltaを入れるか | ねく | replay MVPとの比較 | モデル設定・コスト・再現性・安全境界を記録 |
 | UIコンセプトのトーン | ねく | デザインレビュー | デスクトップ目視完了。モバイル実機を確認 |
 | 提出用実行環境 | 実装フェーズ | ローカル動作確認 | batch生成とviewer起動をREADMEどおり再現（Windows完了） |
-| 公式要件の最終確認 | ねく | 提出直前に公式を再確認 | README・結果・資料の整合 |
-| 鏡潮事案のscenario schema | 実装フェーズ | 現行MVPを型付きmanifestへ移行 | 事件固有例外なしで御影・真壁・反証・代償を再現 |
-| 名称・配色・HUD・宣伝文の束レビュー | ねく | 応募・release前に人間が目視 | `PUBLIC_READY.md` の残務を解消 |
+| 提出後の公開表示レビュー | ねく | `v0.1.2`のREADME・画面・履歴を目視 | `PUBLIC_READY.md` の人間確認待ちを解消 |
+| 名称・配色・HUD・宣伝文の束レビュー | ねく | 次回release・告知前に人間が目視 | `PUBLIC_READY.md` の残務を解消 |
+| Escapeの復帰先 | 実装フェーズ | 結果画面・プレイ画面の期待遷移を決める | UI contractと回帰testを同期 |
+| seed切替時の無警告reset | 実装フェーズ | 警告または状態保持の方式を決める | 未保存状態を暗黙破棄しないtestを追加 |
+| mobile実機確認 | ねく | 実端末で主要経路を確認 | 端末・viewport・結果をevidenceへ記録 |
