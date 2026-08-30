@@ -176,12 +176,23 @@ py -3.13 -m ghost_in_the_sim.run_bundle_cli --mode plural --seed 42 --turn-limit
 
 出力schemaは `meta-security-run-bundle/v1` です。`run_request`、`event_stream`、`replay`、`evidence`を同一`run_id`で結び、event順序、区画digest、既存runtimeでのreplay一致を検証します。体験技術の採否と撤退境界は [ADR-013](docs/adr/ADR-013-run-bundle-and-experience-technology.md) を参照してください。
 
+外部AIへ12ターンを逐次依頼する場合は、未来のrequestを先に作らず、確定状態を一手ずつ取り込むsession runnerを使います。
+
+```powershell
+$env:PYTHONPATH = "src"
+py -3.13 -m ghost_in_the_sim.agent_turn_cli session-init --seed 42 --mode plural --turn-limit 12 --output artifacts/cloud-handoff/session.json
+py -3.13 -m ghost_in_the_sim.agent_turn_cli session-advance --session artifacts/cloud-handoff/session.json --proposals artifacts/cloud-handoff/proposals.json --output artifacts/cloud-handoff/session.json
+```
+
+各turnでは`session.json`の`current_request_bundle`だけを外部runnerへ渡し、返却された4主体のproposal束を`session-advance`へ入力します。最終turnで同じsession内に検証済み`meta-security-run-bundle/v1`が生成されます。session更新はatomicで、中断時に直前の確定履歴を残します。schema、digest、欠落・重複・古い応答、外部runnerとの責務境界は[agent turnプロトコル](docs/architecture/agent-turn-protocol.md)を正本とします。このCLI自身はnetwork、provider SDK、credentialを所有しません。
+
 GitHub Actionsでも、同一入力の再現性・条件差・イベント契約・公開境界を回帰検査する。CI成功は、現実予測の妥当性や公開承認を意味しない。
 
 - 貢献方法: [CONTRIBUTING.md](CONTRIBUTING.md)
 - PR前の再発防止確認: [PRセルフレビュー](docs/pr-self-review.md)（生成物。手編集しない）
 - セキュリティ連絡: [SECURITY.md](SECURITY.md)
 - 公開準備: [PREFLIGHT.md](PREFLIGHT.md) / [PUBLIC_READY.md](PUBLIC_READY.md)
+- 提出候補: 8枚スライドsource `scripts/generate_submission_slides.js`（PPTX/PDFは`artifacts/submission/`へ生成） / [3分デモ台本](docs/demo-script.md) / [提出チェックリスト](docs/submission-checklist.md)
 - リポジトリ運用: [運用ゲート](docs/operations/repository-gates.md)
 
 ## ライセンス

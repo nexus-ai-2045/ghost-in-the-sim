@@ -31,7 +31,19 @@ python -m ghost_in_the_sim.agent_turn_cli export --seed 42 --mode plural --turn-
 
 外部runnerは`requests.json`の各requestに対して、同じ`ghost-agent-turn/v1`の`AgentProposal`を1件だけ作ります。返却ファイルのtop-levelは次のexact schemaです。
 
-現行v1のexportは1 turn単位です。次turnのrequestは前turnで確定した世界状態へ依存するため、未来12 turnを先行生成してはいけません。複数turnのクラウド実行は、各turnのproposalを取り込んで世界状態を確定した後に次requestを発行するinterleaved sessionとして扱います。未実装のsession runnerがない状態で`--turn-limit 2`以上を指定するとfail-closedで停止します。
+単発の`export`は1 turn単位です。次turnのrequestは前turnで確定した世界状態へ依存するため、未来12 turnを先行生成してはいけません。複数turnは、provider非依存のinterleaved session runnerを使います。
+
+```powershell
+python -m ghost_in_the_sim.agent_turn_cli session-init --seed 42 --mode plural --turn-limit 12 --output artifacts/cloud-handoff/session.json
+```
+
+`session.json`の`current_request_bundle`だけを外部runnerへ渡し、同digestへ結び付くproposal束を受け取ったら一手進めます。
+
+```powershell
+python -m ghost_in_the_sim.agent_turn_cli session-advance --session artifacts/cloud-handoff/session.json --proposals artifacts/cloud-handoff/proposals.json --output artifacts/cloud-handoff/session.json
+```
+
+runnerは各turnでこの交換を繰り返します。`session-advance`は、確定済みroundをcanonical replayし、現在requestとproposalをstrict検証してから世界状態を一手だけ進めます。途中なら次turnのrequestだけ、最終turnなら`run_bundle`に`meta-security-run-bundle/v1`を格納します。古いproposalの再送、履歴・request・digestの改ざん、欠落・重複はfail-closedです。外部provider SDK、network、credential管理はsession runnerの責務外です。
 
 ```json
 {
@@ -54,11 +66,11 @@ python -m ghost_in_the_sim.agent_turn_cli verify --fixture artifacts/cloud-hando
 
 ## 次の1時間で行う外部実行
 
-1. ローカルでrequest束をexportし、digestと件数（`4主体 x turn_limit`）を記録する。
-2. request束だけを外部runnerの入力artifactへ渡す。credentialやローカル環境を同梱しない。
-3. runnerは各requestを独立処理し、proposal束だけをartifactとして返す。応答到着順に意味を持たせない。
-4. ローカルへ戻してingestする。1件でも欠落、重複、未知field、digest不一致なら全体を拒否する。
-5. verifyでrecorded proposalをexact replayし、`meta-security-run-bundle/v1`を生成する。
+1. `session-init`でturn 1のrequest束を生成し、digestと4主体を記録する。
+2. `current_request_bundle`だけを外部runnerへ渡す。credentialやローカル環境を同梱しない。
+3. runnerは4 requestを独立処理し、proposal束だけをartifactとして返す。応答到着順に意味を持たせない。
+4. `session-advance`でstrict検証し、確定状態から次turn requestを生成する。欠落、重複、未知field、digest不一致なら全体を拒否する。
+5. 最終turnまで2〜4を繰り返し、session内の`run_bundle`が`replay-match`であることを確認する。
 6. rule providerのbaselineと外部proposal runを、run_idを混ぜずに比較する。
 
 外部APIの直接呼び出し、credential管理、Cloud Build／Cloud Run設定はこのCLIの責務外です。runner側のdeployや課金、auth、公開は別gateとして人間確認を維持します。

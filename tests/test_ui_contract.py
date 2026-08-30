@@ -142,6 +142,13 @@ class DemoUiContractTest(unittest.TestCase):
         )
         self.assertIn("experience-contract: PASS", completed.stdout)
 
+    def test_start_operation_explains_missing_choices_instead_of_being_disabled(self) -> None:
+        script = (ROOT / "web/app.js").read_text(encoding="utf-8")
+        self.assertNotIn("start.disabled = !trajectory", script)
+        self.assertIn("まず「病院を守る」か「港湾を守る」を選んでください。", script)
+        self.assertIn("病院の確認方法を選んでください。", script)
+        self.assertIn('activeTurn = 7;\n      pauseDecisionPending = true;', script)
+
     def test_fixture_has_three_distinct_conditions_and_required_metrics(self) -> None:
         fixture = json.loads((ROOT / "web/data/sample-comparison.json").read_text(encoding="utf-8"))
         self.assertEqual(fixture["seed"], 2045)

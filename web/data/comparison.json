@@ -2056,7 +2056,7 @@
       "seed": 42
     }
   ],
-  "artifact_revision": "367d8269818e1a31",
+  "artifact_revision": "f1b370680902f5a9",
   "ensemble_runs": [
     {
       "event_stream": {
@@ -24036,7 +24036,7 @@
       "fallback_count": 0,
       "run_count": 3
     },
-    "artifact_revision": "367d8269818e1a31",
+    "artifact_revision": "f1b370680902f5a9",
     "failure_runs": [],
     "limitations": [
       "synthetic_scenario_not_real_world_prediction",

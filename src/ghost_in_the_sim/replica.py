@@ -418,6 +418,87 @@ def _compose_agent_round(round_result: AgentRoundResult) -> AgentRoundResult:
     return AgentRoundResult(run_ref=round_result.run_ref, outcomes=outcomes)
 
 
+def advance_ensemble_turn(
+    *,
+    requested_mode: ReplicaMode | str,
+    seed: int,
+    turn: int,
+    proposal_provider: ProposalProvider,
+    prior_influences: tuple[ActionInfluence, ...] = (),
+    scenario: ScenarioManifest = KAGAMISHIO,
+    operative_plan: OperativePlan = MIKAGE_DEFAULT_PLAN,
+) -> tuple[AgentRoundResult, tuple[ActionInfluence, ...], WorldState, str | None]:
+    """確定済み履歴から一手だけ進める、local/session共有のlifecycle正本。"""
+
+    mode = ReplicaMode(requested_mode)
+    if isinstance(seed, bool) or not isinstance(seed, int):
+        raise ValueError("seed must be an integer")
+    if isinstance(turn, bool) or not isinstance(turn, int) or not 1 <= turn <= len(scenario.beats):
+        raise ValueError("turn must fit within the selected scenario")
+    prior_turns = [item.turn for item in prior_influences]
+    if len(set(prior_turns)) != len(prior_turns) or any(
+        not 1 <= item_turn < turn for item_turn in prior_turns
+    ):
+        raise ValueError("prior influences must be unique and precede the current turn")
+    _validate_runtime_scenario(scenario, operative_plan)
+    confirmed_state = (
+        None
+        if turn == 1
+        else run_experiment(
+            condition=_CONDITION_BY_MODE[mode],
+            seed=seed,
+            turn_limit=turn - 1,
+            action_influences=prior_influences,
+        ).final_state
+    )
+    round_result = _compose_agent_round(
+        schedule_one_round(
+            _agent_requests_for_turn(
+                mode=mode,
+                seed=seed,
+                turn=turn,
+                scenario=scenario,
+                operative_plan=operative_plan,
+                confirmed_state=confirmed_state,
+            ),
+            proposal_provider,
+        )
+    )
+    fallback_reason = next(
+        (
+            outcome.reason_code
+            for outcome in round_result.outcomes
+            if outcome.status is OutcomeStatus.FALLBACK and outcome.reason_code
+        ),
+        None,
+    )
+    influence = next(
+        (
+            outcome.influence
+            for outcome in round_result.outcomes
+            if outcome.status is OutcomeStatus.APPLIED and outcome.influence is not None
+        ),
+        None,
+    )
+    if influence is None:
+        influence = next(
+            (
+                outcome.influence
+                for outcome in round_result.outcomes
+                if outcome.status is OutcomeStatus.FALLBACK and outcome.influence is not None
+            ),
+            None,
+        )
+    influences = prior_influences if influence is None else (*prior_influences, influence)
+    state = run_experiment(
+        condition=_CONDITION_BY_MODE[mode],
+        seed=seed,
+        turn_limit=turn,
+        action_influences=influences,
+    ).final_state
+    return round_result, influences, state, fallback_reason
+
+
 def run_ensemble_scenario(
     *,
     requested_mode: ReplicaMode | str,
@@ -439,52 +520,20 @@ def run_ensemble_scenario(
     rounds: list[AgentRoundResult] = []
     influences: list[ActionInfluence] = []
     fallback_reasons: list[str] = []
-    confirmed_state: WorldState | None = None
     for turn in range(1, turn_limit + 1):
-        round_result = _compose_agent_round(
-            schedule_one_round(
-                _agent_requests_for_turn(
-                    mode=mode,
-                    seed=seed,
-                    turn=turn,
-                    scenario=scenario,
-                    operative_plan=operative_plan,
-                    confirmed_state=confirmed_state,
-                ),
-                provider,
-            )
+        round_result, turn_influences, _confirmed_state, fallback_reason = advance_ensemble_turn(
+            requested_mode=mode,
+            seed=seed,
+            turn=turn,
+            proposal_provider=provider,
+            prior_influences=tuple(influences),
+            scenario=scenario,
+            operative_plan=operative_plan,
         )
         rounds.append(round_result)
-        fallback_reasons.extend(
-            outcome.reason_code
-            for outcome in round_result.outcomes
-            if outcome.status is OutcomeStatus.FALLBACK and outcome.reason_code
-        )
-        applied = next(
-            (
-                outcome.influence
-                for outcome in round_result.outcomes
-                if outcome.status is OutcomeStatus.APPLIED and outcome.influence is not None
-            ),
-            None,
-        )
-        if applied is None:
-            applied = next(
-                (
-                    outcome.influence
-                    for outcome in round_result.outcomes
-                    if outcome.status is OutcomeStatus.FALLBACK and outcome.influence is not None
-                ),
-                None,
-            )
-        if applied is not None:
-            influences.append(applied)
-        confirmed_state = run_experiment(
-            condition=_CONDITION_BY_MODE[mode],
-            seed=seed,
-            turn_limit=turn,
-            action_influences=tuple(influences),
-        ).final_state
+        influences[:] = turn_influences
+        if fallback_reason:
+            fallback_reasons.append(fallback_reason)
 
     result = run_experiment(
         condition=_CONDITION_BY_MODE[mode],

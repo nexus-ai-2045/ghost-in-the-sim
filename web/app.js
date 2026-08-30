@@ -225,7 +225,6 @@ function renderOperationConsole() {
   }
   const start = document.querySelector("#start-operation");
   start.hidden = operationStarted;
-  start.disabled = !trajectory;
   const pauseChoice = document.querySelector("#pause-choice");
   pauseChoice.hidden = !pauseDecisionPending;
   pauseChoice.querySelectorAll("button").forEach(button => button.onclick = () => {
@@ -235,10 +234,26 @@ function renderOperationConsole() {
     renderOperationConsole();
     document.querySelector("#next-turn")?.focus();
   });
-  start.onclick = () => { operationStarted = true; activeTurn = 0; renderOperationConsole(); document.querySelector("#next-turn")?.focus(); };
+  start.onclick = () => {
+    if (!selectedFocus) {
+      progress.textContent = "まず「病院を守る」か「港湾を守る」を選んでください。";
+      document.querySelector("#destination-choice button")?.focus();
+      return;
+    }
+    if (!trajectory) {
+      progress.textContent = "病院の確認方法を選んでください。";
+      document.querySelector("#authorization-choice button")?.focus();
+      return;
+    }
+    operationStarted = true;
+    activeTurn = 0;
+    renderOperationConsole();
+    document.querySelector("#next-turn")?.focus();
+  };
   document.querySelector("#previous-turn").onclick = () => { activeTurn = Math.max(0, activeTurn - 1); renderOperationConsole(); document.querySelector("#previous-turn")?.focus(); };
   document.querySelector("#next-turn").onclick = () => {
     if (selectedFocus === "hospital" && selectedMode === "plural" && activeTurn === 6) {
+      activeTurn = 7;
       pauseDecisionPending = true;
     } else activeTurn = Math.min(lastIndex, activeTurn + 1);
     renderOperationConsole();
