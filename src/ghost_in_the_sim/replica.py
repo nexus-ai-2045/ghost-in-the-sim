@@ -16,6 +16,8 @@ from .decision import (
 )
 from .engine import ActionInfluence, Condition, RunResult, run_experiment
 from .evidence_contract import project_refutation_checks, project_sign_reversals
+from .operative import MIKAGE_DEFAULT_PLAN, OperativePlan, OperativeState, evaluate_operative
+from .scenario import KAGAMISHIO, ScenarioManifest
 
 
 DEFAULT_SEEDS = (17, 42, 99)
@@ -42,6 +44,15 @@ class ReplicaRun:
     decisions: tuple[DecisionRecord, ...]
     audit: DecisionAudit
     result: RunResult
+    scenario: ScenarioManifest = KAGAMISHIO
+    operative_plan: OperativePlan = MIKAGE_DEFAULT_PLAN
+    operative_state: OperativeState | None = None
+
+    def __post_init__(self) -> None:
+        if self.scenario.scenario_id != self.operative_plan.scenario_id:
+            raise ValueError("operative plan must reference the selected scenario")
+        if self.operative_state is None:
+            object.__setattr__(self, "operative_state", evaluate_operative(self.operative_plan, completed_turns=len(self.result.events)))
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -53,6 +64,9 @@ class ReplicaRun:
             "manifest": self.result.manifest(),
             "metrics": self.result.metrics,
             "events": [event.to_dict() for event in self.result.events],
+            "scenario": self.scenario.to_dict(),
+            "operative_plan": self.operative_plan.to_dict(),
+            "operative_state": self.operative_state.to_dict(),
         }
 
 
@@ -162,7 +176,16 @@ def run_replica_scenario(
     seed: int,
     turn_limit: int = 12,
     decision_engine: DecisionEngine | None = None,
+    scenario: ScenarioManifest = KAGAMISHIO,
+    operative_plan: OperativePlan = MIKAGE_DEFAULT_PLAN,
 ) -> ReplicaRun:
+    if isinstance(turn_limit, bool) or not isinstance(turn_limit, int) or not 1 <= turn_limit <= len(scenario.beats):
+        raise ValueError("turn_limit must fit within the selected scenario")
+    for partner_action in operative_plan.partner_actions:
+        if not 1 <= partner_action.turn <= len(scenario.beats):
+            raise ValueError("partner action must fit within the selected scenario")
+        if scenario.beats[partner_action.turn - 1].event_type != "partner_pause_requested":
+            raise ValueError("request_pause must match the scenario partner pause beat")
     mode = ReplicaMode(requested_mode)
     engine = decision_engine or RuleDecisionEngine()
     fallback = False
@@ -187,11 +210,12 @@ def run_replica_scenario(
         condition=_CONDITION_BY_MODE[effective], seed=seed, turn_limit=turn_limit, action_influences=influences
     )
     audit = DecisionAudit(mode, effective, fallback, reason)
-    return ReplicaRun(mode, effective, seed, tuple(decisions), audit, result)
+    return ReplicaRun(mode, effective, seed, tuple(decisions), audit, result, scenario, operative_plan)
 
 
 def run_replica_batch(
-    *, seeds: Iterable[int] = DEFAULT_SEEDS, turn_limit: int = 12, decision_engine: DecisionEngine | None = None
+    *, seeds: Iterable[int] = DEFAULT_SEEDS, turn_limit: int = 12, decision_engine: DecisionEngine | None = None,
+    scenario: ScenarioManifest = KAGAMISHIO, operative_plan: OperativePlan = MIKAGE_DEFAULT_PLAN,
 ) -> ReplicaBatch:
     fixed_seeds = tuple(seeds)
     if not fixed_seeds or any(isinstance(seed, bool) or not isinstance(seed, int) for seed in fixed_seeds):
@@ -204,6 +228,8 @@ def run_replica_batch(
             seed=seed,
             turn_limit=turn_limit,
             decision_engine=decision_engine,
+            scenario=scenario,
+            operative_plan=operative_plan,
         )
         for mode in ReplicaMode
         for seed in fixed_seeds

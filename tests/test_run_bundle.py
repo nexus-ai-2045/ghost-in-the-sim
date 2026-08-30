@@ -39,6 +39,15 @@ def test_bundle_joins_every_surface_by_run_id_and_replays_exactly() -> None:
     assert {event["run_id"] for event in first["event_stream"]["events"]} == {run_id}
     assert [event["turn"] for event in first["event_stream"]["events"]] == [1, 2, 3, 4]
     verify_run_bundle(first)
+    assert first["run_request"]["scenario"]["scenario_id"] == "kagamishio-proteus-01"
+    assert first["run_request"]["operative_plan"]["partner_actions"][0]["action"] == "request_pause"
+    assert first["replay"]["operative_state"]["option_preservation"] < 1.0
+    first_event = first["event_stream"]["events"][0]
+    assert first_event["scenario_beat_id"] == "proteus-01"
+    assert first_event["operative_action"] == "synchronize_replicas"
+    assert first_event["partner_action"] == "observe"
+    assert first_event["cost_codes"]
+    assert first_event["operative_state_before"] != first_event["operative_state_after"]
 
 
 @pytest.mark.parametrize(
@@ -49,6 +58,7 @@ def test_bundle_joins_every_surface_by_run_id_and_replays_exactly() -> None:
         (lambda bundle: bundle["replay"]["metrics"].__setitem__("public_trust", 999), "evidence digest"),
         (lambda bundle: bundle["evidence"].__setitem__("failed_run", True), "evidence digest"),
         (lambda bundle: bundle["run_request"].__setitem__("seed", True), "seed must be an integer"),
+        (lambda bundle: bundle["event_stream"]["events"][0].__setitem__("partner_action", "ignore_pause"), "operative projection"),
     ],
 )
 def test_bundle_rejects_cross_run_order_and_content_mutations(mutate, message: str) -> None:

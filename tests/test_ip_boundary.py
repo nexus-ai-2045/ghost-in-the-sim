@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from check_ip_boundary import (
+from tests.check_ip_boundary import (
     ATTRIBUTION_ALLOWANCES,
     JAPANESE_FORBIDDEN,
     ROOT,

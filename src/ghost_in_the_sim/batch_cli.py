@@ -12,6 +12,7 @@ from .decision import RecordedDecisionEngine
 from .actual_trace import load_actual_ai_trace
 from .replica import DEFAULT_SEEDS, build_result_card, run_replica_batch
 from .evidence_contract import project_evidence, validate_derived_evidence
+from .run_bundle import build_verified_run_bundle
 
 
 ARTIFACT_INPUTS = (
@@ -21,6 +22,9 @@ ARTIFACT_INPUTS = (
     "src/ghost_in_the_sim/actual_trace.py",
     "src/ghost_in_the_sim/batch_cli.py",
     "src/ghost_in_the_sim/evidence_contract.py",
+    "src/ghost_in_the_sim/scenario.py",
+    "src/ghost_in_the_sim/operative.py",
+    "src/ghost_in_the_sim/run_bundle.py",
     "scripts/render_results.py",
 )
 
@@ -93,6 +97,12 @@ def main() -> int:
         decision_engine=decision_engine,
     )
     payload = batch.to_dict()
+    payload["experience_capability"] = {
+        "schema_version": "ghost-in-the-sim-experience/v1",
+        "renderer_mode": "artifact-only",
+        "operation_console": True,
+    }
+    payload["trajectories"] = [build_verified_run_bundle(run) for run in batch.runs]
     payload["result_card"] = build_result_card(batch)
     root = Path(__file__).resolve().parents[2]
     payload["artifact_revision"] = artifact_revision(

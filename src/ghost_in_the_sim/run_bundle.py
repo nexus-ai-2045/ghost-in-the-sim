@@ -11,6 +11,8 @@ from typing import Any, Mapping
 
 from .decision import DecisionContext, DecisionRecord, DecisionValidationError, RecordedDecisionEngine, safe_fallback
 from .replica import ReplicaRun, classify_run_failure, run_replica_batch
+from .operative import OperativePlan, evaluate_operative
+from .scenario import ScenarioManifest
 
 
 SCHEMA_VERSION = "meta-security-run-bundle/v1"
@@ -97,6 +99,53 @@ def _fallback_reason_code(record: DecisionRecord) -> str | None:
     return reason_code
 
 
+def _operative_event_projection(
+    *, scenario: ScenarioManifest, plan: OperativePlan, event: Mapping[str, Any]
+) -> dict[str, Any]:
+    """事件beatと有限注意を、rendererが再計算しない型付きeventへ投影する。"""
+
+    turn = event.get("turn")
+    if isinstance(turn, bool) or not isinstance(turn, int) or not 1 <= turn <= len(scenario.beats):
+        raise ValueError("operative event turn does not match the scenario")
+    beat = scenario.beats[turn - 1]
+    attention_by_event = {
+        "replica_link_lost": ("replica_sync", "synchronize_replicas"),
+        "authority_claim_received": ("route_verification", "verify_authority"),
+        "service_conflict_detected": ("civilian_impact", "protect_continuity"),
+        "evidence_lineage_split": ("self_audit", "audit_evidence"),
+        "local_copy_diverged": ("replica_sync", "synchronize_replicas"),
+        "continuity_risk_rises": ("civilian_impact", "protect_continuity"),
+        "public_explanation_due": ("delegation", "coordinate_explanation"),
+        "authority_revocation_proposed": ("route_verification", "verify_authority"),
+        "partner_pause_requested": ("self_audit", "hold_for_partner_review"),
+        "independent_evidence_arrives": ("route_verification", "integrate_independent_evidence"),
+        "authority_convergence_due": ("delegation", "converge_authority"),
+        "after_action_audit": ("self_audit", "self_audit"),
+    }
+    attention_field, operative_action = attention_by_event[beat.event_type]
+    attention_value = getattr(plan.attention, attention_field)
+    disturbance = event.get("exogenous_disturbance")
+    if isinstance(disturbance, bool) or not isinstance(disturbance, (int, float)) or not math.isfinite(disturbance):
+        raise ValueError("operative event disturbance must be finite")
+    partner = next((item for item in plan.partner_actions if item.turn == turn), None)
+    partner_action = partner.action if partner else "observe"
+    confidence = round(min(1.0, max(0.0, plan.base_capability - float(disturbance) * 0.08 + attention_value / 1000)), 6)
+    costs = [f"attention:{attention_field}"]
+    if partner:
+        costs.extend(("continuity_delay", "option_preservation"))
+    elif beat.reversibility == "low":
+        costs.append("irreversibility_exposure")
+    return {
+        "scenario_beat_id": beat.beat_id,
+        "operative_action": operative_action,
+        "partner_action": partner_action,
+        "success_confidence": confidence,
+        "cost_codes": costs,
+        "operative_state_before": evaluate_operative(plan, completed_turns=turn - 1).to_dict(),
+        "operative_state_after": evaluate_operative(plan, completed_turns=turn).to_dict(),
+    }
+
+
 def build_run_bundle(run: ReplicaRun) -> dict[str, Any]:
     """ReplicaRunを唯一の正本としてbundleを生成する。"""
 
@@ -110,15 +159,22 @@ def build_run_bundle(run: ReplicaRun) -> dict[str, Any]:
         "code_version": run.result.code_version,
         "prompt_version_or_hash": run.result.prompt_version_or_hash,
         "source_revision": run.result.source_revision,
+        "scenario": run.scenario.to_dict(),
+        "operative_plan": run.operative_plan.to_dict(),
     }
     provenance = [decision.to_dict() for decision in run.decisions]
     run_id = f"run-{sha256(_canonical_bytes({'request': request_contract, 'decisions': provenance})).hexdigest()[:12]}"
     request = {"run_id": run_id, **request_contract}
+    stream_events = []
+    for event in run.result.events:
+        event_payload = {**event.to_dict(), "run_id": run_id}
+        event_payload.update(_operative_event_projection(scenario=run.scenario, plan=run.operative_plan, event=event_payload))
+        stream_events.append(event_payload)
     stream = {
         "run_id": run_id,
         "ordering": "turn-ascending/v1",
         "event_count": len(run.result.events),
-        "events": [{**event.to_dict(), "run_id": run_id} for event in run.result.events],
+        "events": stream_events,
     }
     replay = {
         "run_id": run_id,
@@ -137,6 +193,7 @@ def build_run_bundle(run: ReplicaRun) -> dict[str, Any]:
         "manifest": {**run.result.manifest(), "run_id": run_id},
         "final_state": asdict(run.result.final_state),
         "metrics": dict(run.result.metrics),
+        "operative_state": run.operative_state.to_dict(),
     }
     failed, failure_reasons = classify_run_failure(run.result)
     evidence = {
@@ -191,6 +248,10 @@ def validate_run_bundle(bundle: Mapping[str, Any]) -> None:
         raise ValueError("run request seed must be an integer")
     if isinstance(turn_limit, bool) or not isinstance(turn_limit, int) or turn_limit < 1:
         raise ValueError("run request turn_limit must be a positive integer")
+    scenario = ScenarioManifest.from_dict(request.get("scenario", {}))
+    operative_plan = OperativePlan.from_dict(request.get("operative_plan", {}))
+    if scenario.scenario_id != operative_plan.scenario_id:
+        raise ValueError("operative plan must reference the run scenario")
 
     events = stream.get("events")
     if not isinstance(events, list) or stream.get("ordering") != "turn-ascending/v1" or stream.get("event_count") != len(events):
@@ -200,6 +261,10 @@ def validate_run_bundle(bundle: Mapping[str, Any]) -> None:
         raise ValueError("event stream must contain a reproducible contiguous turn order")
     if any(event.get("run_id") != run_id or event.get("seed") != seed for event in events):
         raise ValueError("event stream contains an event from another run")
+    for event in events:
+        expected_projection = _operative_event_projection(scenario=scenario, plan=operative_plan, event=event)
+        if any(event.get(key) != value for key, value in expected_projection.items()):
+            raise ValueError("event stream operative projection does not match scenario and plan")
 
     decisions = replay.get("decisions")
     if not isinstance(decisions, list):
@@ -234,6 +299,12 @@ def validate_run_bundle(bundle: Mapping[str, Any]) -> None:
         raise ValueError("replay manifest does not match run_id")
     if manifest.get("seed") != seed or manifest.get("turn_limit") != turn_limit or manifest.get("event_count") != len(events):
         raise ValueError("replay manifest does not match request or event stream")
+    operative_state = replay.get("operative_state")
+    if not isinstance(operative_state, Mapping) or set(operative_state) != {
+        "body_integrity", "cognitive_integrity", "memory_coherence", "legal_authority",
+        "organizational_trust", "public_trust", "replica_divergence", "option_preservation",
+    }:
+        raise ValueError("replay operative state does not match the typed contract")
 
     failure_reasons = []
     if manifest.get("termination_reason") != "turn_limit_reached":
@@ -274,6 +345,8 @@ def verify_run_bundle(bundle: Mapping[str, Any]) -> None:
         seeds=(request["seed"],),
         turn_limit=request["turn_limit"],
         decision_engine=engine,
+        scenario=ScenarioManifest.from_dict(request["scenario"]),
+        operative_plan=OperativePlan.from_dict(request["operative_plan"]),
     )
     replayed = next(run for run in batch.runs if run.requested_mode.value == request["requested_mode"])
     candidate = build_run_bundle(replayed)

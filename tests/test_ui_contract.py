@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import subprocess
 import unittest
 
 
@@ -49,6 +50,53 @@ class DemoUiContractTest(unittest.TestCase):
         self.assertIn("replay.run_count === evidenceRuns.length", contract)
         self.assertIn("結果カード不正", script)
         self.assertIn('src="result-card-contract.js"', index)
+
+    def test_verified_experience_is_fail_closed_and_accessible(self) -> None:
+        index = (ROOT / "web/index.html").read_text(encoding="utf-8")
+        script = (ROOT / "web/app.js").read_text(encoding="utf-8")
+        contract = (ROOT / "web/experience-contract.js").read_text(encoding="utf-8")
+        style = (ROOT / "web/styles.css").read_text(encoding="utf-8")
+
+        self.assertIn('id="operation-console"', index)
+        self.assertIn('id="experience-unavailable"', index)
+        self.assertIn('src="experience-contract.js"', index)
+        self.assertLess(index.index('src="experience-contract.js"'), index.index('src="app.js"'))
+        self.assertIn("ExperienceContract.validate(payload)", script)
+        self.assertIn("experience.available", script)
+        self.assertIn("request_pause", script)
+        self.assertIn("attention", script)
+        self.assertIn("cost_codes", script)
+        self.assertIn("ArrowRight", script)
+        self.assertIn("ArrowLeft", script)
+        self.assertIn("Home", script)
+        self.assertIn("End", script)
+        self.assertIn("Escape", script)
+        self.assertIn("min-height: 44px", style)
+        self.assertIn("meta-security-run-bundle/v1", contract)
+        self.assertIn("replay-match", contract)
+        self.assertIn("renderer_mode", contract)
+        self.assertNotIn("Math.random", script)
+        for phrase in ("作戦開始", "前のターン", "次のターン", "最初から再開", "3つの介入方針"):
+            self.assertIn(phrase, index)
+        for phrase in ("状況", "御影の行動", "真壁の応答", "成功見込み", "代償"):
+            self.assertIn(phrase, script)
+        self.assertIn("filterTrajectoriesForSeed", script)
+        self.assertIn("operative_state_before.cognitive_integrity", script)
+        self.assertNotIn("attention_remaining", script)
+        self.assertIn("producerがreplay-matchと記録", index)
+        self.assertIn("generated artifact contract error", script)
+        self.assertNotIn('render(await response.json(), "generated comparison.json")', script)
+
+    def test_experience_contract_rejects_unverified_or_incomplete_artifacts(self) -> None:
+        script = ROOT / "tests/check_experience_contract.mjs"
+        completed = subprocess.run(
+            ["node", str(script)],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        self.assertIn("experience-contract: PASS", completed.stdout)
 
     def test_fixture_has_three_distinct_conditions_and_required_metrics(self) -> None:
         fixture = json.loads((ROOT / "web/data/sample-comparison.json").read_text(encoding="utf-8"))

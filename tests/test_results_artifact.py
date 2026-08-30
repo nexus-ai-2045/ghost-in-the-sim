@@ -38,3 +38,10 @@ def test_readme_quickstart_matches_and_executes_canonical_reproduction_command(t
     payload = json.loads(output.read_text(encoding="utf-8"))
     assert payload["seeds"] == [17, 42, 99]
     assert len(payload["runs"]) == 9
+    assert payload["experience_capability"] == {
+        "operation_console": True,
+        "renderer_mode": "artifact-only",
+        "schema_version": "ghost-in-the-sim-experience/v1",
+    }
+    assert len(payload["trajectories"]) == 9
+    assert {bundle["evidence"]["verification"] for bundle in payload["trajectories"]} == {"replay-match"}

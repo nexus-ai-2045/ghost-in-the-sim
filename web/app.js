@@ -14,8 +14,52 @@ const METRICS = {
   correction_turn: ["訂正時間", "共有から訂正までのターン", "turn"],
   dissent_reach: ["異議到達", "提起された異議が届いた比率", "ratio"]
 };
+const EVENT_COPY = {
+  replica_link_lost: "分身との通信が途絶えた",
+  authority_claim_received: "複数の正規権限が同時に到着した",
+  service_conflict_detected: "医療と物流の継続条件が衝突した",
+  evidence_lineage_split: "証拠の来歴が二つに分岐した",
+  local_copy_diverged: "現地の分身が独自判断を始めた",
+  continuity_risk_rises: "市民サービスの停止危険が上昇した",
+  public_explanation_due: "市民への説明期限が迫った",
+  authority_revocation_proposed: "分身の権限失効が提案された",
+  partner_pause_requested: "真壁が不可逆操作の停止を要求した",
+  independent_evidence_arrives: "独立経路から新しい証拠が届いた",
+  authority_convergence_due: "分岐した権限を収束させる時刻になった",
+  after_action_audit: "作戦後監査を開始した"
+};
+const ACTION_COPY = {
+  synchronize_replicas: "分身間の記憶差を照合する",
+  verify_authority: "権限の来歴を独立確認する",
+  protect_continuity: "生活基盤を優先して保全する",
+  audit_evidence: "証拠と自己判断を再監査する",
+  coordinate_explanation: "市民への説明経路を調整する",
+  hold_for_partner_review: "真壁の停止要求を受け、不可逆操作を保留する",
+  integrate_independent_evidence: "独立証拠を判断へ統合する",
+  converge_authority: "分岐した権限を収束させる",
+  self_audit: "作戦判断を自己監査する",
+  defer_irreversible_action: "不可逆な介入を保留する",
+  preserve_dissent: "異議を消さず記録する"
+};
+const PARTNER_COPY = { observe: "監視を継続", request_pause: "停止要求：不可逆操作を再確認" };
+const COST_COPY = {
+  "attention:body_control": "身体制御への注意配分",
+  "attention:route_verification": "経路検証への注意配分",
+  "attention:civilian_impact": "市民影響の検討負荷",
+  "attention:replica_sync": "分身同期の認知負荷",
+  "attention:delegation": "委任判断の負荷",
+  "attention:self_audit": "自己監査の負荷"
+  ,continuity_delay: "生活基盤の復旧が遅れる"
+  ,option_preservation: "選択肢を残すため即応性が下がる"
+  ,irreversibility_exposure: "権限収束に不可逆性が生じる"
+};
+const ATTENTION_COPY = { body_control: "身体制御", route_verification: "経路検証", civilian_impact: "市民影響", replica_sync: "分身同期", delegation: "委任", self_audit: "自己監査" };
 let model;
 let activeCondition = 0;
+let experience;
+let activeTrajectory = 0;
+let operationStarted = false;
+let activeTurn = 0;
 
 function escapeText(value) {
   return String(value ?? "—").replace(/[&<>"']/g, character => ({
@@ -50,6 +94,90 @@ function formatEvidence(evidence) {
 }
 function badgeMarkup(copy) { return copy.badges.map(([kind, text]) => `<span class="badge ${kind}">${text}</span>`).join(""); }
 
+function bindRovingTabs(container, onActivate) {
+  const tabs = [...container.querySelectorAll('[role="tab"]')];
+  tabs.forEach((tab, index) => {
+    tab.tabIndex = tab.getAttribute("aria-selected") === "true" ? 0 : -1;
+    tab.addEventListener("keydown", event => {
+      let target = index;
+      if (event.key === "ArrowRight") target = (index + 1) % tabs.length;
+      else if (event.key === "ArrowLeft") target = (index - 1 + tabs.length) % tabs.length;
+      else if (event.key === "Home") target = 0;
+      else if (event.key === "End") target = tabs.length - 1;
+      else return;
+      event.preventDefault();
+      onActivate(target);
+      container.querySelectorAll('[role="tab"]')[target]?.focus();
+    });
+  });
+}
+
+function renderOperativeEvent(event, beat) {
+  const detail = document.querySelector("#operative-detail");
+  detail.hidden = false;
+  const pause = event.partner_action === "request_pause";
+  detail.innerHTML = `<div><span class="turn">第 ${escapeText(event.turn)} ターン</span><h3>${escapeText(EVENT_COPY[beat?.event_type] ?? "状況が変化した")}</h3></div>
+    <div class="operative-outcome"><p><strong>状況</strong><br>${escapeText(EVENT_COPY[beat?.event_type] ?? "検証済み状況を確認")}</p>
+    <p><strong>御影の行動</strong><br>${escapeText(ACTION_COPY[event.operative_action] ?? "状況を精査する")}</p>
+    <p><strong>真壁の応答</strong><br><span class="${pause ? "pause-request" : ""}">${escapeText(PARTNER_COPY[event.partner_action] ?? "独立監視を継続")}</span></p>
+    <p><strong>成功見込み</strong><br>${Math.round(Number(event.success_confidence) * 100)}%</p>
+    <p><strong>代償</strong><br>${event.cost_codes.map(code => escapeText(COST_COPY[code] ?? "未分類の負荷")).join(" / ") || "記録なし"}</p>
+    <p><strong>御影の認知健全性</strong><br>${Math.round(Number(event.operative_state_before.cognitive_integrity) * 100)} → ${Math.round(Number(event.operative_state_after.cognitive_integrity) * 100)}</p></div>`;
+}
+
+function filterTrajectoriesForSeed() {
+  return experience.trajectories.filter(trajectory => Number(trajectory.seed) === Number(model.seed));
+}
+
+function renderOperationConsole() {
+  const unavailable = document.querySelector("#experience-unavailable");
+  const consolePanel = document.querySelector("#operation-console");
+  if (!experience.available) {
+    unavailable.hidden = false;
+    unavailable.querySelector("span:last-child").textContent = `${experience.reason}。既存の比較viewerは下で利用できます。`;
+    consolePanel.hidden = true;
+    return;
+  }
+  unavailable.hidden = true;
+  consolePanel.hidden = false;
+  const trajectories = filterTrajectoriesForSeed();
+  if (!trajectories.length) {
+    unavailable.hidden = false;
+    unavailable.querySelector("span:last-child").textContent = "選択した再現条件に対応する検証済み軌跡がありません。";
+    consolePanel.hidden = true;
+    return;
+  }
+  if (activeTrajectory >= trajectories.length) activeTrajectory = 0;
+  const tabs = document.querySelector("#trajectory-tabs");
+  tabs.innerHTML = trajectories.map((trajectory, index) => { const copy = CONDITION_COPY[trajectory.conditionId] ?? { title: "介入方針", description: "検証済みの介入経路" }; return `<button type="button" role="tab" aria-selected="${index === activeTrajectory}" data-index="${index}"><strong>${escapeText(copy.title)}</strong><small>${escapeText(copy.description)}</small></button>`; }).join("");
+  const activate = index => { activeTrajectory = index; operationStarted = false; activeTurn = 0; renderOperationConsole(); document.querySelectorAll('#trajectory-tabs [role="tab"]')[index]?.focus(); };
+  tabs.querySelectorAll("button").forEach(button => button.addEventListener("click", () => activate(Number(button.dataset.index))));
+  bindRovingTabs(tabs, activate);
+  const trajectory = trajectories[activeTrajectory] ?? trajectories[0];
+  document.querySelector("#briefing-title").textContent = "鏡潮：分岐権限危機";
+  document.querySelector("#city-status").textContent = "ポセイドン都市圏で、複製された危機対応AIの通信・記憶・権限が分岐。生活基盤を止めずに正本と異議を収束させる。";
+  document.querySelector("#operative-summary").innerHTML = Object.entries(trajectory.attention).map(([key, value]) => `<dt>${escapeText(ATTENTION_COPY[key] ?? key)}</dt><dd>${escapeText(value)}%</dd>`).join("");
+  const events = document.querySelector("#operative-events");
+  events.innerHTML = trajectory.events.map((event, index) => `<span class="turn-marker ${operationStarted && index <= activeTurn ? "reached" : ""}" aria-label="第${event.turn}ターン${operationStarted && index === activeTurn ? " 現在" : ""}">${event.turn}</span>`).join("");
+  const detail = document.querySelector("#operative-detail");
+  const controls = document.querySelector("#turn-controls");
+  const progress = document.querySelector("#operation-progress");
+  if (!operationStarted) {
+    detail.hidden = true; controls.hidden = true;
+    progress.textContent = "介入方針を選び、「作戦開始」を押してください。";
+  } else {
+    controls.hidden = false;
+    progress.textContent = `第 ${activeTurn + 1} / 12 ターン`;
+    renderOperativeEvent(trajectory.events[activeTurn], trajectory.beats[activeTurn]);
+  }
+  document.querySelector("#start-operation").onclick = () => { operationStarted = true; activeTurn = 0; renderOperationConsole(); document.querySelector("#next-turn")?.focus(); };
+  document.querySelector("#previous-turn").onclick = () => { activeTurn = Math.max(0, activeTurn - 1); renderOperationConsole(); document.querySelector("#previous-turn")?.focus(); };
+  document.querySelector("#next-turn").onclick = () => { activeTurn = Math.min(11, activeTurn + 1); renderOperationConsole(); document.querySelector("#next-turn")?.focus(); };
+  document.querySelector("#restart-operation").onclick = () => { activeTurn = 0; operationStarted = true; renderOperationConsole(); document.querySelector("#next-turn")?.focus(); };
+  document.querySelector("#previous-turn").disabled = activeTurn === 0;
+  document.querySelector("#next-turn").disabled = activeTurn === 11;
+}
+
 function renderConditions() {
   const grid = document.querySelector("#condition-grid");
   grid.innerHTML = model.conditions.map((item, index) => {
@@ -64,7 +192,9 @@ function renderMetrics() {
 function renderTabs() {
   const tabs = document.querySelector("#timeline-tabs");
   tabs.innerHTML = model.conditions.map((item, index) => `<button type="button" role="tab" aria-selected="${index === activeCondition}" data-index="${index}">${escapeText((CONDITION_COPY[conditionId(item)] ?? {title: conditionId(item)}).title)}</button>`).join("");
-  tabs.querySelectorAll("button").forEach(button => button.addEventListener("click", () => { activeCondition = Number(button.dataset.index); renderTabs(); renderTimeline(); }));
+  const activate = index => { activeCondition = index; renderTabs(); renderTimeline(); document.querySelectorAll('#timeline-tabs [role="tab"]')[index]?.focus(); };
+  tabs.querySelectorAll("button").forEach(button => button.addEventListener("click", () => activate(Number(button.dataset.index))));
+  bindRovingTabs(tabs, activate);
 }
 function renderTimeline() {
   const events = model.conditions[activeCondition]?.events ?? [];
@@ -89,8 +219,11 @@ function renderSeedSelector() {
     model.seed = seed;
     model.conditions = model.runs.filter(item => Number(item.seed) === seed);
     activeCondition = 0;
+    activeTrajectory = 0;
+    operationStarted = false;
+    activeTurn = 0;
     document.querySelector("#seed").textContent = seed;
-    renderConditions(); renderMetrics(); renderTabs(); renderTimeline(); renderResultCard();
+    renderOperationConsole(); renderConditions(); renderMetrics(); renderTabs(); renderTimeline(); renderResultCard();
   };
 }
 function renderResultCard() {
@@ -127,22 +260,41 @@ function render(payload, sourceLabel) {
   document.querySelector("#scenario").textContent = model.scenario_id ?? model.conditions[0]?.manifest?.scenario_id ?? "synthetic-replica-crisis";
   document.querySelector("#seed").textContent = model.seed ?? model.conditions[0]?.manifest?.seed ?? "—";
   document.querySelector("#source-status").textContent = sourceLabel;
+  experience = ExperienceContract.validate(payload);
+  renderOperationConsole();
   renderSeedSelector(); renderConditions(); renderMetrics(); renderTabs(); renderTimeline(); renderResultCard();
 }
+
+document.addEventListener("keydown", event => {
+  if (event.key !== "Escape") return;
+  const detail = document.querySelector("#operative-detail");
+  if (!detail || detail.hidden) return;
+  detail.hidden = true;
+  document.querySelector('#trajectory-tabs [aria-selected="true"]')?.focus();
+});
 async function load() {
+  let response;
   try {
-    const response = await fetch("data/comparison.json", { cache: "no-store" });
+    response = await fetch("data/comparison.json", { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    render(await response.json(), "generated comparison.json");
   } catch (_) {
     try {
       const response = await fetch("data/sample-comparison.json", { cache: "no-store" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      render(await response.json(), "deterministic sample fallback");
+      render(await response.json(), "サンプル結果を表示中");
     } catch (error) {
       document.querySelector("#source-status").textContent = `読み込み失敗: ${error.message}`;
       document.querySelector("#condition-grid").innerHTML = `<p class="error">ローカルサーバーから開いてください。</p>`;
     }
+    return;
+  }
+  try {
+    render(await response.json(), "生成済み結果を表示中");
+  } catch (error) {
+    document.querySelector("#source-status").textContent = `generated artifact contract error: ${error.message}`;
+    document.querySelector("#experience-unavailable").hidden = false;
+    document.querySelector("#experience-unavailable span:last-child").textContent = "生成artifactの契約を検証できないため、安全停止しました。サンプルへは切り替えません。";
+    document.querySelector("#operation-console").hidden = true;
   }
 }
 load();

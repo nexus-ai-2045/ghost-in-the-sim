@@ -1,6 +1,6 @@
 import pytest
 
-from check_design_contract import _section, _table_rows, _validate_artifact_registry
+from tests.check_design_contract import _section, _table_rows, _validate_artifact_registry
 
 
 def test_canonical_section_and_table_are_exactly_one() -> None:

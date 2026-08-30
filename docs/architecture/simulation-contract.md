@@ -29,6 +29,8 @@ flowchart LR
 | `turn_limit` | はい | MVPでは12以下 |
 | `agent_profiles` | はい | 構造化主体プロファイル |
 | `policy` | はい | 許可された抽象行動と状態遷移規則 |
+| `scenario` | はい | 連続turnと観測を持つ型付き事件manifest |
+| `operative_plan` | はい | 御影の有限注意配分と真壁の独立停止要求 |
 
 ## 行動境界
 
@@ -71,8 +73,8 @@ flowchart LR
 単一runを外部runner、replay viewer、将来のGodot clientへ渡す境界は `meta-security-run-bundle/v1` とする。bundleは既存runtimeの `ReplicaRun` からのみ投影し、次を同じ `run_id` へ拘束する。
 
 - `run_request`: scenario、mode、seed、turn limit、runtime version
-- `event_stream`: `turn-ascending/v1` の連続event列
-- `replay`: decision records、audit、manifest、final state、metrics
+- `event_stream`: `turn-ascending/v1` の連続event列。事件beat、御影action、真壁review、成功確度、代償、8状態の前後を含む
+- `replay`: decision records、audit、manifest、final state、metrics、実働調整官の最終状態
 - `evidence`: 各区画のCanonical JSON SHA-256、失敗分類、replay一致状態
 
 validatorは別runの混入、event欠落・並べ替え、seedの型drift、内容とdigestの不一致を拒否する。さらに既存runtimeでdecision recordsを再生し、生成bundle全体が一致した場合だけ `verification: replay-match` とする。rendererやcloud adapterはbundleを入力としてよいが、runtime状態やevent順序を再計算しない。

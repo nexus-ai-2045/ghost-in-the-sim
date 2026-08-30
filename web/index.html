@@ -4,22 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>ghost-in-the-sim 比較ラボ</title>
+  <title>ghost-in-the-sim｜ポセイドン鏡潮作戦端末</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <a class="skip-link" href="#comparison">比較結果へ移動</a>
   <header class="masthead">
-    <div>
-      <p class="product-name">ghost-in-the-sim</p>
-      <h1>複製された判断権限を、同じ条件で比較する</h1>
-      <p class="lead">行政・病院・物流へ分岐した危機対応AI。正本、共同承認、自律分身の違いを、生活継続と訂正可能性の両方から読みます。</p>
+    <div class="mission-ident">
+      <p class="product-name">境界局・接界機動班 作戦端末</p>
+      <h1>鏡潮<span>KAGAMI-SHIO</span></h1>
+      <p class="lead">ポセイドン海洋複合都市圏。分岐した権限と生活基盤のあいだで、御影冴として介入経路を選ぶ。</p>
     </div>
     <div class="run-meta" aria-label="実験メタデータ">
-      <span>Scenario <strong id="scenario">読み込み中</strong></span>
-      <span>Seed <strong id="seed">—</strong></span>
-      <label>比較seed <select id="seed-select" aria-label="比較するseedを選択"></select></label>
-      <span id="source-status" role="status" aria-live="polite">結果を読み込み中</span>
+      <span>事件 <strong id="scenario">読み込み中</strong></span>
+      <span>再現条件 <strong id="seed">—</strong></span>
+      <label>再現条件を選ぶ <select id="seed-select" aria-label="比較するseedを選択"></select></label>
+      <span>実働調整官 <strong>御影 冴</strong></span>
+      <span id="source-status" role="status" aria-live="polite">証拠bundleを照合中</span>
     </div>
   </header>
 
@@ -29,6 +30,44 @@
       <span>実在の都市・組織・人物を表さず、結果は因果効果、現実予測、政策推奨を意味しません。</span>
     </aside>
 
+    <section id="experience" class="experience-stage" aria-labelledby="experience-title">
+      <div class="section-heading">
+        <div><p class="section-index">進行中の作戦</p><h2 id="experience-title">3つの介入方針</h2></div>
+        <p>runtimeが検証した軌跡だけを選択可能。この端末は判断・停止・指標を再計算しません。</p>
+      </div>
+      <aside id="experience-unavailable" class="experience-unavailable" role="status">
+        <span class="terminal-code">安全停止</span>
+        <strong>作戦回線を確立できません</strong>
+        <span>検証済みrun bundleとcapabilityが揃うまで、介入操作を開放しません。監査記録は下で閲覧できます。</span>
+      </aside>
+      <div id="operation-console" class="operation-console" hidden>
+        <div class="console-rail" aria-label="事件briefingと御影の状態">
+          <p class="console-label">1　事件状況</p>
+          <h3 id="briefing-title">鏡潮</h3>
+          <p id="city-status" class="city-status">ポセイドン都市状況を検証済みartifactから読込</p>
+          <p class="console-label">2　介入方針を選ぶ</p>
+          <div id="trajectory-tabs" class="trajectory-tabs" role="tablist" aria-label="検証済み軌跡を選択"></div>
+          <dl id="operative-summary" class="operative-summary"></dl>
+          <button id="start-operation" class="primary-command" type="button">作戦開始</button>
+        </div>
+        <div class="console-main">
+          <p class="console-label console-main-label">3　御影と真壁の判断</p>
+          <div id="operation-progress" class="operation-progress" aria-live="polite">介入方針を選び、「作戦開始」を押してください。</div>
+          <div id="operative-events" class="operative-events" aria-label="12ターンの進行状況"></div>
+          <article id="operative-detail" class="operative-detail" aria-live="polite" hidden></article>
+          <div id="turn-controls" class="turn-controls" hidden>
+            <button id="previous-turn" type="button">前のターン</button>
+            <button id="next-turn" type="button">次のターン</button>
+            <button id="restart-operation" type="button">最初から再開</button>
+          </div>
+          <p class="producer-note">Python producerがreplay-matchと記録した軌跡です。ブラウザはrun_id・順序・必須項目の構造だけを照合し、判断結果を再計算しません。</p>
+        </div>
+      </div>
+    </section>
+
+    <details id="audit-view" class="audit-view">
+      <summary><span>監査／反実仮想ビュー</span><small>3方式比較・指標・replay evidence</small></summary>
+      <div class="audit-content">
     <section id="comparison" aria-labelledby="comparison-title">
       <div class="section-heading">
         <div><p class="section-index">01 / GOVERNANCE</p><h2 id="comparison-title">3つの統治条件</h2></div>
@@ -70,10 +109,13 @@
       </div>
       <div id="result-card" class="result-card" aria-live="polite"></div>
     </section>
+      </div>
+    </details>
   </main>
 
-  <footer>offline viewer · 外部送信なし · JSONを差し替えて再読込できます</footer>
+  <footer>ローカル実行・外部送信なし・生成済みの検証記録を表示</footer>
   <script src="result-card-contract.js" defer></script>
+  <script src="experience-contract.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>
