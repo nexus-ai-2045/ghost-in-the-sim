@@ -9,6 +9,7 @@ import re
 from urllib.parse import unquote, urlsplit
 
 from ghost_in_the_sim.evidence_contract import project_evidence, validate_derived_evidence
+from ghost_in_the_sim.engine import ACTOR_PROFILES
 
 
 CANONICAL_LIFECYCLE_STATES = {
@@ -149,6 +150,16 @@ def main() -> int:
     absent_links = [link for link in required_links if link not in destinations]
     if absent_links:
         raise SystemExit("design-contract: FAIL\nREADME links missing:\n" + "\n".join(absent_links))
+    try:
+        actor_rows = _table_rows(_section(readme, "プレイヤー体験"), ("actor_id", "runtime上のmission"))
+        expected_actors = [
+            {"actor_id": f"`{profile.actor_id}`", "runtime上のmission": profile.mission}
+            for profile in ACTOR_PROFILES
+        ]
+        if actor_rows != expected_actors:
+            raise ValueError("README runtime actors must exactly match ACTOR_PROFILES")
+    except ValueError as error:
+        raise SystemExit(f"design-contract: FAIL\nREADME actor contract error: {error}") from error
     review_document = (root / "docs/pr-self-review.md").read_text(encoding="utf-8")
     if "generated_by: nexus-ai-2045/nexus_ai scripts/export_pr_self_review.py" not in review_document:
         raise SystemExit("design-contract: FAIL\nPRセルフレビューの生成元が不明です")

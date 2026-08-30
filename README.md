@@ -102,7 +102,18 @@ flowchart LR
 
 > ほぼ何でもできる。それでも、何をするべきかは決まらない。
 
-いまの runtime が動かすのは、この体験そのものではありません。比較実験の主体は連携調整室・基盤運用者・港湾物流・地域連絡・独立検証・情報仲介の6役で、御影／真壁の状態機械は未接続です。事件カタログの実装相当は、複製危機MVP（鏡潮の機械的先行）だけです。
+いまの runtime が動かすのは、この体験そのものではありません。実装済みの比較主体は次の6つで、`src/ghost_in_the_sim/engine.py` の `ACTOR_PROFILES` を正本とします。
+
+| actor_id | runtime上のmission |
+|---|---|
+| `service_steward` | 生活サービスを止めない |
+| `evidence_verifier` | 主張の来歴と反証を残す |
+| `community_liaison` | 地域の理解と訂正可能性を守る |
+| `continuity_coordinator` | 分断された支援を接続する |
+| `independent_observer` | 決定前の異議を可視化する |
+| `privacy_steward` | 必要最小限の開示を守る |
+
+御影／真壁の状態機械は未接続です。事件カタログの実装相当は、複製危機MVP（鏡潮の機械的先行）だけです。
 
 ## 実験画面
 
