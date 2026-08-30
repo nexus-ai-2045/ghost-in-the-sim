@@ -11,6 +11,7 @@ from .agent_turn import (
     AgentId,
     AgentProposal,
     AgentTurnRequest,
+    AuthorityStatus,
     ProposalValidationError,
     RunRef,
 )
@@ -115,7 +116,11 @@ def schedule_one_round(
                         action_type=ReplicaAction.ABSTAIN.value,
                         confidence=1.0,
                     ),
-                    reason_code=error.reason_code,
+                    reason_code=(
+                        "authority_revoked"
+                        if request.authority.status is AuthorityStatus.REVOKED
+                        else error.reason_code
+                    ),
                 )
             )
             continue

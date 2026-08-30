@@ -44,10 +44,11 @@ def build_playable_trajectories() -> list[dict[str, Any]]:
     )
     trajectories = []
     for trajectory_id, focus, mode, pause_response in specifications:
-        run = run_replica_batch(
-            seeds=(42,), operative_plan=build_gameplay_plan(focus=focus, pause_response=pause_response)
+        selected = run_ensemble_scenario(
+            requested_mode=mode,
+            seed=42,
+            operative_plan=build_gameplay_plan(focus=focus, pause_response=pause_response),
         )
-        selected = next(item for item in run.runs if item.requested_mode is mode)
         trajectories.append({"trajectory_id": trajectory_id, "bundle": build_verified_run_bundle(selected)})
     return trajectories
 

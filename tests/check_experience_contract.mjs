@@ -17,6 +17,7 @@ const result = validate(generated);
 if (!result.available) throw new Error(`generated playable artifact rejected: ${result.reason}`);
 if (result.trajectories.map(item => item.trajectoryId).join(",") !== expectedIds.join(",")) throw new Error("playable trajectory allowlist drifted");
 if (result.trajectories.some(item => item.seed !== 42 || item.events.length !== 12 || item.attentionBudget !== 100)) throw new Error("playable trajectory contract drifted");
+if (result.trajectories.some(item => item.agentTurns.length !== 48 || !item.emergenceMetrics)) throw new Error("playable trajectory cannot render recorded AI emergence");
 if (new Set(result.trajectories.map(item => item.runId)).size !== 4) throw new Error("playable run_id is not unique");
 const generatedEnsemble = validateEnsemble(generated);
 if (generatedEnsemble.present && !generatedEnsemble.available) {
@@ -36,6 +37,7 @@ for (const mutate of [
   value => { value.playable_trajectories[2].bundle.run_request.operative_plan.pause_response = "hold"; },
   value => { value.playable_trajectories[2].bundle.event_stream.events[3].claim = "prefix tampered"; },
   value => { value.playable_trajectories[0].bundle.evidence.verification = "unverified"; },
+  value => { delete value.playable_trajectories[0].bundle.replay.agent_turns; },
 ]) {
   const candidate = structuredClone(generated);
   mutate(candidate);
