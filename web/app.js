@@ -457,7 +457,8 @@ document.addEventListener("keydown", event => {
   const detail = document.querySelector("#operative-detail");
   if (!detail || detail.hidden) return;
   detail.hidden = true;
-  document.querySelector('#trajectory-tabs [aria-selected="true"]')?.focus();
+  // 復帰先は進行中の作戦操作。旧UIの #trajectory-tabs は存在せず、focus が body へ落ちていた。
+  document.querySelector("#turn-controls button:not([disabled])")?.focus();
 });
 async function load() {
   let response;
