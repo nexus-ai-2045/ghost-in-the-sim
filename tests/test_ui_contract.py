@@ -200,9 +200,13 @@ class DemoUiContractTest(unittest.TestCase):
         """
         script = (ROOT / "web/app.js").read_text(encoding="utf-8")
         index = (ROOT / "web/index.html").read_text(encoding="utf-8")
-        declared = set(re.findall(r'id="([A-Za-z0-9_-]+)"', index))
-        created = set(re.findall(r'\.id = "([A-Za-z0-9_-]+)"', script))
-        referenced = set(re.findall(r"""querySelector(?:All)?\(\s*['"`]#([A-Za-z0-9_-]+)""", script))
+        # data-id="..." などを id と誤認しないよう、直前が識別子文字でない id= だけを拾う
+        declared = set(re.findall(r"""(?<![\w-])id=["']([A-Za-z0-9_-]+)["']""", index))
+        created = set(re.findall(r"""\.id\s*=\s*['"`]([A-Za-z0-9_-]+)""", script))
+        # セレクタ文字列の先頭だけでなく中の #id もすべて拾い、getElementById も対象にする
+        selectors = re.findall(r"""(?:querySelector(?:All)?|closest|matches)\(\s*(['"`])(.*?)\1""", script)
+        referenced = {m for _, sel in selectors for m in re.findall(r"#([A-Za-z0-9_-]+)", sel)}
+        referenced |= set(re.findall(r"""getElementById\(\s*['"`]([A-Za-z0-9_-]+)""", script))
         missing = sorted(referenced - declared - created)
         self.assertEqual(missing, [], f"app.js references ids that do not exist: {missing}")
 
