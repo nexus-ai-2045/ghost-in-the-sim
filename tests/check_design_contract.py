@@ -71,6 +71,16 @@ def _validate_artifact_registry(document: str) -> None:
         raise ValueError("artifact canonical_state must be exactly one ADR-012 state")
 
 
+def _case_state_summary(rows: list[dict[str, str]]) -> str:
+    # 事件ごとの状態から要約文を導出する。状態が前進しても要約が古いままなら一致しなくなる。
+    head, rest = rows[0]["状態"], rows[1:]
+    rest_states = {row["状態"] for row in rest}
+    if len(rest_states) == 1:
+        return f"鏡潮事案は{head}、残り{len(rest)}事件は{next(iter(rest_states))}"
+    listed = "、".join(f"{row['事件／コード'].split('／')[0]}は{row['状態']}" for row in rest)
+    return f"鏡潮事案は{head}、{listed}"
+
+
 def _validate_post_submission_sync(
     cases: str,
     roadmap: str,
@@ -93,9 +103,17 @@ def _validate_post_submission_sync(
         if CASE_LIFECYCLE_STATES.index(state) < CASE_LIFECYCLE_STATES.index(minimum):
             raise ValueError(f"case lifecycle regressed below {minimum}: {row['事件／コード']}")
 
+    summary = _case_state_summary(rows)
+    rest_states = {row["状態"] for row in rows[1:]}
+    prose_states = re.findall(rf"残り{len(rows) - 1}件は[^。]*?`([a-z]+)`", cases)
+    if len(rest_states) == 1:
+        if prose_states != [next(iter(rest_states))]:
+            raise ValueError("case catalog prose summary drifted from the case rows")
+    elif prose_states:
+        raise ValueError("case catalog prose still claims a uniform state for the remaining cases")
     exact_contracts = (
-        (roadmap, "状態: `measured`"),
-        (artifacts, "| case-catalog | 10事件の状態正本 | `docs/world/cases.md` | measured | 鏡潮事案はmeasured、残り9事件はconcept。事件ごとの状態は同文書が所有 |"),
+        (roadmap, f"状態: `{rows[0]['状態']}`"),
+        (artifacts, f"| case-catalog | 10事件の状態正本 | `docs/world/cases.md` | measured | {summary}。事件ごとの状態は同文書が所有 |"),
         (public_ready, "| submitted release | `v0.1.2` |"),
         (public_ready, "| submitted commit | `c00183fbd8d79a5df018283b0dcde53ac73790cd` |"),
         (submission_checklist, "`v0.1.2` release済み。tagと`main`は`c00183fbd8d79a5df018283b0dcde53ac73790cd`で一致"),

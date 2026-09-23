@@ -50,6 +50,8 @@ def test_post_submission_sync_rejects_case_regression_and_surface_drift() -> Non
         (3, "鏡潮事案はmeasured、残り9事件はconcept", "全10事件はconcept"),
         (4, "`v0.1.2`", "`v0.1.1`"),
         (5, "`v0.1.2` release済み", "candidate branch検証済み"),
+        # 他事件の前進 (concept -> implemented) で要約だけが古いまま残る drift も拒否する
+        (0, "| 生命継続、汚染範囲、開示、可逆性 | concept |", "| 生命継続、汚染範囲、開示、可逆性 | implemented |"),
     )
     for index, before, after in mutations:
         candidate = documents.copy()
