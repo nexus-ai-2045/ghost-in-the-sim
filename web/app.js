@@ -456,8 +456,16 @@ document.addEventListener("keydown", event => {
   if (event.key !== "Escape") return;
   const detail = document.querySelector("#operative-detail");
   if (!detail || detail.hidden) return;
+  // 詳細表示の中には focus できる要素が無いので、閉じても focus は通常その場に残る。
+  // 他の場所 (監査ビュー等) で押された Escape では focus を動かさず、失われた時だけ作戦操作へ戻す。
+  // 戻り先は他の操作と同じく「次のターン」を優先する (「前のターン」だと Enter でターンが戻る)。
+  const active = document.activeElement;
+  const focusLost = !active || active === document.body || detail.contains(active);
   detail.hidden = true;
-  document.querySelector('#trajectory-tabs [aria-selected="true"]')?.focus();
+  if (focusLost) {
+    (document.querySelector("#next-turn:not([disabled])")
+      ?? document.querySelector("#turn-controls button:not([disabled])"))?.focus();
+  }
 });
 async function load() {
   let response;

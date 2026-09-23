@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 import subprocess
 import unittest
@@ -191,6 +192,23 @@ class DemoUiContractTest(unittest.TestCase):
             [item["trajectory_id"] for item in payload["playable_trajectories"]],
             ["hospital-joint-hold", "port-joint-hold", "hospital-joint-proceed", "hospital-single-proceed"],
         )
+
+    def test_every_id_selector_in_app_resolves_to_markup(self) -> None:
+        """app.js が触る #id は index.html に実在するか、app.js 自身が生成したものに限る。
+
+        旧UIの残骸 `#trajectory-tabs` を掴んだまま focus 復帰が no-op になっていた退行を防ぐ。
+        """
+        script = (ROOT / "web/app.js").read_text(encoding="utf-8")
+        index = (ROOT / "web/index.html").read_text(encoding="utf-8")
+        # data-id="..." などを id と誤認しないよう、直前が識別子文字でない id= だけを拾う
+        declared = set(re.findall(r"""(?<![\w-])id=["']([A-Za-z0-9_-]+)["']""", index))
+        created = set(re.findall(r"""\.id\s*=\s*['"`]([A-Za-z0-9_-]+)""", script))
+        # セレクタ文字列の先頭だけでなく中の #id もすべて拾い、getElementById も対象にする
+        selectors = re.findall(r"""(?:querySelector(?:All)?|closest|matches)\(\s*(['"`])(.*?)\1""", script)
+        referenced = {m for _, sel in selectors for m in re.findall(r"#([A-Za-z0-9_-]+)", sel)}
+        referenced |= set(re.findall(r"""getElementById\(\s*['"`]([A-Za-z0-9_-]+)""", script))
+        missing = sorted(referenced - declared - created)
+        self.assertEqual(missing, [], f"app.js references ids that do not exist: {missing}")
 
     def test_every_playable_action_has_player_facing_copy(self) -> None:
         payload = json.loads((ROOT / "web/data/comparison.json").read_text(encoding="utf-8"))
