@@ -21,6 +21,20 @@ CANONICAL_LIFECYCLE_STATES = {
     "publication-reviewed",
 }
 
+CASE_LIFECYCLE_STATES = ("concept", "contracted", "implemented", "measured")
+CASE_MINIMUM_STATES = {
+    "鏡潮事案／PROTEUS": "measured",
+    "白い病棟／ASCLEPIUS": "concept",
+    "借りた顔／JANUS": "concept",
+    "沈黙の委任／OSIRIS": "concept",
+    "深淵合唱／DAGON": "concept",
+    "幽霊埠頭／CHARON": "concept",
+    "三叉戟失効／PROMETHEUS": "concept",
+    "港なき身体／AVATARA": "concept",
+    "暗転八分／AMATERASU": "concept",
+    "御影不在／ORPHEUS": "concept",
+}
+
 
 def _section(document: str, heading: str) -> str:
     marker = f"## {heading}"
@@ -55,6 +69,62 @@ def _validate_artifact_registry(document: str) -> None:
     invalid = [row for row in rows if row["canonical_state"] not in CANONICAL_LIFECYCLE_STATES]
     if invalid:
         raise ValueError("artifact canonical_state must be exactly one ADR-012 state")
+
+
+def _case_state_summary(rows: list[dict[str, str]]) -> str:
+    # 事件ごとの状態から要約文を導出する。状態が前進しても要約が古いままなら一致しなくなる。
+    head, rest = rows[0]["状態"], rows[1:]
+    rest_states = {row["状態"] for row in rest}
+    if len(rest_states) == 1:
+        return f"鏡潮事案は{head}、残り{len(rest)}事件は{next(iter(rest_states))}"
+    listed = "、".join(f"{row['事件／コード'].split('／')[0]}は{row['状態']}" for row in rest)
+    return f"鏡潮事案は{head}、{listed}"
+
+
+def _validate_post_submission_sync(
+    cases: str,
+    roadmap: str,
+    open_questions: str,
+    artifacts: str,
+    public_ready: str,
+    submission_checklist: str,
+) -> None:
+    rows = _table_rows(cases, ("#", "事件／コード", "導入", "不可逆な問い", "主なシミュレーション軸", "状態"))
+    if [row["#"] for row in rows] != [str(index) for index in range(1, 11)]:
+        raise ValueError("case catalog must contain ordered identifiers 1..10 exactly once")
+    names = [row["事件／コード"] for row in rows]
+    if names != list(CASE_MINIMUM_STATES):
+        raise ValueError("case catalog names or order drifted from the canonical ten cases")
+    for row in rows:
+        state = row["状態"]
+        if state not in CASE_LIFECYCLE_STATES:
+            raise ValueError("case state must be exactly one ordered lifecycle state")
+        minimum = CASE_MINIMUM_STATES[row["事件／コード"]]
+        if CASE_LIFECYCLE_STATES.index(state) < CASE_LIFECYCLE_STATES.index(minimum):
+            raise ValueError(f"case lifecycle regressed below {minimum}: {row['事件／コード']}")
+
+    summary = _case_state_summary(rows)
+    rest_states = {row["状態"] for row in rows[1:]}
+    prose_states = re.findall(rf"残り{len(rows) - 1}件は[^。]*?`([a-z]+)`", cases)
+    if len(rest_states) == 1:
+        if prose_states != [next(iter(rest_states))]:
+            raise ValueError("case catalog prose summary drifted from the case rows")
+    elif prose_states:
+        raise ValueError("case catalog prose still claims a uniform state for the remaining cases")
+    exact_contracts = (
+        (roadmap, f"状態: `{rows[0]['状態']}`"),
+        (artifacts, f"| case-catalog | 10事件の状態正本 | `docs/world/cases.md` | measured | {summary}。事件ごとの状態は同文書が所有 |"),
+        (public_ready, "| submitted release | `v0.1.2` |"),
+        (public_ready, "| submitted commit | `c00183fbd8d79a5df018283b0dcde53ac73790cd` |"),
+        (submission_checklist, "`v0.1.2` release済み。tagと`main`は`c00183fbd8d79a5df018283b0dcde53ac73790cd`で一致"),
+    )
+    if any(document.count(contract) != 1 for document, contract in exact_contracts):
+        raise ValueError("post-submission status surfaces are inconsistent")
+    if "鏡潮事案のscenario schema" in open_questions:
+        raise ValueError("measured PROTEUS remains listed as an open schema task")
+    for residual in ("Escapeの復帰先", "seed切替時の無警告reset", "mobile実機確認"):
+        if open_questions.count(residual) != 1:
+            raise ValueError(f"post-submission UI residual must occur exactly once: {residual}")
 
 
 def _validate_mvp_completion_sync(
@@ -282,11 +352,22 @@ def main() -> int:
     results_document = (root / "RESULTS.md").read_text(encoding="utf-8")
     artifacts_document = (root / "docs/knowledge/artifacts.md").read_text(encoding="utf-8")
     open_questions_document = (root / "docs/knowledge/open-questions.md").read_text(encoding="utf-8")
+    cases_document = (root / "docs/world/cases.md").read_text(encoding="utf-8")
+    public_ready_document = (root / "PUBLIC_READY.md").read_text(encoding="utf-8")
+    submission_checklist_document = (root / "docs/submission-checklist.md").read_text(encoding="utf-8")
     result_payload = json.loads((root / "web/data/comparison.json").read_text(encoding="utf-8"))
     try:
         _validate_mvp_completion_sync(roadmap, artifacts_document, open_questions_document, result_payload)
+        _validate_post_submission_sync(
+            cases_document,
+            roadmap,
+            open_questions_document,
+            artifacts_document,
+            public_ready_document,
+            submission_checklist_document,
+        )
     except ValueError as error:
-        raise SystemExit(f"design-contract: FAIL\nMVP completion sync error: {error}") from error
+        raise SystemExit(f"design-contract: FAIL\nCanonical status sync error: {error}") from error
     completion_terms = {
         "ai-replica-mvp.md#今日の受入条件": roadmap,
         "失敗runと反証判定を機械可読なresult cardへ出力": roadmap,

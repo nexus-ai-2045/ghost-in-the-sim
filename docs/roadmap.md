@@ -2,7 +2,9 @@
 
 リポジトリゴールは [repository-goal.md](product/repository-goal.md) を正本とする。チェックは実測済みだけに付け、設定採用を実装完了として扱わない。
 
-## 現在地 — 再現可能な比較MVP
+## 現在地 — v0.1.2提出後の継続開発
+
+`v0.1.2`（`c00183fbd8d79a5df018283b0dcde53ac73790cd`）を提出済みベースラインとして保全する。鏡潮事案は `measured`、残り9事件は `concept` であり、次は表示層の人物ユーモアから進める。
 
 今日のMVP完了判定は [AI複製主体MVPの受入条件](architecture/ai-replica-mvp.md#今日の受入条件) を唯一の正本とする。
 Phase 6以降、live provider、mobile実機は次段であり、今日のMVP完了へ混ぜない。
@@ -27,6 +29,8 @@ Phase 6以降、live provider、mobile実機は次段であり、今日のMVP完
 受入条件: 既存seed・3方式比較を維持し、御影が高性能でも注意配分と拒否権によって結果が分岐する。
 
 ## Phase 7 — 鏡潮事案
+
+状態: `measured`
 
 - [x] 事件を型付きscenario manifestへ移す
 - [x] 正本主張、権限失効、分岐人格の異議、生活継続を明示する

@@ -12,7 +12,7 @@
 | setting-bible | 2036年・ポセイドン・制度の物語正本 | `docs/world/setting-bible.md` | accepted-setting | 世界設定の意味を所有 |
 | character-bible | 御影・真壁・班・上層部・対立主体 | `docs/world/characters.md` | accepted-setting | runtime状態へは未接続 |
 | naming-taxonomy | 神話命名体系 | `docs/world/naming-taxonomy.md` | accepted-setting | 一部名称を設定・scenarioへ使用 |
-| case-catalog | 10事件の企画正本 | `docs/world/cases.md` | concept | 鏡潮相当のみ機械的先行実装 |
+| case-catalog | 10事件の状態正本 | `docs/world/cases.md` | measured | 鏡潮事案はmeasured、残り9事件はconcept。事件ごとの状態は同文書が所有 |
 | repository-goal | 完了条件・非ゴール・成果物所有 | `docs/product/repository-goal.md` | contracted | repo全体の完了契約 |
 | operative-contract | 卓越した実働者を状態・行動・評価へ写像する目標契約 | `docs/architecture/operative-contract.md` | contracted | 実装写像は一部 |
 | results-template | 実験結果の記録枠 | `RESULTS.md` | measured | seed 17/42/99・符号反転・actual AI replayを実測 |
