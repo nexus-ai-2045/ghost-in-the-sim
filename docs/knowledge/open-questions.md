@@ -8,7 +8,7 @@
 | 提出用実行環境 | 実装フェーズ | ローカル動作確認 | batch生成とviewer起動をREADMEどおり再現（Windows完了） |
 | 提出後の公開表示レビュー | ねく | `v0.1.2`のREADME・画面・履歴を目視 | `PUBLIC_READY.md` の人間確認待ちを解消 |
 | 名称・配色・HUD・宣伝文の束レビュー | ねく | 次回release・告知前に人間が目視 | `PUBLIC_READY.md` の残務を解消 |
-| Escapeの復帰先 | 実装フェーズ | プレイ画面のfocus喪失時は#21で次ターン操作へ戻すよう解決済み。結果画面の期待遷移を決める | UI contractと回帰testを同期 |
+| Escapeの復帰先 | 実装フェーズ | プレイ画面のfocus喪失時は#21で次ターン操作へ戻すよう解決済み。結果画面では現状`#previous-turn`へ戻る（Enterでターンが戻る）。期待遷移を決める | UI contractと回帰testを同期 |
 | seed切替時の無警告reset | 実装フェーズ | 警告または状態保持の方式を決める | 未保存状態を暗黙破棄しないtestを追加 |
 | mobile実機確認 | ねく | 実端末で主要経路を確認 | 端末・viewport・結果をevidenceへ記録 |
-| 停止要求ターンの到達済み留保の名義 | ねく | pause分岐で到達済みreservationを真壁の台詞に含めるか、記録actor名義で出すかを決める | 決めた表示をnarrative contract testで固定 |
+| 停止要求ターンの留保の表示 | ねく | pause分岐は到達済み・未到達とも留保を真壁の台詞に含める。到達済みは記録actor名義、未到達は未到達表示で出すかを決める | `tests/check_narrative_contract.mjs`の停止要求assertionを決めた表示へ書き換える |

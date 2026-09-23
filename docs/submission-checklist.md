@@ -12,7 +12,7 @@
 
 ## 機械確認済み
 
-- 提出版`v0.1.2`: `154 passed / 1 skipped`。提出後SSOT整合candidate: `155 passed / 1 skipped`
+- 提出版`v0.1.2`: `154 passed / 1 skipped`。提出後SSOT整合candidate: `155 passed / 1 skipped`（#21取り込み後は`156 passed / 1 skipped`）
 - public、design、IP、experience contractがPASS
 - repo-preflight、consistency gate、ai-ratchet-gateがPASS
 - desktopとmobile相当で開始、12ターン、第8ターン停止要求、結果まで完走
