@@ -1,0 +1,13 @@
+{
+  "allow_emails": [
+    "273569186+nexus-ai-2045@users.noreply.github.com",
+    "49699333+dependabot[bot]@users.noreply.github.com"
+  ],
+  "allow_names": [
+    "nexus-ai-2045",
+    "dependabot[bot]"
+  ],
+  "deny_patterns": [],
+  "allow_path_patterns": [],
+  "reject_all_coauthors": true
+}

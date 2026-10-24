@@ -1,0 +1,36 @@
+name: verify
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - codex/**
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic-core:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: Install test runner
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: Verify test helper package imports
+        run: python -c "import tests.test_design_contract_guard, tests.test_ip_boundary"
+      - name: Generate demo comparison
+        run: python -m ghost_in_the_sim.batch_cli --output web/data/comparison.json --actual-ai-evidence-trace fixtures/actual-ai-trace-seed42.json
+      - name: Run regression suite
+        run: python -m pytest -q
+      - name: Verify repository contracts
+        run: |
+          python tests/check_public_boundary.py
+          python tests/check_design_contract.py
+          python tests/check_ip_boundary.py
+          python -m compileall -q src
