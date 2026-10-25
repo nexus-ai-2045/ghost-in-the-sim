@@ -163,8 +163,6 @@ py -3.13 -m ghost_in_the_sim.batch_cli --output web/data/comparison.json --actua
 py -3.13 scripts/serve_demo.py
 ```
 
-大きい生成ファイルはGitに含めないため、テストやデモを実行する前に上の生成コマンドを実行します。
-
 このコマンドは正本 `web/data/comparison.json` を再現するもので、[RESULTS.md](RESULTS.md) の「再現」節と同一です（テストが一致を検査します）。比較本体は3seedともrule providerで条件を揃え、fixtureに保存した「この開発セッションでAIが生成した9判断と来歴」は独立replay証拠として同じartifactへ記録します。ブラウザで `http://127.0.0.1:8045/` を開くと、3方式の指標と12ターンのイベントを比較できます。
 
 `--actual-ai-trace` はAI判断を比較条件そのものへ混ぜる実験用オプションで、正本comparison.jsonの生成には使いません。traceが覆わないseedを要求するとCLIはfallbackへ黙って落とさずエラーで停止します。いずれの経路も外部モデルAPIをライブ呼び出す機能ではありません。actionの影響は固定・有界で、自由文をコードや命令として実行しません。

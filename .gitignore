@@ -25,6 +25,3 @@ __pycache__/
 .pytest-review/
 .pytest-tmp-*/
 artifacts/
-
-# Reproducible large demo output
-/web/data/comparison.json
