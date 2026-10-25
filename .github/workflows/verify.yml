@@ -2,10 +2,10 @@ name: verify
 
 on:
   pull_request:
+  # PR の上では pull_request で走る。push は main だけにして、作業枝の二重実行をやめる。
   push:
     branches:
       - main
-      - codex/**
 
 permissions:
   contents: read

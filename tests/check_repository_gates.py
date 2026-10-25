@@ -21,7 +21,7 @@ def load_verifier():
 
 
 def main() -> int:
-    workflow = (ROOT / ".github/workflows/repository-contract-trusted.yml").read_text(encoding="utf-8")
+    workflow = (ROOT / ".github/workflows/repository-contract.yml").read_text(encoding="utf-8")
     required_fragments = (
         "pull_request_target:",
         "contents: read",
@@ -36,6 +36,8 @@ def main() -> int:
         "--base-root",
         "--candidate-root",
         "advisory",
+        "if: github.event_name == 'pull_request'\n",
+        "if: github.event_name == 'pull_request_target' || github.event_name == 'workflow_dispatch'",
     )
     missing = [fragment for fragment in required_fragments if fragment not in workflow]
     if missing:

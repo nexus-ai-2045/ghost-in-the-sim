@@ -9,7 +9,6 @@ from pathlib import Path
 
 PROTECTED_GATE_PATHS = (
     Path(".github/workflows/repository-contract.yml"),
-    Path(".github/workflows/repository-contract-trusted.yml"),
     Path(".repo-preflight-consistency.json"),
     Path("scripts/check_repository_contract.py"),
 )

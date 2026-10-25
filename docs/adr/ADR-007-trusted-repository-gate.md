@@ -11,9 +11,9 @@
 
 ## Decision
 
-1. 候補側`repository-contract.yml`は補助検査として残す。
-2. `repository-contract-trusted.yml`はread-only権限でbaseと候補を別ディレクトリへ取得し、候補コードを実行しない。
-3. verifier、両workflow、consistency設定はbaseとbyte単位で一致する場合だけ通常PRとして受け入れる。変更は別のbootstrap PRとして人間レビューする。
+1. 候補側の補助検査（`repository-contract.yml`の`repository-contract` job、`pull_request`だけで走る）は残す。
+2. 信頼済み監査（同じファイルの`trusted-contract` job、`pull_request_target`と`workflow_dispatch`だけで走る）はread-only権限でbaseと候補を別ディレクトリへ取得し、候補コードを実行しない。
+3. verifier、workflow、consistency設定はbaseとbyte単位で一致する場合だけ通常PRとして受け入れる。変更は別のbootstrap PRとして人間レビューする。
 4. repo-preflightとai-ratchet-gateはbase側workflowに固定したrevision・digestから実行し、候補treeをデータとして検査する。
    repo-preflightの差分基準には生SHAを直接渡さず、照合済みbase SHAを候補clone内の専用remote-tracking refへ固定して渡す。
 5. trusted runは**advisory**であり、required check、merge許可、公開承認を意味しない。
@@ -23,3 +23,7 @@
 - このADRを含む初回導入は、base側workflowがまだないため人間レビューが必須になる。
 - 導入後の通常PRは、自身のゲートを置換して通過できない。
 - ゲート更新は意図的に別PRへ分離されるため手間は増えるが、検査対象と検査器の自己承認を防げる。
+
+## 追記（2026-10-25）
+
+候補側と信頼済み側の2本のworkflowを`repository-contract.yml`の1本にまとめた。job・step・契機・権限は統合前と同じで、jobごとに`event_name`で走る契機を分けている。`pull_request_target`では従来どおりbase側のファイルが使われ、候補のコードは実行しない。統合したworkflowは引き続き保護ファイルに含まれる。
