@@ -104,8 +104,8 @@ jobs:
         run: |
           set -Eeuo pipefail
           curl --fail --location --silent --show-error \
-            --output /tmp/ai_ratchet_gate-0.1.1-py3-none-any.whl \
-            https://github.com/nexus-ai-2045/ai-ratchet-gate/releases/download/v0.1.1/ai_ratchet_gate-0.1.1-py3-none-any.whl
-          echo "b3f22ab772699d57906326e42189e0ab7a0ee9e33dcad55a90909ece35106cd7  /tmp/ai_ratchet_gate-0.1.1-py3-none-any.whl" | sha256sum --check --strict
-          python -m pip install --disable-pip-version-check --no-deps /tmp/ai_ratchet_gate-0.1.1-py3-none-any.whl
+            --output /tmp/ai_ratchet_gate-0.2.0-py3-none-any.whl \
+            https://github.com/nexus-ai-2045/ai-ratchet-gate/releases/download/v0.2.0/ai_ratchet_gate-0.2.0-py3-none-any.whl
+          echo "95ebac0afbf91e1d4b3634b011680eeae58a85dc32e801b3bcbb7cfc41a0d4a8  /tmp/ai_ratchet_gate-0.2.0-py3-none-any.whl" | sha256sum --check --strict
+          python -m pip install --disable-pip-version-check --no-deps /tmp/ai_ratchet_gate-0.2.0-py3-none-any.whl
           ai-ratchet-gate --repo "$GITHUB_WORKSPACE/candidate"
