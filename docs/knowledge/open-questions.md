@@ -12,3 +12,4 @@
 | seed切替時の無警告reset | 実装フェーズ | 警告または状態保持の方式を決める | 未保存状態を暗黙破棄しないtestを追加 |
 | mobile実機確認 | ねく | 実端末で主要経路を確認 | 端末・viewport・結果をevidenceへ記録 |
 | 停止要求ターンの留保の表示 | ねく | pause分岐は到達済み・未到達とも留保を真壁の台詞に含める。到達済みは記録actor名義、未到達は未到達表示で出すかを決める | `tests/check_narrative_contract.mjs`の停止要求assertionを決めた表示へ書き換える |
+| 対比較（A↔B・B↔C）の実装 | 実装フェーズ | `docs/architecture/evaluation.md` の `connection_load` と対比較の機械判定をengine側に作るか決める（旧枝の定義は回収できず、コードは未移行） | run identityと機械判定を設計文書に合わせ、回帰testを追加 |
