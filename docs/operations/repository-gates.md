@@ -7,7 +7,7 @@
 | 資産 | このrepoでの役割 | 導入状態 |
 |---|---|---|
 | `repo-preflight` | PR前のsecret・個人path・README／docs／変更連鎖の確認 | consistency設定は`shadow`、候補側補助workflowとbase側trusted workflowで実行 |
-| `ai-ratchet-gate` | trackedかつignoredの新規矛盾を停止 | baseline済み、PR workflowで再検証 |
+| `ai-ratchet-gate` | trackedかつignoredの新規矛盾を停止 | baseline済み、PR workflowで`v0.2.0`のRelease wheel（SHA-256固定）により再検証 |
 | `github-ops-skills` | private PRの事前確認、readback、レビューとmergeを分離 | 運用手順として使用 |
 | `worktree-lifecycle-control` | branchごとの隔離、他の作業中変更の保護 | worktree運用として使用 |
 | `engineering-brain` | 原典・設計・結果・未解決事項を分離した知識索引 | `docs/knowledge/`へ反映 |
