@@ -41,3 +41,7 @@ trusted workflowが差分基準を渡す際は、イベントで確定したbase
 `verify.yml` の `deterministic-core` jobは、`src` layoutのpackageをpytestだけでなく設計・公開・IPの各検証スクリプトからも同じ条件でimportできるよう、job全体へ `PYTHONPATH=src` を設定する。検証stepごとにruntime設定を重複させず、新しいPython gateを追加したときも同じpackage境界を継承させる。
 
 このruntime契約はローカル検証でも再現し、`PYTHONPATH=src python -c "import tests.test_design_contract_guard, tests.test_ip_boundary"`、`PYTHONPATH=src python tests/check_design_contract.py`、全pytestを実行する。`tests` は明示packageとして補助moduleを `tests.<module>` から参照し、pytestの収集時path注入やOS固有の区切り文字へ依存しない。CIだけでimport経路を特別扱いせず、Linux runnerとWindows worktreeの環境差を検知可能に保つ。
+
+## repo-preflightの固定先
+
+`repo-preflight` は全workflowと `.repo-preflight-consistency.json` の `$schema` で、同一の40桁commit SHA（v0.12.0）に固定する。固定先は公開repoから取得でき、`v*` タグから辿れるcommitに限る。`base-guard.yml` が取得可否とタグ到達性を検査するため、取得できないSHAを残すとCIが止まる。固定先を更新するときは、`preflight.yml`、`base-guard.yml`、`repository-contract.yml`、`repository-contract-trusted.yml`、`.repo-preflight-consistency.json` を同じPRで揃え、bootstrap扱いの人間レビューを受ける。
