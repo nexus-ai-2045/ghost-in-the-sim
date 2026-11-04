@@ -78,8 +78,8 @@ jobs:
         run: |
           set -Eeuo pipefail
           git clone --no-checkout https://github.com/nexus-ai-2045/repo-preflight.git "$RUNNER_TEMP/repo-preflight"
-          git -C "$RUNNER_TEMP/repo-preflight" checkout --detach b63a0afbda4eaa1ca7970355c41bf6fd73a52a32
-          test "$(git -C "$RUNNER_TEMP/repo-preflight" rev-parse HEAD)" = "b63a0afbda4eaa1ca7970355c41bf6fd73a52a32"
+          git -C "$RUNNER_TEMP/repo-preflight" checkout --detach 5f1fde32b05b1b538650e547f0391dfd91d3276f
+          test "$(git -C "$RUNNER_TEMP/repo-preflight" rev-parse HEAD)" = "5f1fde32b05b1b538650e547f0391dfd91d3276f"
 
       - name: 信頼済み検査器で候補のrepo契約を確認
         env:
