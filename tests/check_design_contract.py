@@ -231,7 +231,7 @@ def main() -> int:
     except ValueError as error:
         raise SystemExit(f"design-contract: FAIL\nREADME actor contract error: {error}") from error
     review_document = (root / "docs/pr-self-review.md").read_text(encoding="utf-8")
-    if "generated_by: <非公開リポ> scripts/export_pr_self_review.py" not in review_document:
+    if "generated_by: pr-review-rule-exporter scripts/export_pr_self_review.py" not in review_document:
         raise SystemExit("design-contract: FAIL\nPRセルフレビューの生成元が不明です")
     version = re.search(r"\| rules_version \| `([0-9a-f]{16})` \|", review_document)
     if version is None:
