@@ -7,7 +7,7 @@
 | 資産 | このrepoでの役割 | 導入状態 |
 |---|---|---|
 | `repo-preflight` | PR前のsecret・個人path・README／docs／変更連鎖の確認 | consistency設定は`shadow`、候補側補助workflowとbase側trusted workflowで実行 |
-| `ai-ratchet-gate` | trackedかつignoredの新規矛盾を停止 | baseline済み、PR workflowで再検証 |
+| `ai-ratchet-gate` | trackedかつignoredの新規矛盾を停止 | baseline済み、PR workflowで`v0.2.0`のRelease wheel（SHA-256固定）により再検証 |
 | `github-ops-skills` | private PRの事前確認、readback、レビューとmergeを分離 | 運用手順として使用 |
 | `worktree-lifecycle-control` | branchごとの隔離、他の作業中変更の保護 | worktree運用として使用 |
 | `engineering-brain` | 原典・設計・結果・未解決事項を分離した知識索引 | `docs/knowledge/`へ反映 |
@@ -53,3 +53,5 @@ trusted workflowが差分基準を渡す際は、イベントで確定したbase
 補助workflowは、operator用の `readiness_scan --intent open_pr` から、既存のCI入口 `preflight_ratchet.py` と固定版同梱の公開名義一覧へ切り替える。候補headとイベントbaseをSHAで固定し、baselineの信頼基準はイベントbaseとする。consistencyの変更比較だけは、そのbaseとauthored headの一意なmerge-baseを使う。mainが分岐後に進んだ場合も受け入れ、baselineを古い分岐点へ戻さない。runnerの参照はこの二つの専用remote refへ限定する。ratchetのbaseline拡大とtrusted checkerの変更は行わない。
 
 保護workflow自体を変更するPRは旧baseのadvisory監査が拒否する。checkerやbaselineを変えず、本人のbootstrapレビューで採用を判断する。統合後は既存workflow_dispatchで同じPRを再検査し、新しい信頼済みbaseから境界とCIの成功を読戻す。
+
+配布物の404を解消するため、既存PR #1のURL・wheel名・SHA-256固定の修正を取り込む。`v0.2.0`の公開Release assetのdigestを照合し、取得と実行を確認する。
