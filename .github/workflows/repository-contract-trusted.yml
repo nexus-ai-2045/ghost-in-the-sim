@@ -63,6 +63,8 @@ jobs:
         working-directory: candidate
         run: |
           set -Eeuo pipefail
+          [[ "$EXPECTED_HEAD" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
           test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
           git cat-file -e "$BASE_SHA^{commit}"
 
@@ -89,13 +91,24 @@ jobs:
           git -C "$GITHUB_WORKSPACE/candidate" update-ref \
             refs/remotes/origin/trusted-base "$BASE_SHA"
           test "$(git -C "$GITHUB_WORKSPACE/candidate" rev-parse refs/remotes/origin/trusted-base)" = "$BASE_SHA"
-          python "$RUNNER_TEMP/repo-preflight/scripts/readiness_scan.py" \
+          comparison_sha="$(git -C "$GITHUB_WORKSPACE/candidate" merge-base --all refs/remotes/origin/trusted-base HEAD)"
+          [[ "$comparison_sha" =~ ^[0-9a-f]{40}$ ]]
+          git -C "$GITHUB_WORKSPACE/candidate" update-ref refs/remotes/origin/trusted-comparison "$comparison_sha"
+          test "$(git -C "$GITHUB_WORKSPACE/candidate" rev-parse refs/remotes/origin/trusted-comparison)" = "$comparison_sha"
+          git -C "$GITHUB_WORKSPACE/candidate" checkout -q --detach
+          git -C "$GITHUB_WORKSPACE/candidate" for-each-ref --format='%(refname)' refs/remotes refs/tags refs/heads | while IFS= read -r ref; do
+            if [ "$ref" != refs/remotes/origin/trusted-base ] && [ "$ref" != refs/remotes/origin/trusted-comparison ]; then git -C "$GITHUB_WORKSPACE/candidate" update-ref --no-deref -d "$ref"; fi
+          done
+          test "$(git -C "$GITHUB_WORKSPACE/candidate" for-each-ref --sort=refname --format='%(refname)')" = "$(printf '%s\n' refs/remotes/origin/trusted-base refs/remotes/origin/trusted-comparison)"
+          python "$RUNNER_TEMP/repo-preflight/scripts/preflight_ratchet.py" \
             --repo "$GITHUB_WORKSPACE/candidate" \
-            --intent open_pr \
-            --base-ref refs/remotes/origin/trusted-base
+            --baseline .repo-preflight/ratchet-baseline.json \
+            --baseline-base-ref refs/remotes/origin/trusted-base \
+            --consistency-base-ref refs/remotes/origin/trusted-comparison \
+            --allowed-identities "$RUNNER_TEMP/repo-preflight/references/public-commit-identities.json"
           python "$RUNNER_TEMP/repo-preflight/scripts/consistency_gate.py" \
             --repo "$GITHUB_WORKSPACE/candidate" \
-            --base-ref refs/remotes/origin/trusted-base \
+            --base-ref refs/remotes/origin/trusted-comparison \
             --require-config \
             --json
 

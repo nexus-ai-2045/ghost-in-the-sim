@@ -29,10 +29,17 @@ def main() -> int:
         "refs/pull/",
         "persist-credentials: false",
         "scripts/check_repository_contract.py",
-        "--intent open_pr",
+        "preflight_ratchet.py",
+        "--allowed-identities",
+        "public-commit-identities.json",
+        "--baseline-base-ref refs/remotes/origin/trusted-base",
+        "refs/remotes/origin/trusted-comparison",
+        "--consistency-base-ref",
+        "refs/remotes refs/tags refs/heads",
+        "update-ref --no-deref -d",
         "update-ref \\",
         'refs/remotes/origin/trusted-base "$BASE_SHA"',
-        "--base-ref refs/remotes/origin/trusted-base",
+        "--base-ref refs/remotes/origin/trusted-comparison",
         "--base-root",
         "--candidate-root",
         "advisory",
@@ -42,6 +49,13 @@ def main() -> int:
         raise SystemExit("repository-gates: FAIL\n" + "\n".join(missing))
     if '--base-ref "$BASE_SHA"' in workflow:
         raise SystemExit("repository-gates: FAIL\n生SHAをbase-refへ直接渡しています")
+
+    for filename in ("repository-contract.yml", "repository-contract-trusted.yml"):
+        text = (ROOT / ".github/workflows" / filename).read_text(encoding="utf-8")
+        if "readiness_scan.py" in text or "--intent open_pr" in text:
+            raise SystemExit("repository-gates: FAIL\noperator intent CLIをCIから呼んでいます")
+        if "preflight_ratchet.py" not in text or "public-commit-identities.json" not in text:
+            raise SystemExit("repository-gates: FAIL\n固定版のCI入口と公開名義一覧が必要です")
 
     verifier = load_verifier()
     with tempfile.TemporaryDirectory() as temp:
