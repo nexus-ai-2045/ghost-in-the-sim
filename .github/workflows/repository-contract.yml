@@ -16,7 +16,9 @@ jobs:
       - name: Checkout pull request
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -29,28 +31,52 @@ jobs:
           git -C "$RUNNER_TEMP/repo-preflight" checkout --detach 5f1fde32b05b1b538650e547f0391dfd91d3276f
           test "$(git -C "$RUNNER_TEMP/repo-preflight" rev-parse HEAD)" = "5f1fde32b05b1b538650e547f0391dfd91d3276f"
 
+      - name: Bind the pull request comparison
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_HEAD" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          git cat-file -e "$BASE_SHA^{commit}"
+          git update-ref refs/remotes/origin/contract-base "$BASE_SHA"
+          test "$(git rev-parse refs/remotes/origin/contract-base)" = "$BASE_SHA"
+          comparison_sha="$(git merge-base --all refs/remotes/origin/contract-base HEAD)"
+          [[ "$comparison_sha" =~ ^[0-9a-f]{40}$ ]]
+          git update-ref refs/remotes/origin/contract-comparison "$comparison_sha"
+          test "$(git rev-parse refs/remotes/origin/contract-comparison)" = "$comparison_sha"
+
       - name: Check repository preflight
         run: |
-          python "$RUNNER_TEMP/repo-preflight/scripts/readiness_scan.py" \
+          git checkout -q --detach
+          git for-each-ref --format='%(refname)' refs/remotes refs/tags refs/heads | while IFS= read -r ref; do
+            if [ "$ref" != refs/remotes/origin/contract-base ] && [ "$ref" != refs/remotes/origin/contract-comparison ]; then git update-ref --no-deref -d "$ref"; fi
+          done
+          test "$(git for-each-ref --sort=refname --format='%(refname)')" = "$(printf '%s\n' refs/remotes/origin/contract-base refs/remotes/origin/contract-comparison)"
+          python "$RUNNER_TEMP/repo-preflight/scripts/preflight_ratchet.py" \
             --repo . \
-            --intent open_pr \
-            --base-ref "refs/remotes/origin/${{ github.base_ref }}"
+            --baseline .repo-preflight/ratchet-baseline.json \
+            --baseline-base-ref refs/remotes/origin/contract-base \
+            --consistency-base-ref refs/remotes/origin/contract-comparison \
+            --allowed-identities "$RUNNER_TEMP/repo-preflight/references/public-commit-identities.json"
 
       - name: Check declared repository consistency
         run: |
           python "$RUNNER_TEMP/repo-preflight/scripts/consistency_gate.py" \
             --repo . \
-            --base-ref "refs/remotes/origin/${{ github.base_ref }}" \
+            --base-ref refs/remotes/origin/contract-comparison \
             --require-config \
             --json
 
       - name: Install pinned ai-ratchet-gate wheel
         run: |
           curl --fail --location --silent --show-error \
-            --output /tmp/ai_ratchet_gate-0.1.1-py3-none-any.whl \
-            https://github.com/nexus-ai-2045/ai-ratchet-gate/releases/download/v0.1.1/ai_ratchet_gate-0.1.1-py3-none-any.whl
-          echo "b3f22ab772699d57906326e42189e0ab7a0ee9e33dcad55a90909ece35106cd7  /tmp/ai_ratchet_gate-0.1.1-py3-none-any.whl" | sha256sum --check --strict
-          python -m pip install --disable-pip-version-check --no-deps /tmp/ai_ratchet_gate-0.1.1-py3-none-any.whl
+            --output /tmp/ai_ratchet_gate-0.2.0-py3-none-any.whl \
+            https://github.com/nexus-ai-2045/ai-ratchet-gate/releases/download/v0.2.0/ai_ratchet_gate-0.2.0-py3-none-any.whl
+          echo "95ebac0afbf91e1d4b3634b011680eeae58a85dc32e801b3bcbb7cfc41a0d4a8  /tmp/ai_ratchet_gate-0.2.0-py3-none-any.whl" | sha256sum --check --strict
+          python -m pip install --disable-pip-version-check --no-deps /tmp/ai_ratchet_gate-0.2.0-py3-none-any.whl
 
       - name: Check tracked-and-ignored ratchet
         run: ai-ratchet-gate --repo .
