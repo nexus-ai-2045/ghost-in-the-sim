@@ -52,6 +52,8 @@ trusted workflowが差分基準を渡す際は、イベントで確定したbase
 
 補助workflowは、operator用の `readiness_scan --intent open_pr` から、既存のCI入口 `preflight_ratchet.py` と固定版同梱の公開名義一覧へ切り替える。候補headとイベントbaseをSHAで固定し、baselineの信頼基準はイベントbaseとする。consistencyの変更比較だけは、そのbaseとauthored headの一意なmerge-baseを使う。mainが分岐後に進んだ場合も受け入れ、baselineを古い分岐点へ戻さない。runnerの参照はこの二つの専用remote refへ限定する。ratchetのbaseline拡大とtrusted checkerの変更は行わない。
 
-保護workflow自体を変更するPRは旧baseのadvisory監査が拒否する。checkerやbaselineを変えず、本人のbootstrapレビューで採用を判断する。統合後は既存workflow_dispatchで同じPRを再検査し、新しい信頼済みbaseから境界とCIの成功を読戻す。
+保護workflow自体を変更するPRは旧baseのadvisory監査が拒否する。checkerやbaselineを変えず、本人のbootstrapレビューで採用を判断する。統合後は新しいmainをbaseとする通常PRで監査する。マージ済みPRのAPI `base.sha` は統合前の値を保持するため、同じPRの再実行を新baseの検証として使わない。再実行が必要な場合は、その通常PRを指定して既存workflow_dispatchを使う。
 
 配布物の404を解消するため、既存PR #1のURL・wheel名・SHA-256固定の修正を取り込む。`v0.2.0`の公開Release assetのdigestを照合し、取得と実行を確認する。
+
+補助CIの修復は[PR #13](https://github.com/nexus-ai-2045/ghost-in-the-sim/pull/13)で統合した。専用bootstrapで保護ファイル照合の拒否を人間承認し、必須preflight・製品検査・候補側の補助検査が通ったHEADを採用した。新baseからの通常PR監査は、このbootstrapの承認とは別に成功を確認する。
