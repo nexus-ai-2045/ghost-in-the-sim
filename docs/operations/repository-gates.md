@@ -44,4 +44,6 @@ trusted workflowが差分基準を渡す際は、イベントで確定したbase
 
 ## repo-preflightの固定先
 
-`repo-preflight` は全workflowと `.repo-preflight-consistency.json` の `$schema` で、同一の40桁commit SHA（v0.12.0）に固定する。固定先は公開repoから取得でき、`v*` タグから辿れるcommitに限る。`base-guard.yml` が取得可否とタグ到達性を検査するため、取得できないSHAを残すとCIが止まる。固定先を更新するときは、`preflight.yml`、`base-guard.yml`、`repository-contract.yml`、`repository-contract-trusted.yml`、`.repo-preflight-consistency.json` を同じPRで揃え、bootstrap扱いの人間レビューを受ける。
+通常の `preflight.yml` は、base-guard廃止後の統合版 `fe2e90f91615a5e5ed3f9b2b497c99f5786e5847` に固定する。専用base-guard workflowは廃止し、通常のpreflightと製品検査を維持する。
+
+補助の `repository-contract.yml`、`repository-contract-trusted.yml` と `.repo-preflight-consistency.json` は、今回の廃止に実行上の変更を必要としないため、信頼済みbaseと同じ固定版を維持する。この境界の変更は、通常のbase-guard廃止とは分けてbootstrapレビューで扱う。
