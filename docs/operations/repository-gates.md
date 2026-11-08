@@ -38,6 +38,8 @@ trusted workflowが差分基準を渡す際は、イベントで確定したbase
 
 ## deterministic coreのruntime契約
 
+`verify.yml` は `pull_request` と `main` への `push` で実行する。PR作成後の作業branchへのpushではPRの同期イベントで検査し、push起点との重複を避ける。PR未作成の `codex/**` branchへのpushでは製品CIを実行しないため、共有前のローカル検査とPR上の検査を必須の運用経路とする。
+
 `verify.yml` の `deterministic-core` jobは、`src` layoutのpackageをpytestだけでなく設計・公開・IPの各検証スクリプトからも同じ条件でimportできるよう、job全体へ `PYTHONPATH=src` を設定する。検証stepごとにruntime設定を重複させず、新しいPython gateを追加したときも同じpackage境界を継承させる。
 
 このruntime契約はローカル検証でも再現し、`PYTHONPATH=src python -c "import tests.test_design_contract_guard, tests.test_ip_boundary"`、`PYTHONPATH=src python tests/check_design_contract.py`、全pytestを実行する。`tests` は明示packageとして補助moduleを `tests.<module>` から参照し、pytestの収集時path注入やOS固有の区切り文字へ依存しない。CIだけでimport経路を特別扱いせず、Linux runnerとWindows worktreeの環境差を検知可能に保つ。
@@ -57,3 +59,15 @@ trusted workflowが差分基準を渡す際は、イベントで確定したbase
 配布物の404を解消するため、既存PR #1のURL・wheel名・SHA-256固定の修正を取り込む。`v0.2.0`の公開Release assetのdigestを照合し、取得と実行を確認する。
 
 補助CIの修復は[PR #13](https://github.com/nexus-ai-2045/ghost-in-the-sim/pull/13)で統合した。専用bootstrapで保護ファイル照合の拒否を人間承認し、必須preflight・製品検査・候補側の補助検査が通ったHEADを採用した。新baseからの通常PR監査は、このbootstrapの承認とは別に成功を確認する。
+
+## PR #3の採否（2026-11-09）
+
+[原案PR #3](https://github.com/nexus-ai-2045/ghost-in-the-sim/pull/3)のheadは `bab3432a79f406f7ba65b87391448a27047fc801`。現main `0bda6c59101d62c52900e509c05c6f2a3e46b87b` と比較して以下のように扱う。
+
+| 原案 | 採否 | 理由 |
+|---|---|---|
+| 候補側とtrusted側のworkflowを1ファイルに統合 | 見送り | 実行job数は減らず、保護ファイル照合と回帰検査の再編を要する。修復済みの2経路を維持する。 |
+| `verify`の`codex/**` pushを除き、PRとmain pushを維持 | 採用 | PR作成後の重複起動を避ける。PR未作成branchのpush検査は行わないという範囲変更を明示する。 |
+| 統合に付随するchecker・配布検査・ADRの変更 | 見送り | workflow統合を採用しないため不要。既存の保護境界と2経路の検査を維持する。 |
+
+原案の本文・diff・commitはPR履歴とarchiveタグで保全し、代替PRの検査・統合後に原案PRをsupersededとして閉じる。原案の旧operator入口・古い固定先・取得不能なwheelへ戻す変更は採用しない。検査内容、Python 3.13、必須preflightの定義は変えない。
